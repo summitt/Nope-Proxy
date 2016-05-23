@@ -1,0 +1,3 @@
+# MatchStr||ReplaceStr
+# 0x11223344||0x556677
+Test||test
