@@ -14,16 +14,16 @@ This proxy has several features built in.
  
 ###Screenshot of the main options panel.
 DNS Setup and proxy listeners
-![](MiTM%20Options.png)
+![](screenshots/BurpOptions.png)
 
 ###Screenshot of the DNS History.
 
-![](dns%20requests.png)
+![](screenshots/dns%20requests.png)
 
 ###Screenshot of intercepting a netcat server to client connection.
 
-![](Intercepted%20Binary.png)
+![](screenshots/Intercepted%20Binary.png)
 
 ###Screenshot of Modified request in History
 
-![](edited request.png)
+![](screenshots/edited request.png)
