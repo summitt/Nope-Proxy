@@ -1058,35 +1058,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	private void updateInterface(String state){
 
-		Properties config = new Properties();
-		try {
-			//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-			String path = System.getProperty("user.home");
-			File f = new File(path + "/.dnsExtender/dns.properties");
-			if(f.exists()){
-				config.load( new FileInputStream(f));
-			}else{
-				config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-				File p = new File(path + "/.dnsExtender/dns.properties");
-				if(!p.exists())
-					p.mkdir();
-				f.createNewFile();
-			}
+		this.updateProperties("interface", state);
 
-
-			config.setProperty("interface", state);
-
-			//config.store(new FileOutputStream("dns.properties"), null);
-			config.store(new FileOutputStream(f), null);
-
-
-		} catch (FileNotFoundException e1) {
-
-			e1.printStackTrace();
-		} catch (IOException e1) {
-
-			e1.printStackTrace();
-		}
 
 	}
 	private void updateProperties(String key, String value){
@@ -1098,7 +1071,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			if(f.exists()){
 				config.load( new FileInputStream(f));
 			}else{
-				config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
+				//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
 				File p = new File(path + "/.dnsExtender/dns.properties");
 				if(!p.exists())
 					p.mkdir();
@@ -1130,7 +1103,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			if(f.exists()){
 				config.load( new FileInputStream(f));
 			}else{
-				config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
+				//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
 				File p = new File(path + "/.dnsExtender/dns.properties");
 				if(!p.exists())
 					p.mkdir();
@@ -1151,36 +1124,12 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 
 	private void updateAutoStart(boolean state){
-
-		Properties config = new Properties();
-		try {
-			//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-			String path = System.getProperty("user.home");
-			File f = new File(path + "/.dnsExtender/dns.properties");
-			if(f.exists()){
-				config.load( new FileInputStream(f));
-			}else{
-				config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-				File p = new File(path + "/.dnsExtender/dns.properties");
-				if(!p.exists())
-					p.mkdir();
-				f.createNewFile();
-			}
-
-			if(state)
-				config.setProperty("autoStart", "true");
-			else
-				config.setProperty("autoStart", "false");
-			//config.store(new FileOutputStream("dns.properties"), null);
-			config.store(new FileOutputStream(f), null);
-
-		} catch (FileNotFoundException e1) {
-
-			e1.printStackTrace();
-		} catch (IOException e1) {
-
-			e1.printStackTrace();
-		}
+		
+		if(state)
+			this.updateProperties("autoStart", "true");
+		else
+			this.updateProperties("autoStart", "false");
+			
 
 	}
 
