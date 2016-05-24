@@ -10,8 +10,9 @@ public class HibHelper {
 
 	    private static SessionFactory buildSessionFactory() {
 	    	java.util.logging.Logger.getLogger("org.hibernate").setLevel(java.util.logging.Level.OFF);
+	    	java.util.logging.Logger.getLogger("com.mchange").setLevel(java.util.logging.Level.OFF);
 	        try {
-	            // Create the SessionFactory from hibernate.cfg.xml
+	           
 	            return new Configuration().configure().buildSessionFactory();
 	        }
 	        catch (Throwable ex) {

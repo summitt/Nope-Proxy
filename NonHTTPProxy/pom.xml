@@ -62,4 +62,6 @@
   		<version>20041127.091804</version>
   	</dependency>
   </dependencies>
+  <name>NonHttp Burp Extension</name>
+  <url>http://github.com/summitt/</url>
 </project>

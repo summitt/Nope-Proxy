@@ -7,13 +7,22 @@ package burp;
 
 
 import java.awt.Component;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 import javax.swing.SwingUtilities;
 import josh.ui.NonHttpUI;
 import josh.utils.events.DNSConfigListener;
 import josh.utils.events.DNSEvent;
 import josh.utils.events.UDPEventListener;
 import josh.dnsspoof.UDPListener;
-
+import burp.*;
 
 
 
@@ -35,6 +44,8 @@ import josh.dnsspoof.UDPListener;
 	        mCallbacks = callbacks;
 			helpers = mCallbacks.getHelpers();
 			mCallbacks.setExtensionName("NonHTTPMiTM");
+			
+			
 			
 			
 			 // create our UI
