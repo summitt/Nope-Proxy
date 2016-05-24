@@ -1,21 +1,7 @@
 package burp;
 
-//public class BurpExtender {
-	/*
-	 * Note - you need to rename this file to BurpExtender.java before compiling it
-	 */
-
 
 import java.awt.Component;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-
 import javax.swing.SwingUtilities;
 import josh.ui.NonHttpUI;
 import josh.utils.events.DNSConfigListener;
