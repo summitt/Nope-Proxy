@@ -2,6 +2,8 @@ package burp;
 
 
 import java.awt.Component;
+import java.io.UnsupportedEncodingException;
+
 import javax.swing.SwingUtilities;
 import josh.ui.NonHttpUI;
 import josh.utils.events.DNSConfigListener;
