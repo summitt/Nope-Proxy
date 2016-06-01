@@ -159,6 +159,22 @@ public class SendData implements Runnable{
 							
 							//System.out.println(tmpStr);
 							String []kv = line.split("\\|\\|");
+							// Check for direction specific options
+							String option = "both";
+							if(kv.length == 3){
+								option = kv[2];
+							}
+							if(option.equals("both")){
+								//Do nothing and let the rest process
+							}else if(option.equals("c2sOnly") && this.isC2S){
+								//Do nothing and let the rest process
+							}else if(option.equals("s2cOnly") && !this.isC2S){
+								//Do nothing and let the rest process
+							}else{
+								// return to for loop
+								continue;
+							}
+							
 							if(kv[0].startsWith("#")){
 								//do nothing
 							}
@@ -271,14 +287,14 @@ public class SendData implements Runnable{
 	private  List<String> regexMatch(){
 		List<String> tmp = new ArrayList<String>();
 		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "c2smatch.txt";
+		String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
 		File f = new File(file);
 		if(!f.exists()){
-			System.out.println("missing c2smatch.txt");
+			System.out.println("missing nonHTTPmatch.txt");
 			return new ArrayList<String>();
 		}
 		Path p = Paths.get(file);
-		if(isC2S){
+		//if(isC2S){
 			Charset charset = Charset.forName("UTF-8");
 			try (BufferedReader reader = Files.newBufferedReader(p, charset)) {
 			    String line = null;
@@ -288,7 +304,7 @@ public class SendData implements Runnable{
 			} catch (IOException x) {
 			    System.err.format("IOException: %s%n", x);
 			}
-		}
+		//}
 		return tmp;
 	}
 	

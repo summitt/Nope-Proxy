@@ -615,11 +615,17 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			rules = "# '#' will comment out the line\r\n"
 					+ "# Normal String replace rules are in the following format:\r\n"
 					+ "#\r\n"
-					+ "# MatchStr||ReplaceStr\r\n"
+					+ "# * MatchStr||ReplaceStr\r\n"
 					+ "#\r\n"
 					+ "# You can also match hex in the following format:\r\n"
 					+ "#\r\n"
-					+ "# 0x11223344||0x556677";
+					+ "# * 0x11223344||0x556677"
+					+ "\r\n"
+					+ "# You can also specify direction with a 3rd argument:\r\n"
+					+ "# There are 3 options: both, c2sOnly, s2cOnly\r\n"
+					+ "#\r\n"
+					+ "# For example to modify only client to server traffic\r\n"
+					+ "# * 0x11223344||0x556677||c2sOnly";
 					
 		}
 		JPanel panel_4 = new JPanel();
@@ -956,10 +962,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private void updateMatchRules(){
 	
 		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "c2smatch.txt";
+		String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
 		File f = new File(file);
 		if(!f.exists()){
-			Callbacks.printOutput("missing c2smatch.txt.. creating it.");
+			Callbacks.printOutput("missing nonHTTPsmatch.txt.. creating it.");
 			try {
 				f.createNewFile();
 			} catch (IOException e) {
@@ -974,21 +980,27 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		try (BufferedWriter writer = Files.newBufferedWriter(p, charset)) {
 			String rules= this.getTxtRules().getText();
 			String [] rs = rules.split("\n");
-			boolean error=false;
+			String error="";
+			
 			for(String r : rs){
-				if(r.trim().equals("")){
+				if(r.trim().equals("")){ // blank line
 					writer.write("");
-				}else if (r.contains("||")){
+				}else if (r.startsWith("#")){ // a comment
 					writer.write(r + "\n");
+				}else if (r.contains("||") && r.split("\\|\\|").length ==2){ // 2 argument match
+					writer.write(r + "\n");
+				}else if (r.contains("||") && r.split("\\|\\|").length ==3 &&  r.split("\\|\\|")[2].matches("(both|c2sOnly|s2cOnly)")){ // 3 argument match
+					writer.write(r + "\n");
+				}else if (r.contains("||") && r.split("\\|\\|").length ==3){
+					error = "3rd Argument must be 'both', 'c2sOnly', or 's2cOnly'";
 				}else{
-					error = true;
+					error = "Rules Are Not Valid. Format: matchStr||replaceStr or 0x121212||0x131313";
 					
 				}
 			}
-			if(error)
-				errorMsg.setText("Rules Are Not Valid. Format: matchStr||replaceStr or 0x121212||0x131313");
-			else
-				errorMsg.setText("");
+			
+			errorMsg.setText(error);
+			
 		
 			
 		} catch (IOException e) {
@@ -1001,7 +1013,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private String getMatchRules(){
 		String out = "";
 		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "c2smatch.txt";
+		String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
 		File f = new File(file);
 		if(!f.exists()){
 			try {
@@ -1009,7 +1021,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			} catch (IOException e) {
 				Callbacks.printError(e.getMessage());
 			}
-			Callbacks.printOutput("missing c2smatch.txt");
+			Callbacks.printOutput("missing nonHTTPsmatch.txt");
 			return "";
 		}
 		Path p = Paths.get(file);

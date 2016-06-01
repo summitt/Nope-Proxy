@@ -69,7 +69,12 @@ public class LogEntry
     public static void clearTable(){
     	
     	Session s = HibHelper.getSessionFactory().openSession();
+    	s.getTransaction().begin();
     	s.createQuery("delete from Requests").executeUpdate();
+    	//reset index
+    	s.createSQLQuery("update hibernate_sequence set next_val = 1").executeUpdate();
+    	s.getTransaction().commit();
+    	
     	s.close();
     	
     }
