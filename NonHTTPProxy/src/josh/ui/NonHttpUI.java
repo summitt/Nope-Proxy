@@ -1116,7 +1116,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				config.load( new FileInputStream(f));
 			}else{
 				//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-				File p = new File(path + "/.dnsExtender/dns.properties");
+				File p = new File(path + "/.dnsExtender");
 				if(!p.exists())
 					p.mkdir();
 				f.createNewFile();
