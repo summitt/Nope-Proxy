@@ -1,6 +1,7 @@
 package josh.dnsspoof;
 
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,6 +12,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -170,7 +174,7 @@ public class UDPListener implements Runnable{
 				e1.printStackTrace();
 			} 
            
-            this.fireTableEvent(hostname, ip, HostName);
+            
             
            
 
@@ -211,8 +215,27 @@ public class UDPListener implements Runnable{
             dnsResp[i++] = 0;
             dnsResp[i++] = 4;
             
+            List<String>hosts=this.readHosts();
+            Boolean override=false;
+            String returnIP = this.ADDRESS[0] + "." + this.ADDRESS[1] + "." +this.ADDRESS[2] + "." +this.ADDRESS[3];
+            for(String line : hosts){
+            	if(line.contains(hostname) && !line.startsWith("#")){
+            		String hostIP = line.split(" ")[0];
+            		if(hostIP.matches("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}")){
+            			returnIP = hostIP;
+            			String [] hostIPOcts = hostIP.split("\\.");
+            			dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[0]);
+        				dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[1]);
+        				dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[2]);
+        				dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[3]);
+        				override=true;
+        				break;
+            		}
+            	}
+            }
             
-            if(this.ADDRESS != null){
+            
+            if(this.ADDRESS != null && !override){
 				//System.out.println("DNS Request for: " + hostname + " from " + ip + " set to " + this.ADDRESS[0] +"."+this.ADDRESS[1]+"."+this.ADDRESS[2]+"."+this.ADDRESS[3] );
 				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[0]);
 				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[1]);
@@ -241,6 +264,7 @@ public class UDPListener implements Runnable{
          dnsResp[i++] = (byte)168;
          dnsResp[i++] = (byte)1;
          dnsResp[i++] = (byte)132;*/
+            this.fireTableEvent(hostname, ip, HostName, returnIP);
             
             N = i;
             byte [] ans = new byte[N];
@@ -272,6 +296,33 @@ public class UDPListener implements Runnable{
 		
 	}
 	
+	private List<String> readHosts(){
+		
+		String fs =  System.getProperty("file.separator");
+		String file = System.getProperty("user.dir") + fs + "hosts.txt";
+		File f = new File(file);
+		if(!f.exists()){
+			return new ArrayList<String>();
+		}
+		Path p = Paths.get(file);
+		List<String>lines = new ArrayList<String>();
+		BufferedReader reader;
+		try {
+			reader = Files.newBufferedReader(p);
+			
+			
+			String line = "";
+			while ((line = reader.readLine()) != null) {
+				lines.add(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new ArrayList<String>();
+		}
+		
+		return lines;
+	}
+	
 	// Event Stuff here
 		private List<UDPEventListener> _udplisteners = new ArrayList<UDPEventListener>();
 		private List<DNSTableEventListener> _dnslisteners = new ArrayList<DNSTableEventListener>();
@@ -299,11 +350,12 @@ public class UDPListener implements Runnable{
 		
 		
 		
-		private synchronized void fireTableEvent(String Domain, String ClientIP, String HostName)	{
+		private synchronized void fireTableEvent(String Domain, String ClientIP, String HostName, String ResponseIp)	{
 			DNSTableEvent event = new DNSTableEvent(this);
 			event.setClientIP(ClientIP);
 			event.setDomain(Domain);
 			event.setHostName(HostName);
+			event.setResponseIp(ResponseIp);
 			Iterator<DNSTableEventListener> i = _dnslisteners.iterator();
 			while(i.hasNext())	{
 				i.next().NewDomainRequest(event);

@@ -11,6 +11,7 @@ public class DNSTableEvent extends EventObject{
 	private String Domain;
 	private String ClientIP;
 	private String HostName;
+	private String ResponseIp;
 	
 	public String getDomain() {
 		return Domain;
@@ -30,6 +31,13 @@ public class DNSTableEvent extends EventObject{
 	public void setHostName(String HostName) {
 		this.HostName = HostName;
 	}
+	public String getResponseIp() {
+		return ResponseIp;
+	}
+	public void setResponseIp(String responseIp) {
+		ResponseIp = responseIp;
+	}
+	
 	
 	
 

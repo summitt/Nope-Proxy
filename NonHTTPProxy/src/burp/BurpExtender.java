@@ -73,9 +73,12 @@ import burp.*;
 							public void DNSToggle(DNSEvent e) {
 								if(!dnsConfig.isDNSRunning){
 									mCallbacks.printOutput("Starting DNS Server");
-									if(dnsConfig.DNSIP != null && !dnsConfig.equals(""))
+									/*if(dnsConfig.DNSIP != null && !dnsConfig.equals(""))
 										list.ADDRESS = dnsConfig.DNSIP.split("\\.");
-									list.setPort(Integer.parseInt(dnsConfig.getTxtDNSPort().getText()));
+									list.setPort(Integer.parseInt(dnsConfig.getTxtDNSPort().getText()));*/
+									if(e.getAddress()!= null && !e.getAddress().equals(""))
+										list.ADDRESS = e.getAddress().split("\\.");
+									list.setPort(e.getPort());
 									ListThread = new Thread(list);
 									ListThread.start();
 							        mCallbacks.issueAlert("DNSMiTM: DNS Server Started.");
