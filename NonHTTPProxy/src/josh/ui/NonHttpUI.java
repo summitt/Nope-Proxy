@@ -1176,7 +1176,6 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		String file = System.getProperty("user.dir") + fs + "hosts.txt";
 		File f = new File(file);
 		if(!f.exists()){
-			Callbacks.printOutput("missing hosts.txt.. creating it.");
 			return "";
 		}
 		Path p = Paths.get(file);
@@ -1322,7 +1321,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				config.load( new FileInputStream(f));
 			}else{
 				//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-				File p = new File(path + "/.dnsExtender/dns.properties");
+				File p = new File(path + "/.dnsExtender");
 				if(!p.exists())
 					p.mkdir();
 				f.createNewFile();
