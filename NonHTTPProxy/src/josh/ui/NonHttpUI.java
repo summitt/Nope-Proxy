@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -58,11 +59,13 @@ import org.hibernate.Session;
 import josh.dao.HibHelper;
 import josh.dao.UpdateDBTask;
 import josh.nonHttp.GenericMiTMServer;
+import josh.nonHttp.PythonMangler;
 import josh.nonHttp.events.ProxyEvent;
 import josh.nonHttp.events.ProxyEventListener;
 import josh.nonHttp.utils.LogEntry;
 import josh.nonHttp.utils.NonHTTPTableModel;
 import josh.nonHttp.utils.Table;
+import josh.utils.SharedBoolean;
 import josh.utils.events.DNSConfigListener;
 import josh.utils.events.DNSEvent;
 import josh.utils.events.DNSTableEvent;
@@ -139,6 +142,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private Queue<LogEntry> queue = new LinkedList<LogEntry>();
 	private Timer timer;
 	
+	public boolean useDefault= false;
+	
 
 	//GenericMiTMServer mtm;
 
@@ -146,7 +151,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	/**
 	 * Create the frame.
 	 */
-	public NonHttpUI(IBurpExtenderCallbacks Callbacks, IExtensionHelpers Helpers) {
+	public NonHttpUI(IBurpExtenderCallbacks Callbacks, IExtensionHelpers Helpers, SharedBoolean sb) {
 		setLayout(new GridLayout(0, 1, 0, 0));
 		this.Callbacks = Callbacks;
 		this.Helpers = Helpers;
@@ -183,9 +188,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		Options.add(panel_2, gbc_panel_2);
 				GridBagLayout gbl_panel_2 = new GridBagLayout();
 				gbl_panel_2.columnWidths = new int[]{42, 290, 242, 0, 0};
-				gbl_panel_2.rowHeights = new int[]{110, 27, 223, 0};
+				gbl_panel_2.rowHeights = new int[]{110, 27, 0, 223, 0};
 				gbl_panel_2.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
-				gbl_panel_2.rowWeights = new double[]{0.0, 0.0, 1.0, Double.MIN_VALUE};
+				gbl_panel_2.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
 				panel_2.setLayout(gbl_panel_2);
 																
 																		//#####################################################################################
@@ -230,7 +235,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 																		gbc_btnStartDns.gridx = 0;
 																		gbc_btnStartDns.gridy = 0;
 																		panel.add(btnStartDns, gbc_btnStartDns);
-																		JLabel lblDnsIp = new JLabel("DNS IP:");
+																		JLabel lblDnsIp = new JLabel("DNS Response Ip:");
 																		GridBagConstraints gbc_lblDnsIp = new GridBagConstraints();
 																		gbc_lblDnsIp.anchor = GridBagConstraints.EAST;
 																		gbc_lblDnsIp.insets = new Insets(0, 0, 5, 5);
@@ -294,7 +299,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 																						panel.add(IfTxtBox, gbc_IfTxtBox);
 																						IfTxtBox.setColumns(10);
 																		
-																		JLabel lblDnsport = new JLabel("DNSPort:");
+																		JLabel lblDnsport = new JLabel("DNS Listener Port:");
 																		GridBagConstraints gbc_lblDnsport = new GridBagConstraints();
 																		gbc_lblDnsport.anchor = GridBagConstraints.EAST;
 																		gbc_lblDnsport.insets = new Insets(0, 0, 5, 5);
@@ -337,6 +342,20 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 																				gbc_chckbxStartDnsOn.gridy = 2;
 																				panel.add(chckbxStartDnsOn, gbc_chckbxStartDnsOn);
 																		
+																		useDefaultIp = new JCheckBox("Use the above 'DNS Response IP' for all DNS responses excluding host entries below. ");
+																		useDefaultIp.addChangeListener(new ChangeListener() {
+																			public void stateChanged(ChangeEvent arg0) {
+																				sb.setDefault(useDefaultIp.isSelected());
+																			}
+																		});
+																		useDefaultIp.setSelected(true);
+																		GridBagConstraints gbc_useDefaultIp = new GridBagConstraints();
+																		gbc_useDefaultIp.anchor = GridBagConstraints.WEST;
+																		gbc_useDefaultIp.insets = new Insets(0, 0, 5, 5);
+																		gbc_useDefaultIp.gridx = 2;
+																		gbc_useDefaultIp.gridy = 1;
+																		panel_2.add(useDefaultIp, gbc_useDefaultIp);
+																		
 																				
 																				lblCurrentIpAddress.setToolTipText("Double Click to add IP address to DNS Config");
 																				lblCurrentIpAddress.addMouseListener(new MouseAdapter() {
@@ -360,31 +379,39 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 																				gbc_lblCurrentIpAddress.fill = GridBagConstraints.HORIZONTAL;
 																				gbc_lblCurrentIpAddress.insets = new Insets(0, 0, 5, 5);
 																				gbc_lblCurrentIpAddress.gridx = 1;
-																				gbc_lblCurrentIpAddress.gridy = 1;
+																				gbc_lblCurrentIpAddress.gridy = 2;
 																				panel_2.add(lblCurrentIpAddress, gbc_lblCurrentIpAddress);
 																				
 																				
 																						lblCurrentIpAddress.setForeground(Color.BLUE);
 																						lblCurrentIpAddress.setText("Current Ip Address: " + local );
 																		
+																		JLabel lblNewLabel_1 = new JLabel("             Left unchecked the real IP address will be used instead.");
+																		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
+																		gbc_lblNewLabel_1.anchor = GridBagConstraints.WEST;
+																		gbc_lblNewLabel_1.insets = new Insets(0, 0, 5, 5);
+																		gbc_lblNewLabel_1.gridx = 2;
+																		gbc_lblNewLabel_1.gridy = 2;
+																		panel_2.add(lblNewLabel_1, gbc_lblNewLabel_1);
+																		
 																		JTextArea txtIfList = new JTextArea();
 																		GridBagConstraints gbc_txtIfList = new GridBagConstraints();
 																		gbc_txtIfList.insets = new Insets(0, 0, 0, 5);
 																		gbc_txtIfList.fill = GridBagConstraints.BOTH;
 																		gbc_txtIfList.gridx = 1;
-																		gbc_txtIfList.gridy = 2;
+																		gbc_txtIfList.gridy = 3;
 																		panel_2.add(txtIfList, gbc_txtIfList);
 																		txtIfList.setEditable(false);
 																		txtIfList.setWrapStyleWord(true);
 																		txtIfList.setText(getInterfaceList());
 																		
 																		JPanel panel_4 = new JPanel();
-																		panel_4.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "DNS Override", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(59, 59, 59)));
+																		panel_4.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Custom Hosts file", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(59, 59, 59)));
 																		GridBagConstraints gbc_panel_4 = new GridBagConstraints();
 																		gbc_panel_4.insets = new Insets(0, 0, 0, 5);
 																		gbc_panel_4.fill = GridBagConstraints.BOTH;
 																		gbc_panel_4.gridx = 2;
-																		gbc_panel_4.gridy = 2;
+																		gbc_panel_4.gridy = 3;
 																		panel_2.add(panel_4, gbc_panel_4);
 																		GridBagLayout gbl_panel_4 = new GridBagLayout();
 																		gbl_panel_4.columnWidths = new int[]{12, 0};
@@ -448,6 +475,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							mtm.ServerPort = Integer.parseInt((String)tbm.getValueAt(rowid, 3));
 							mtm.CertHostName = (String)tbm.getValueAt(rowid, 4);
 							mtm.ServerAddress = (String) tbm.getValueAt(rowid, 2);
+							mtm.setPythonMange( chckbxEnablePythonMangler.isSelected() );
 							mtm.addEventListener(NonHttpUI.this);
 							if(btnIntercept.getText().endsWith("ON"))
 								mtm.setIntercept(true);
@@ -788,10 +816,166 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// Update the network interface information
 		updateInterfaceInformation();
 		// order the tabs
-		BurpTabs.addTab("Intercept", Intercept);
-		BurpTabs.addTab("History", splitPane);
-		BurpTabs.addTab("DNS Requests", null, DNSRequests, null);
-		BurpTabs.add("Options", Options);
+		BurpTabs.addTab("TCP Intercept", Intercept);
+		BurpTabs.addTab("TCP History", splitPane);
+		JPanel Automation = new JPanel();
+		BurpTabs.addTab("Automation", null, Automation, null);
+		Automation.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Match and Replace Rules", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		GridBagLayout gbl_Automation = new GridBagLayout();
+		gbl_Automation.columnWidths = new int[]{0, 472, 0, 0};
+		gbl_Automation.rowHeights = new int[]{16, 266, 0, 0, 0};
+		gbl_Automation.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_Automation.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		Automation.setLayout(gbl_Automation);
+		
+		errorMsg = new JLabel("");
+		GridBagConstraints gbc_errorMsg = new GridBagConstraints();
+		gbc_errorMsg.fill = GridBagConstraints.BOTH;
+		gbc_errorMsg.insets = new Insets(0, 0, 5, 5);
+		gbc_errorMsg.gridx = 1;
+		gbc_errorMsg.gridy = 0;
+		Automation.add(errorMsg, gbc_errorMsg);
+		errorMsg.setForeground(Color.RED);
+		
+		txtRules = new JTextArea();
+		GridBagConstraints gbc_txtRules = new GridBagConstraints();
+		gbc_txtRules.insets = new Insets(0, 0, 5, 5);
+		gbc_txtRules.fill = GridBagConstraints.BOTH;
+		gbc_txtRules.gridx = 1;
+		gbc_txtRules.gridy = 1;
+		Automation.add(txtRules, gbc_txtRules);
+		txtRules.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				updateMatchRules();
+				
+			}
+		});
+		txtRules.setText(rules);
+		
+		JPanel panel_6 = new JPanel();
+		GridBagConstraints gbc_panel_6 = new GridBagConstraints();
+		gbc_panel_6.insets = new Insets(0, 0, 5, 5);
+		gbc_panel_6.fill = GridBagConstraints.BOTH;
+		gbc_panel_6.gridx = 1;
+		gbc_panel_6.gridy = 2;
+		Automation.add(panel_6, gbc_panel_6);
+		GridBagLayout gbl_panel_6 = new GridBagLayout();
+		gbl_panel_6.columnWidths = new int[]{0, 0, 0, 0, 0, 0};
+		gbl_panel_6.rowHeights = new int[]{0, 0, 0, 0};
+		gbl_panel_6.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel_6.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panel_6.setLayout(gbl_panel_6);
+		
+		chckbxEnablePythonMangler = new JCheckBox("Enable Python Mangler");
+		chckbxEnablePythonMangler.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				for(GenericMiTMServer svr : threads.values()){
+					svr.setPythonMange(chckbxEnablePythonMangler.isSelected());
+				}
+			}
+		});
+		GridBagConstraints gbc_chckbxEnablePythonMangler = new GridBagConstraints();
+		gbc_chckbxEnablePythonMangler.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxEnablePythonMangler.gridx = 0;
+		gbc_chckbxEnablePythonMangler.gridy = 1;
+		panel_6.add(chckbxEnablePythonMangler, gbc_chckbxEnablePythonMangler);
+		
+		JButton btnImportPython = new JButton("Import Python");
+		btnImportPython.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				FileDialog fileDialog = new FileDialog(new Frame(), "Import", FileDialog.LOAD);
+				fileDialog.setFilenameFilter(new FilenameFilter() {
+				    public boolean accept(File dir, String name) {
+				        return name.endsWith(".py");
+				    }
+				});
+				fileDialog.setVisible(true);
+				String filename = fileDialog.getDirectory() + fileDialog.getFile();
+				if(filename != null){
+					Path p = Paths.get(filename);
+					
+					try (BufferedReader reader = Files.newBufferedReader(p)) {
+						String line = "";
+						String code="";
+						
+						while( (line = reader.readLine()) != null ){
+							code += line + "\r\n";
+						}
+						pythonText.setText(code);
+						PythonMangler pm = new PythonMangler();
+						pm.setPyCode(code);
+						
+						
+					}catch(Exception ex){
+						ex.printStackTrace();
+					}
+				}
+			        
+			}
+		});
+		GridBagConstraints gbc_btnImportPython = new GridBagConstraints();
+		gbc_btnImportPython.insets = new Insets(0, 0, 5, 5);
+		gbc_btnImportPython.gridx = 2;
+		gbc_btnImportPython.gridy = 1;
+		panel_6.add(btnImportPython, gbc_btnImportPython);
+		
+		JButton btnExportPython = new JButton("Export Python");
+		btnExportPython.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				FileDialog fileDialog = new FileDialog(new Frame(), "Save", FileDialog.SAVE);
+				fileDialog.setFilenameFilter(new FilenameFilter() {
+				    public boolean accept(File dir, String name) {
+				        return name.endsWith(".py");
+				    }
+				});
+				fileDialog.setVisible(true);
+				
+				String filename = fileDialog.getDirectory() + fileDialog.getFile();
+				if(filename != null){
+					File f = new File(filename);
+					if(!f.exists()){
+						try {
+							f.createNewFile();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					Path p = Paths.get(filename);
+					Charset charset = Charset.forName("UTF-8");
+					try (BufferedWriter writer = Files.newBufferedWriter(p, charset)) {
+						writer.write(pythonText.getText());
+					}catch(Exception ex){
+						ex.printStackTrace();
+					}
+				}
+			}
+		});
+		GridBagConstraints gbc_btnExportPython = new GridBagConstraints();
+		gbc_btnExportPython.insets = new Insets(0, 0, 5, 0);
+		gbc_btnExportPython.gridx = 4;
+		gbc_btnExportPython.gridy = 1;
+		panel_6.add(btnExportPython, gbc_btnExportPython);
+		
+		pythonText = new JTextArea();
+		pythonText.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				PythonMangler pm = new PythonMangler();
+				pm.setPyCode(pythonText.getText());
+			}
+		});
+		PythonMangler pm = new PythonMangler();
+		pythonText.setText(pm.getPyCode());
+		GridBagConstraints gbc_pythonText = new GridBagConstraints();
+		gbc_pythonText.insets = new Insets(0, 0, 0, 5);
+		gbc_pythonText.fill = GridBagConstraints.BOTH;
+		gbc_pythonText.gridx = 1;
+		gbc_pythonText.gridy = 3;
+		Automation.add(pythonText, gbc_pythonText);
+		BurpTabs.addTab("DNS History", null, DNSRequests, null);
+		BurpTabs.add("Server Config", Options);
 		
 		//#####################################################################################
 	    // Mitm Listner tables and controls for  Options tab
@@ -1096,40 +1280,6 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// Add Tabs to main component
 		add(BurpTabs);
 		Callbacks.customizeUiComponent(BurpTabs);
-		JPanel Automation = new JPanel();
-		BurpTabs.addTab("Automation", null, Automation, null);
-		Automation.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Match and Replace Rules", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		GridBagLayout gbl_Automation = new GridBagLayout();
-		gbl_Automation.columnWidths = new int[]{0, 472, 0, 0};
-		gbl_Automation.rowHeights = new int[]{16, 358, 0};
-		gbl_Automation.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
-		gbl_Automation.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
-		Automation.setLayout(gbl_Automation);
-		
-		errorMsg = new JLabel("");
-		GridBagConstraints gbc_errorMsg = new GridBagConstraints();
-		gbc_errorMsg.fill = GridBagConstraints.BOTH;
-		gbc_errorMsg.insets = new Insets(0, 0, 5, 5);
-		gbc_errorMsg.gridx = 1;
-		gbc_errorMsg.gridy = 0;
-		Automation.add(errorMsg, gbc_errorMsg);
-		errorMsg.setForeground(Color.RED);
-		
-		txtRules = new JTextArea();
-		GridBagConstraints gbc_txtRules = new GridBagConstraints();
-		gbc_txtRules.insets = new Insets(0, 0, 0, 5);
-		gbc_txtRules.fill = GridBagConstraints.BOTH;
-		gbc_txtRules.gridx = 1;
-		gbc_txtRules.gridy = 1;
-		Automation.add(txtRules, gbc_txtRules);
-		txtRules.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				updateMatchRules();
-				
-			}
-		});
-		txtRules.setText(rules);
 		
 		//Set DataUpdate Timer
 		timer = new Timer();
@@ -1433,6 +1583,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 //########################################################################################################################################################################
 /// Event Stuff here
 	private List _listeners = new ArrayList();
+	private JCheckBox useDefaultIp;
+	private JTextArea pythonText;
+	private JCheckBox chckbxEnablePythonMangler;
 	
 	public synchronized void addEventListener(DNSConfigListener listener)	{
 		_listeners.add(listener);
@@ -1548,5 +1701,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	public JLabel getLblSelected() {
 		return lblSelected;
+	}
+	public JCheckBox getChckbxUseAboveIp() {
+		return useDefaultIp;
+	}
+	public JTextArea getPythonText() {
+		return pythonText;
+	}
+	public JCheckBox getChckbxEnablePythonMangler() {
+		return chckbxEnablePythonMangler;
 	}
 }

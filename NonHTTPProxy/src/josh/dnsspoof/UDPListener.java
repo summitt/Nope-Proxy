@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Properties;
 
 import burp.IBurpExtenderCallbacks;
+import josh.utils.SharedBoolean;
 import josh.utils.events.DNSEvent;
 import josh.utils.events.DNSTableEvent;
 import josh.utils.events.DNSTableEventListener;
@@ -37,6 +38,7 @@ public class UDPListener implements Runnable{
 	private static int InterfaceNumber=0;
 	private int port=5351;
 	public IBurpExtenderCallbacks Callbacks; 
+	private SharedBoolean sb;
 	
 
 	private static void updateInterface(){
@@ -88,8 +90,10 @@ public class UDPListener implements Runnable{
 		}
 	}
 	
-	public UDPListener(int port){
+	public UDPListener(int port, SharedBoolean sb){
 		this.port = port;
+		this.sb = sb;
+		
 		/*try 
         {
             datagramSocket = new DatagramSocket(port);
@@ -235,13 +239,26 @@ public class UDPListener implements Runnable{
             }
             
             
-            if(this.ADDRESS != null && !override){
+            if(this.ADDRESS != null && !override && sb.getDefault()){
 				//System.out.println("DNS Request for: " + hostname + " from " + ip + " set to " + this.ADDRESS[0] +"."+this.ADDRESS[1]+"."+this.ADDRESS[2]+"."+this.ADDRESS[3] );
 				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[0]);
 				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[1]);
 				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[2]);
 				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[3]);	
 			}else{
+				try {
+					InetAddress address = InetAddress.getByName(hostname);
+					byte[] octs = address.getAddress();
+					dnsResp[i++] = octs[0];
+					dnsResp[i++] = octs[1];
+					dnsResp[i++] = octs[2];
+					dnsResp[i++] = octs[3];
+					returnIP = octs[0] +"." + octs[1] +"." + octs[2] +"." + octs[3];
+					
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 //				NetworkInterface[] devices = JpcapCaptor.getDeviceList();
 //				NetworkInterfaceAddress[] nia = devices[InterfaceNumber].addresses;
 //				InetAddress addr=null;

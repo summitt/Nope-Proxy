@@ -56,6 +56,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener{
 	public final int INTERCEPT_BOTH=0;
 	private int IntercetpDirection=0;
 	private IBurpExtenderCallbacks Callbacks;
+	private boolean MangleWithPython = false;
 	//SendData send;
 	//SendData getD;
 	
@@ -122,6 +123,12 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener{
 			((ProxyEventListener) i.next()).Intercepted(event, isC2S);
 		}
 		
+	}
+	public boolean isPythonOn(){
+		return this.MangleWithPython;
+	}
+	public void setPythonMange(boolean mangle){
+		this.MangleWithPython = mangle;
 	}
 	
 

@@ -33,10 +33,10 @@ public class SendData implements Runnable{
 	public String Name;
 	public boolean killme=false;
 	private GenericMiTMServer SERVER;
-	private boolean isInterceptOn=true;
+	//private boolean isInterceptOn=true;
 	private boolean isC2S;
 	private boolean isSSL;
-	private Date lastaccess;
+	//private Date lastaccess;
 	
 	
 	public SendData(GenericMiTMServer srv, boolean isC2s, boolean isSSL){
@@ -153,45 +153,51 @@ public class SendData implements Runnable{
 						tmp[i]=buffer[i];
 			           	//out.write(buffer[i]);
 					}
-					List<String>mtch = regexMatch();
-					if(mtch != null){
-						for(String line : mtch){
-							
-							//System.out.println(tmpStr);
-							String []kv = line.split("\\|\\|");
-							// Check for direction specific options
-							String option = "both";
-							if(kv.length == 3){
-								option = kv[2];
+					if(SERVER.isPythonOn()){
+						PythonMangler pm = new PythonMangler();
+						tmp = pm.mangle(tmp, isC2S);
+						
+					}else{
+						List<String>mtch = regexMatch();
+						if(mtch != null){
+							for(String line : mtch){
+								
+								//System.out.println(tmpStr);
+								String []kv = line.split("\\|\\|");
+								// Check for direction specific options
+								String option = "both";
+								if(kv.length == 3){
+									option = kv[2];
+								}
+								if(option.equals("both")){
+									//Do nothing and let the rest process
+								}else if(option.equals("c2sOnly") && this.isC2S){
+									//Do nothing and let the rest process
+								}else if(option.equals("s2cOnly") && !this.isC2S){
+									//Do nothing and let the rest process
+								}else{
+									// return to for loop
+									continue;
+								}
+								
+								if(kv[0].startsWith("#")){
+									//do nothing
+								}
+								else if(kv[0].startsWith("0x")){ 
+									byte [] match = new BigInteger(kv[0].replace("0x", ""),16).toByteArray();
+									byte [] replace = new BigInteger(kv[1].replace("0x", ""),16).toByteArray();
+									tmp = this.replace(tmp, match, replace);
+								}else{
+									byte [] match = kv[0].getBytes();
+									byte [] replace = kv[1].getBytes();
+									tmp = this.replace(tmp, match, replace);
+								}
+								
+								/*tmpStr = tmpStr.replace(kv[0], kv[1]);
+								System.out.println(kv[0] + " : " + kv[1] + " : " + tmpStr);
+								tmp = tmpStr.getBytes("UTF-8");*/
+								
 							}
-							if(option.equals("both")){
-								//Do nothing and let the rest process
-							}else if(option.equals("c2sOnly") && this.isC2S){
-								//Do nothing and let the rest process
-							}else if(option.equals("s2cOnly") && !this.isC2S){
-								//Do nothing and let the rest process
-							}else{
-								// return to for loop
-								continue;
-							}
-							
-							if(kv[0].startsWith("#")){
-								//do nothing
-							}
-							else if(kv[0].startsWith("0x")){ 
-								byte [] match = new BigInteger(kv[0].replace("0x", ""),16).toByteArray();
-								byte [] replace = new BigInteger(kv[1].replace("0x", ""),16).toByteArray();
-								tmp = this.replace(tmp, match, replace);
-							}else{
-								byte [] match = kv[0].getBytes();
-								byte [] replace = kv[1].getBytes();
-								tmp = this.replace(tmp, match, replace);
-							}
-							
-							/*tmpStr = tmpStr.replace(kv[0], kv[1]);
-							System.out.println(kv[0] + " : " + kv[1] + " : " + tmpStr);
-							tmp = tmpStr.getBytes("UTF-8");*/
-							
 						}
 					}
 					

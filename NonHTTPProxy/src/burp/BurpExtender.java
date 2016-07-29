@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 
 import javax.swing.SwingUtilities;
 import josh.ui.NonHttpUI;
+import josh.utils.SharedBoolean;
 import josh.utils.events.DNSConfigListener;
 import josh.utils.events.DNSEvent;
 import josh.utils.events.UDPEventListener;
@@ -24,6 +25,7 @@ import burp.*;
 		public IBurpExtenderCallbacks mCallbacks;
 		private IExtensionHelpers helpers;
 		private Thread ListThread = null;
+		private SharedBoolean sb = new SharedBoolean();
 
 
 		@Override
@@ -44,13 +46,13 @@ import burp.*;
 				public void run() {
 						
 						
-					 	dnsConfig = new NonHttpUI(mCallbacks, helpers);
+					 	dnsConfig = new NonHttpUI(mCallbacks, helpers, sb);
 
 						if(dnsConfig.DNSIP != null &&  !dnsConfig.equals("")){
 							list.ADDRESS = dnsConfig.DNSIP.split("\\.");
 						}
 						
-						list= new UDPListener(Integer.parseInt(dnsConfig.getTxtDNSPort().getText()));
+						list= new UDPListener(Integer.parseInt(dnsConfig.getTxtDNSPort().getText()), sb);
 						list.Callbacks = mCallbacks;
 					
 						list.addEventListener(new UDPEventListener(){
@@ -79,6 +81,7 @@ import burp.*;
 									if(e.getAddress()!= null && !e.getAddress().equals(""))
 										list.ADDRESS = e.getAddress().split("\\.");
 									list.setPort(e.getPort());
+									
 									ListThread = new Thread(list);
 									ListThread.start();
 							        mCallbacks.issueAlert("DNSMiTM: DNS Server Started.");
