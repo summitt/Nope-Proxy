@@ -4,6 +4,7 @@ This burp extension adds two new features to BurpSuite.
  2.	A Non-HTTP MiTM Intercepting proxy. This extension allows you to create multiple listening ports that can MiTM server side services. It also uses Burp's CA cert so that if the browser or mobile device is already configured to access SSL/TLS requests using this cert then the encrypted binary protocols will be able to connect without generating errors too. It also provides the ability to automatically match and replace hex or strings as they pass through the proxy or you can use custom python code to manipulate the traffic.
  
 ##DNS Sever Configuration
+![](NonHTTPProxy/screenshots/dns%20config.PNG)
 The DNS server configuration allows control over the most common DNS settings. You can configure it to send all traffic to the same IP address as Burp or you can use a Custom Hosts File to configure only some hosts to be forward to Burp while others can be forwarded to other hosts. 
 
 The DNS server automatically starts with the IP address of the last interface you set in the Interface input box. Changing the interface number will automatically change the IP address. The server will need to be restarted for this change to take effect.
@@ -31,6 +32,7 @@ Once the proxy is started you can intercept it in real time. All your traffic wi
 Clicking on the TCP Intercept Tab will allow to enable and disable Manual Intercepting. This will be very similar to intercepting HTTP traffic with burp. If the data sent is just strings then it’s very simple to just replace text or attempt modification to the request. If the application is sending serialized objects or protobuffs then you will need to switch between Raw and Hex mode to ensure the data is encoded correctly and length checks are correct.
 ##Automated Manipulation of Traffic
 Once you have your ideal payload you can automatically match and replace in the Automation Tab. 
+![](NonHTTPProxy/screenshots/Automation.PNG)
 
 If the ‘Enable Python Manger’ is left uncheck (default) then the Match and Replace Rules are used. It supports both hex, string, and directional replacement. The ‘#’ can be used to comment out a line and rules are updated as soon as you press a single key.
 If you want to replace the string ‘test’ with ‘hacked’ then you could use the following rule:
