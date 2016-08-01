@@ -19,8 +19,11 @@ This proxy has several features built in.
  - Match and replace rules support both hex and string replacement. 
  - Manual Interception binary protocols and change them before sending them back to the server or client. Just like the normal Burp proxy but with binary streams.
  - Python Code can be used instead of the normal Match and Replace Rules for more advancing mangling of requests and responses.
+ - 
 ##Configure the proxies
+
 ![](NonHTTPProxy/screenshots/serverConfig.PNG)
+
 To perform normal intercepting of binary traffic of applications you can set the DNS IP address to the extension’s IP address and then create a Listener Under ‘Server Config’. This requires that you know the hostname and Port the application is trying to connect. You can switch to the ‘DNS History’ Tab to view the DNS queries. This will five you the host name. To find the port you can run lister.py (https://github.com/summitt/lister) and it will list the client IP and ports that are trying to connect to you. You could also run wireshark but lister.py will filter this information for you. 
 
 Once you know the right host name and port you can configure these settings as shown above. If the service is using SSL then you need to export burp’s CA cert to the same folder that Burp is running out of for the extension to find it and generate certs that will pass certificate verification. Then you can check the SSL check box before adding the proxy. 
