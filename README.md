@@ -4,7 +4,7 @@ This burp extension adds two new features to BurpSuite.
  2.	A Non-HTTP MiTM Intercepting proxy. This extension allows you to create multiple listening ports that can MiTM server side services. It also uses Burp's CA cert so that if the browser or mobile device is already configured to access SSL/TLS requests using this cert then the encrypted binary protocols will be able to connect without generating errors too. It also provides the ability to automatically match and replace hex or strings as they pass through the proxy or you can use custom python code to manipulate the traffic.
  
 ##DNS Sever Configuration
-![](NonHTTPProxy/screenshots/dns%20config.PNG)
+![](NonHTTPProxy/screenshots/Dns%20Config.PNG)
 The DNS server configuration allows control over the most common DNS settings. You can configure it to send all traffic to the same IP address as Burp or you can use a Custom Hosts File to configure only some hosts to be forward to Burp while others can be forwarded to other hosts. 
 
 The DNS server automatically starts with the IP address of the last interface you set in the Interface input box. Changing the interface number will automatically change the IP address. The server will need to be restarted for this change to take effect.
