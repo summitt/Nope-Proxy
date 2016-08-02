@@ -213,6 +213,8 @@ public class SendData implements Runnable{
 								tmp=SERVER.interceptc2s.getData();
 							else
 								tmp=SERVER.intercepts2c.getData();
+						}else{
+							NewDataEvent(tmp, this.Name);
 						}
 					}else{
 						NewDataEvent(tmp, this.Name);
