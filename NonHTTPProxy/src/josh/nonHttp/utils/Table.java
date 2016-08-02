@@ -36,6 +36,7 @@ public class Table extends JTable
        
     }
     
+    
     @Override
     public void changeSelection(int row, int col, boolean toggle, boolean extend)
     {
@@ -43,6 +44,7 @@ public class Table extends JTable
     	//System.out.println("Row is: " + row);
     	
     	int r = this.convertRowIndexToModel(row);
+    	
         LogEntry logEntry = log.get(r);
         Requests req = logEntry.getData(logEntry.Index);
         requestViewer.setMessage(req.getData(), true);
@@ -65,26 +67,34 @@ public class Table extends JTable
             TableCellRenderer renderer, int row, int column)
         {
             Component c = super.prepareRenderer(renderer, row, column);
+            
             //c.setBackground(Color.cyan);
             /*Border outside = new MatteBorder(0, 1, 0, 1, Color.gray);
 			Border inside = new EmptyBorder(0, 1, 0, 1);
 			Border highlight = new CompoundBorder(outside, inside);
             JComponent jc = (JComponent)c;*/
+            
             int r = this.convertRowIndexToModel(row);
             if(log.get(r).Direction.contains("**")){
-             	c.setBackground(Color.cyan);  
-            }else if((row%2)==0){
+             	c.setBackground(new Color(0xf1,0xc4,0x0f));  
+            }else if(log.get(r).Direction.contains("Python")){
+            	c.setBackground( new Color(0x2e,0xcc, 0x71));
+	        }else if( log.get(r).Direction.contains("Match")){
+	        	c.setBackground( new Color(149, 165, 166));
+	        }else if((row%2)==0){
             	//c.setBackground(Color.cyan);
-            	c.setBackground(UIManager.getColor("Button.background"));
+	        	c.setBackground(new Color(0xec,0xf0, 0xf1));
             }else
-            	c.setBackground(UIManager.getColor("Button.highlight"));
+            	c.setBackground(new Color(0xbd, 0xc3, 0xc7));
            
             
            
             if(log.get(r).Direction.contains("c2s")){
             	c.setForeground(Color.blue);
             }else
-            	c.setForeground(new Color(0xE4, 0x31, 0x17));
+            	c.setForeground(new Color(192, 57, 43));
+            
+            
             
 
             return c;

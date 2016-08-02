@@ -53,9 +53,10 @@ public class SendData implements Runnable{
 	public synchronized void removeEventListener(ProxyEventListener listener)	{
 		_listeners.remove(listener);
 	}
-	private synchronized void NewDataEvent(byte [] data, String Direction)	{
+	private synchronized void NewDataEvent(byte [] data, byte[] original, String Direction)	{
 		ProxyEvent event = new ProxyEvent(this);
 		event.setData(data);
+		event.setOriginalData(original);
 		event.setDirection(Direction);
 		if(Direction.equals("c2s")){
 			if(isSSL){
@@ -148,6 +149,7 @@ public class SendData implements Runnable{
 					
 					
 					byte[] tmp = new byte[read];
+					byte[] original = tmp;
 					for(int i=0; i< read; i++){
 						//System.out.print((char)buffer[i]);
 						tmp[i]=buffer[i];
@@ -155,11 +157,15 @@ public class SendData implements Runnable{
 					}
 					if(SERVER.isPythonOn()){
 						PythonMangler pm = new PythonMangler();
+						
 						tmp = pm.mangle(tmp, isC2S);
+						if(tmp != original)
+							this.Name = this.Name + " - Updated by Python";
 						
 					}else{
 						List<String>mtch = regexMatch();
 						if(mtch != null){
+							
 							for(String line : mtch){
 								
 								//System.out.println(tmpStr);
@@ -192,7 +198,8 @@ public class SendData implements Runnable{
 									byte [] replace = kv[1].getBytes();
 									tmp = this.replace(tmp, match, replace);
 								}
-								
+								if(tmp != original)
+									this.Name = this.Name + " - Updated by Match And Replace Rules";
 								/*tmpStr = tmpStr.replace(kv[0], kv[1]);
 								System.out.println(kv[0] + " : " + kv[1] + " : " + tmpStr);
 								tmp = tmpStr.getBytes("UTF-8");*/
@@ -214,10 +221,10 @@ public class SendData implements Runnable{
 							else
 								tmp=SERVER.intercepts2c.getData();
 						}else{
-							NewDataEvent(tmp, this.Name);
+							NewDataEvent(tmp, original, this.Name);
 						}
 					}else{
-						NewDataEvent(tmp, this.Name);
+						NewDataEvent(tmp, original, this.Name);
 					}
 					out.write(tmp);
 					

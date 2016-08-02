@@ -562,7 +562,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		splitPane.setBounds(6, 238, 989, 462);
 		logTable = new Table(ntbm);
+		logTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
 		logTable.setBackground(SystemColor.text);
+		
 		JScrollPane logscrollPane = new JScrollPane(logTable);
 		splitPane.setLeftComponent(logscrollPane);
 		
@@ -788,6 +790,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				}
 			}
 		};
+		DnsListTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
 
 		DNSRequests.setViewportView(DnsListTable);
 		
@@ -1616,7 +1619,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	public void DataReceived(ProxyEvent evt) {
 		// Network data to the queue.
 		// timer will process this every 2 seconds and add them to the log.
-		queue.add(new LogEntry(evt.getData(),evt.getData(), evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(), evt.getDstPort(), evt.getDirection()));
+		queue.add(new LogEntry(evt.getData(),evt.getOriginalData(), evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(), evt.getDstPort(), evt.getDirection()));
 
 
 	}
@@ -1648,7 +1651,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				else
 					evt.getMtm().forwardS2CRequest(intbm.requestViewer.getMessage());
 				if(intbm.requestViewer.getMessage() == origReq)
-					queue.add(new LogEntry(intbm.requestViewer.getMessage(), origReq, evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(), evt.getDstPort(), evt.getDirection()+" - Intercepted - Not Changed"));
+					queue.add(new LogEntry(intbm.requestViewer.getMessage(), origReq, evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(), evt.getDstPort(), evt.getDirection()/*+" - Intercepted - Not Changed"*/));
 				else
 					queue.add(new LogEntry(intbm.requestViewer.getMessage(),origReq, evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(), evt.getDstPort(), "** "+evt.getDirection()+" ** - Edited"));
 			

@@ -7,6 +7,7 @@ import josh.nonHttp.GenericMiTMServer;
 @SuppressWarnings("serial")
 public class ProxyEvent extends EventObject {
 	private byte[] Data;
+	private byte[] OriginalData;
 	private String Direction;
 	private int SrcPort;
 	private int DstPort;
@@ -84,6 +85,15 @@ public class ProxyEvent extends EventObject {
 	public void setDstIP(String dstIP) {
 		DstIP = dstIP;
 	}
+
+	public byte[] getOriginalData() {
+		return OriginalData;
+	}
+
+	public void setOriginalData(byte[] originalData) {
+		OriginalData = originalData;
+	}
+	
 	
 	
 	
