@@ -11,12 +11,16 @@ public class ColoredTableCellRenderer extends DefaultTableCellRenderer{
 	
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focused, int row, int column)
 	{
-	    setEnabled(table == null || table.isEnabled()); // see question above
-	
-	    if ((row % 2) == 0)
-	        setBackground(Color.green);
-	    else
-	        setBackground(Color.lightGray);
+	   if(selected){
+		   if (table.isCellSelected(row, column))
+			    setForeground(Color.red);
+			else if (table.isRowSelected(row))
+			    setForeground(Color.green);
+			else if (table.isColumnSelected(column))
+			    setForeground(Color.blue);
+			else
+			    setForeground(Color.black);
+	   }
 	
 	    super.getTableCellRendererComponent(table, value, selected, focused, row, column);
 	

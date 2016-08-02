@@ -62,6 +62,7 @@ import josh.nonHttp.GenericMiTMServer;
 import josh.nonHttp.PythonMangler;
 import josh.nonHttp.events.ProxyEvent;
 import josh.nonHttp.events.ProxyEventListener;
+import josh.nonHttp.utils.ColoredTableCellRenderer;
 import josh.nonHttp.utils.LogEntry;
 import josh.nonHttp.utils.NonHTTPTableModel;
 import josh.nonHttp.utils.Table;
@@ -97,6 +98,7 @@ import java.awt.SystemColor;
 import javax.swing.JPopupMenu;
 import java.awt.Component;
 import java.awt.FileDialog;
+import javax.swing.ListSelectionModel;
 
 
 @SuppressWarnings("serial")
@@ -562,6 +564,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		splitPane.setBounds(6, 238, 989, 462);
 		logTable = new Table(ntbm);
+		//ColoredTableCellRenderer ctcr = new ColoredTableCellRenderer();
+		//logTable.setDefaultRenderer(String.class, ctcr);
+		logTable.setCellSelectionEnabled(true);
+		logTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		logTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
 		logTable.setBackground(SystemColor.text);
 		

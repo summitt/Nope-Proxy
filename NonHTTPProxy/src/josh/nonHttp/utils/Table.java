@@ -36,7 +36,8 @@ public class Table extends JTable
        
     }
     
-    
+ 
+      
     @Override
     public void changeSelection(int row, int col, boolean toggle, boolean extend)
     {
@@ -67,6 +68,7 @@ public class Table extends JTable
             TableCellRenderer renderer, int row, int column)
         {
             Component c = super.prepareRenderer(renderer, row, column);
+            super.isRowSelected(row);
             
             //c.setBackground(Color.cyan);
             /*Border outside = new MatteBorder(0, 1, 0, 1, Color.gray);
@@ -75,7 +77,10 @@ public class Table extends JTable
             JComponent jc = (JComponent)c;*/
             
             int r = this.convertRowIndexToModel(row);
-            if(log.get(r).Direction.contains("**")){
+            if( super.isRowSelected(row)){
+            	//c.setBackground(new Color(41, 128, 185));
+            	c.setBackground(new Color(52, 73, 94));
+            }else if(log.get(r).Direction.contains("**")){
              	c.setBackground(new Color(0xf1,0xc4,0x0f));  
             }else if(log.get(r).Direction.contains("Python")){
             	c.setBackground( new Color(0x2e,0xcc, 0x71));
@@ -86,13 +91,25 @@ public class Table extends JTable
 	        	c.setBackground(new Color(0xec,0xf0, 0xf1));
             }else
             	c.setBackground(new Color(0xbd, 0xc3, 0xc7));
+            
+           
+            
            
             
            
             if(log.get(r).Direction.contains("c2s")){
-            	c.setForeground(Color.blue);
-            }else
-            	c.setForeground(new Color(192, 57, 43));
+            	if(!super.isRowSelected(row))
+            		c.setForeground(Color.blue);
+            	else
+            		c.setForeground(Color.white);
+            }else{
+            	if(!super.isRowSelected(row))
+            		c.setForeground(new Color(192, 57, 43));
+            	else
+            		c.setForeground(new Color(0xff,0xe6,0xe6));
+            		//c.setForeground(new Color(231, 76, 60));
+            	
+            }
             
             
             
