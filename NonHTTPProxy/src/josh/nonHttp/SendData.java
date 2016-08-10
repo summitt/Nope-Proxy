@@ -36,6 +36,7 @@ public class SendData implements Runnable{
 	//private boolean isInterceptOn=true;
 	private boolean isC2S;
 	private boolean isSSL;
+	private PythonMangler pm;
 	//private Date lastaccess;
 	
 	
@@ -156,7 +157,8 @@ public class SendData implements Runnable{
 			           	//out.write(buffer[i]);
 					}
 					if(SERVER.isPythonOn()){
-						PythonMangler pm = new PythonMangler();
+						//if(pm == null)
+						pm = new PythonMangler();
 						
 						tmp = pm.mangle(tmp, isC2S);
 						if(tmp != original)
@@ -215,11 +217,19 @@ public class SendData implements Runnable{
 								(this.Name.equals("c2s") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_C2S) ||
 								(this.Name.equals("s2c") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_S2C)
 								){
+							if(SERVER.isPythonOn()){
+								tmp = pm.preIntercept(tmp, isC2S);
+							}
 							Send2Interceptor(tmp, this.Name, isC2S); // This will block until the the request if forwarded.
+							
 							if(isC2S)
 								tmp=SERVER.interceptc2s.getData();
 							else
 								tmp=SERVER.intercepts2c.getData();
+							
+							if(SERVER.isPythonOn()){
+								tmp = pm.postIntercept(tmp, isC2S);
+							}
 						}else{
 							NewDataEvent(tmp, original, this.Name);
 						}
