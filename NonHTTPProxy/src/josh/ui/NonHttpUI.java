@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -97,8 +99,10 @@ import java.awt.event.MouseEvent;
 import java.awt.SystemColor;
 import javax.swing.JPopupMenu;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.FileDialog;
 import javax.swing.ListSelectionModel;
+import java.awt.FlowLayout;
 
 
 @SuppressWarnings("serial")
@@ -831,28 +835,107 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		BurpTabs.addTab("Automation", null, Automation, null);
 		Automation.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Match and Replace Rules", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		GridBagLayout gbl_Automation = new GridBagLayout();
-		gbl_Automation.columnWidths = new int[]{0, 472, 0, 0};
-		gbl_Automation.rowHeights = new int[]{16, 266, 0, 0, 0};
-		gbl_Automation.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
-		gbl_Automation.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_Automation.columnWidths = new int[]{472, 0};
+		gbl_Automation.rowHeights = new int[]{0, 0};
+		gbl_Automation.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+		gbl_Automation.rowWeights = new double[]{1.0, Double.MIN_VALUE};
 		Automation.setLayout(gbl_Automation);
+		PythonMangler pm = new PythonMangler();
+		
+		JSplitPane splitPane_1 = new JSplitPane();
+		splitPane_1.setResizeWeight(0.5);
+		splitPane_1.setOneTouchExpandable(true);
+		splitPane_1.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		GridBagConstraints gbc_splitPane_1 = new GridBagConstraints();
+		gbc_splitPane_1.fill = GridBagConstraints.BOTH;
+		gbc_splitPane_1.gridx = 0;
+		gbc_splitPane_1.gridy = 0;
+		Automation.add(splitPane_1, gbc_splitPane_1);
+		
+		JPanel panel_8 = new JPanel();
+		splitPane_1.setRightComponent(panel_8);
+		GridBagLayout gbl_panel_8 = new GridBagLayout();
+		gbl_panel_8.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0};
+		gbl_panel_8.rowHeights = new int[]{0, 0, 0};
+		gbl_panel_8.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_panel_8.rowWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+		panel_8.setLayout(gbl_panel_8);
+		
+		chckbxEnablePythonMangler = new JCheckBox("Enable Python Mangler");
+		GridBagConstraints gbc_chckbxEnablePythonMangler = new GridBagConstraints();
+		gbc_chckbxEnablePythonMangler.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxEnablePythonMangler.gridx = 0;
+		gbc_chckbxEnablePythonMangler.gridy = 0;
+		panel_8.add(chckbxEnablePythonMangler, gbc_chckbxEnablePythonMangler);
+		
+		JButton btnImportPython = new JButton("Import Python");
+		GridBagConstraints gbc_btnImportPython = new GridBagConstraints();
+		gbc_btnImportPython.insets = new Insets(0, 0, 5, 5);
+		gbc_btnImportPython.gridx = 2;
+		gbc_btnImportPython.gridy = 0;
+		panel_8.add(btnImportPython, gbc_btnImportPython);
+		
+		JButton btnExportPython = new JButton("Export Python");
+		GridBagConstraints gbc_btnExportPython = new GridBagConstraints();
+		gbc_btnExportPython.insets = new Insets(0, 0, 5, 5);
+		gbc_btnExportPython.gridx = 4;
+		gbc_btnExportPython.gridy = 0;
+		panel_8.add(btnExportPython, gbc_btnExportPython);
+		
+		JScrollPane scrollPane_2 = new JScrollPane();
+		GridBagConstraints gbc_scrollPane_2 = new GridBagConstraints();
+		gbc_scrollPane_2.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane_2.gridwidth = 6;
+		gbc_scrollPane_2.gridx = 0;
+		gbc_scrollPane_2.gridy = 1;
+		panel_8.add(scrollPane_2, gbc_scrollPane_2);
+		
+		pythonText = new JTextArea();
+		scrollPane_2.setViewportView(pythonText);
+		pythonText.setTabSize(3);
+		pythonText.setBackground(SystemColor.windowBorder);
+		pythonText.setFont(new Font("Lucida Console", Font.PLAIN, 15));
+		pythonText.setForeground(SystemColor.inactiveCaptionBorder);
+		pythonText.setWrapStyleWord(true);
+		pythonText.setLineWrap(true);
+		pythonText.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				PythonMangler pm = new PythonMangler();
+				pm.setPyCode(pythonText.getText());
+			}
+		});
+		pythonText.setText(pm.getPyCode());
+		
+		JPanel panel_6 = new JPanel();
+		splitPane_1.setLeftComponent(panel_6);
+		GridBagLayout gbl_panel_6 = new GridBagLayout();
+		gbl_panel_6.columnWidths = new int[]{44, 12, 0};
+		gbl_panel_6.rowHeights = new int[]{0, 0, 0};
+		gbl_panel_6.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+		gbl_panel_6.rowWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+		panel_6.setLayout(gbl_panel_6);
 		
 		errorMsg = new JLabel("");
 		GridBagConstraints gbc_errorMsg = new GridBagConstraints();
-		gbc_errorMsg.fill = GridBagConstraints.BOTH;
-		gbc_errorMsg.insets = new Insets(0, 0, 5, 5);
+		gbc_errorMsg.fill = GridBagConstraints.HORIZONTAL;
+		gbc_errorMsg.insets = new Insets(0, 0, 5, 0);
 		gbc_errorMsg.gridx = 1;
 		gbc_errorMsg.gridy = 0;
-		Automation.add(errorMsg, gbc_errorMsg);
+		panel_6.add(errorMsg, gbc_errorMsg);
 		errorMsg.setForeground(Color.RED);
 		
+		JScrollPane scrollPane = new JScrollPane();
+		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+		gbc_scrollPane.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane.gridwidth = 2;
+		gbc_scrollPane.gridx = 0;
+		gbc_scrollPane.gridy = 1;
+		panel_6.add(scrollPane, gbc_scrollPane);
+		
 		txtRules = new JTextArea();
-		GridBagConstraints gbc_txtRules = new GridBagConstraints();
-		gbc_txtRules.insets = new Insets(0, 0, 5, 5);
-		gbc_txtRules.fill = GridBagConstraints.BOTH;
-		gbc_txtRules.gridx = 1;
-		gbc_txtRules.gridy = 1;
-		Automation.add(txtRules, gbc_txtRules);
+		txtRules.setTabSize(3);
+		scrollPane.setViewportView(txtRules);
 		txtRules.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -861,36 +944,37 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			}
 		});
 		txtRules.setText(rules);
-		
-		JPanel panel_6 = new JPanel();
-		GridBagConstraints gbc_panel_6 = new GridBagConstraints();
-		gbc_panel_6.insets = new Insets(0, 0, 5, 5);
-		gbc_panel_6.fill = GridBagConstraints.BOTH;
-		gbc_panel_6.gridx = 1;
-		gbc_panel_6.gridy = 2;
-		Automation.add(panel_6, gbc_panel_6);
-		GridBagLayout gbl_panel_6 = new GridBagLayout();
-		gbl_panel_6.columnWidths = new int[]{0, 0, 0, 0, 0, 0};
-		gbl_panel_6.rowHeights = new int[]{0, 0, 0, 0};
-		gbl_panel_6.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gbl_panel_6.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
-		panel_6.setLayout(gbl_panel_6);
-		
-		chckbxEnablePythonMangler = new JCheckBox("Enable Python Mangler");
-		chckbxEnablePythonMangler.addActionListener(new ActionListener() {
+		btnExportPython.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				for(GenericMiTMServer svr : threads.values()){
-					svr.setPythonMange(chckbxEnablePythonMangler.isSelected());
+				FileDialog fileDialog = new FileDialog(new Frame(), "Save", FileDialog.SAVE);
+				fileDialog.setFilenameFilter(new FilenameFilter() {
+				    public boolean accept(File dir, String name) {
+				        return name.endsWith(".py");
+				    }
+				});
+				fileDialog.setVisible(true);
+				
+				String filename = fileDialog.getDirectory() + fileDialog.getFile();
+				if(filename != null){
+					File f = new File(filename);
+					if(!f.exists()){
+						try {
+							f.createNewFile();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					Path p = Paths.get(filename);
+					Charset charset = Charset.forName("UTF-8");
+					try (BufferedWriter writer = Files.newBufferedWriter(p, charset)) {
+						writer.write(pythonText.getText());
+					}catch(Exception ex){
+						ex.printStackTrace();
+					}
 				}
 			}
 		});
-		GridBagConstraints gbc_chckbxEnablePythonMangler = new GridBagConstraints();
-		gbc_chckbxEnablePythonMangler.insets = new Insets(0, 0, 5, 5);
-		gbc_chckbxEnablePythonMangler.gridx = 0;
-		gbc_chckbxEnablePythonMangler.gridy = 1;
-		panel_6.add(chckbxEnablePythonMangler, gbc_chckbxEnablePythonMangler);
-		
-		JButton btnImportPython = new JButton("Import Python");
 		btnImportPython.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				FileDialog fileDialog = new FileDialog(new Frame(), "Import", FileDialog.LOAD);
@@ -923,66 +1007,13 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			        
 			}
 		});
-		GridBagConstraints gbc_btnImportPython = new GridBagConstraints();
-		gbc_btnImportPython.insets = new Insets(0, 0, 5, 5);
-		gbc_btnImportPython.gridx = 2;
-		gbc_btnImportPython.gridy = 1;
-		panel_6.add(btnImportPython, gbc_btnImportPython);
-		
-		JButton btnExportPython = new JButton("Export Python");
-		btnExportPython.addActionListener(new ActionListener() {
+		chckbxEnablePythonMangler.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				FileDialog fileDialog = new FileDialog(new Frame(), "Save", FileDialog.SAVE);
-				fileDialog.setFilenameFilter(new FilenameFilter() {
-				    public boolean accept(File dir, String name) {
-				        return name.endsWith(".py");
-				    }
-				});
-				fileDialog.setVisible(true);
-				
-				String filename = fileDialog.getDirectory() + fileDialog.getFile();
-				if(filename != null){
-					File f = new File(filename);
-					if(!f.exists()){
-						try {
-							f.createNewFile();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-					Path p = Paths.get(filename);
-					Charset charset = Charset.forName("UTF-8");
-					try (BufferedWriter writer = Files.newBufferedWriter(p, charset)) {
-						writer.write(pythonText.getText());
-					}catch(Exception ex){
-						ex.printStackTrace();
-					}
+				for(GenericMiTMServer svr : threads.values()){
+					svr.setPythonMange(chckbxEnablePythonMangler.isSelected());
 				}
 			}
 		});
-		GridBagConstraints gbc_btnExportPython = new GridBagConstraints();
-		gbc_btnExportPython.insets = new Insets(0, 0, 5, 0);
-		gbc_btnExportPython.gridx = 4;
-		gbc_btnExportPython.gridy = 1;
-		panel_6.add(btnExportPython, gbc_btnExportPython);
-		
-		pythonText = new JTextArea();
-		pythonText.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-				PythonMangler pm = new PythonMangler();
-				pm.setPyCode(pythonText.getText());
-			}
-		});
-		PythonMangler pm = new PythonMangler();
-		pythonText.setText(pm.getPyCode());
-		GridBagConstraints gbc_pythonText = new GridBagConstraints();
-		gbc_pythonText.insets = new Insets(0, 0, 0, 5);
-		gbc_pythonText.fill = GridBagConstraints.BOTH;
-		gbc_pythonText.gridx = 1;
-		gbc_pythonText.gridy = 3;
-		Automation.add(pythonText, gbc_pythonText);
 		BurpTabs.addTab("DNS History", null, DNSRequests, null);
 		BurpTabs.add("Server Config", Options);
 		
@@ -1289,6 +1320,56 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// Add Tabs to main component
 		add(BurpTabs);
 		Callbacks.customizeUiComponent(BurpTabs);
+		
+		JPanel panel_7 = new JPanel();
+		BurpTabs.addTab("About", null, panel_7, null);
+		GridBagLayout gbl_panel_7 = new GridBagLayout();
+		gbl_panel_7.columnWidths = new int[]{0, 0, 0, 0};
+		gbl_panel_7.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
+		gbl_panel_7.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_panel_7.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panel_7.setLayout(gbl_panel_7);
+		
+		JLabel lblNopeProxy = new JLabel("NOn Http Protocol Extender (NoPE) Proxy");
+		GridBagConstraints gbc_lblNopeProxy = new GridBagConstraints();
+		gbc_lblNopeProxy.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNopeProxy.gridx = 1;
+		gbc_lblNopeProxy.gridy = 1;
+		panel_7.add(lblNopeProxy, gbc_lblNopeProxy);
+		
+		JLabel lblVersion = new JLabel("Version 1.3");
+		GridBagConstraints gbc_lblVersion = new GridBagConstraints();
+		gbc_lblVersion.insets = new Insets(0, 0, 5, 5);
+		gbc_lblVersion.gridx = 1;
+		gbc_lblVersion.gridy = 2;
+		panel_7.add(lblVersion, gbc_lblVersion);
+		
+		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt");
+		GridBagConstraints gbc_lblDevelopedByJosh = new GridBagConstraints();
+		gbc_lblDevelopedByJosh.insets = new Insets(0, 0, 5, 5);
+		gbc_lblDevelopedByJosh.gridx = 1;
+		gbc_lblDevelopedByJosh.gridy = 4;
+		panel_7.add(lblDevelopedByJosh, gbc_lblDevelopedByJosh);
+		
+		JButton btnHttpgithubcomsummitt = new JButton("https://github.com/summitt");
+		btnHttpgithubcomsummitt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					Desktop.getDesktop().browse(new URI("https://github.com/summitt"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		GridBagConstraints gbc_btnHttpgithubcomsummitt = new GridBagConstraints();
+		gbc_btnHttpgithubcomsummitt.insets = new Insets(0, 0, 0, 5);
+		gbc_btnHttpgithubcomsummitt.gridx = 1;
+		gbc_btnHttpgithubcomsummitt.gridy = 6;
+		panel_7.add(btnHttpgithubcomsummitt, gbc_btnHttpgithubcomsummitt);
 		
 		//Set DataUpdate Timer
 		timer = new Timer();
