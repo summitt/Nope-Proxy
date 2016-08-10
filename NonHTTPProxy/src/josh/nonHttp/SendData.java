@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -142,27 +143,25 @@ public class SendData implements Runnable{
 				
 				//while((read = in.read(buffer, 0, buffer.length))!= -1 ){
 					read = in.read(buffer, 0, buffer.length);
-					//System.out.println("SendData While loop " + read);
+				
 					if(read == -1)
-						break;
-					//.out.println(this.Name + ": ");
-					//attempt regex here
-					
-					
+						break; // we didn't read anything and the stream has ended.
+
 					byte[] tmp = new byte[read];
-					byte[] original = tmp;
+					
 					for(int i=0; i< read; i++){
-						//System.out.print((char)buffer[i]);
 						tmp[i]=buffer[i];
-			           	//out.write(buffer[i]);
 					}
+					// Create an original buffer so we can check if things were modified
+					byte[] original = tmp;
+					
+					// Check if we have enabled python modifications to the stream
 					if(SERVER.isPythonOn()){
-						//if(pm == null)
 						pm = new PythonMangler();
-						
 						tmp = pm.mangle(tmp, isC2S);
-						if(tmp != original)
-							this.Name = this.Name + " - Updated by Python";
+						// Check if we updated the data
+						if(!Arrays.equals(tmp,original))
+							this.Name = this.Name + " - Updated by Python (mangle)";
 						
 					}else{
 						List<String>mtch = regexMatch();
@@ -189,60 +188,63 @@ public class SendData implements Runnable{
 								}
 								
 								if(kv[0].startsWith("#")){
-									//do nothing
+									//do nothing this is a comment
 								}
 								else if(kv[0].startsWith("0x")){ 
+									// This indicates we are doing hex replacement
 									byte [] match = new BigInteger(kv[0].replace("0x", ""),16).toByteArray();
 									byte [] replace = new BigInteger(kv[1].replace("0x", ""),16).toByteArray();
 									tmp = this.replace(tmp, match, replace);
 								}else{
+									// this will be just a basic string replacement
 									byte [] match = kv[0].getBytes();
 									byte [] replace = kv[1].getBytes();
 									tmp = this.replace(tmp, match, replace);
-								}
-								if(tmp != original)
-									this.Name = this.Name + " - Updated by Match And Replace Rules";
-								/*tmpStr = tmpStr.replace(kv[0], kv[1]);
-								System.out.println(kv[0] + " : " + kv[1] + " : " + tmpStr);
-								tmp = tmpStr.getBytes("UTF-8");*/
-								
+								}	
 							}
+							if(!Arrays.equals(tmp,original))
+								this.Name = this.Name + " - Updated by Match And Replace Rules";
 						}
 					}
 					
-					//System.out.println("");
-					//NewDataEvent(tmp, this.Name);
+					// Send things to the interceptor if it is enabled
 					if(SERVER.isInterceptOn()){
 						if(SERVER.getIntercetpDir() == SERVER.INTERCEPT_BOTH || 
 								(this.Name.equals("c2s") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_C2S) ||
 								(this.Name.equals("s2c") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_S2C)
 								){
+							// Here we format the data before sending it to the interceptor
 							if(SERVER.isPythonOn()){
 								tmp = pm.preIntercept(tmp, isC2S);
 							}
-							Send2Interceptor(tmp, this.Name, isC2S); // This will block until the the request if forwarded.
+							if(!Arrays.equals(tmp,original))
+								this.Name = this.Name + " - Formated by Python";
+							// This will block until the the request if forwarded by the user from the interceptor
+							// This function also handles the events that send the informatoin to the UI and logs.
+							Send2Interceptor(tmp, this.Name, isC2S); 
 							
 							if(isC2S)
 								tmp=SERVER.interceptc2s.getData();
 							else
 								tmp=SERVER.intercepts2c.getData();
 							
+							// Here we format the data back before sending it back
 							if(SERVER.isPythonOn()){
 								tmp = pm.postIntercept(tmp, isC2S);
 							}
+							
 						}else{
+							// Data was not manually intercepted so we treat it like a normal event.
 							NewDataEvent(tmp, original, this.Name);
 						}
 					}else{
+						// Manual Intercepts was not enabled so we treat it like a normal event.
 						NewDataEvent(tmp, original, this.Name);
 					}
+					
+					//Write the data back to the socket
 					out.write(tmp);
 					
-					//out.close();
-					//in.close();
-				//}
-				//out.close();
-				//in.close();
 				
 				
 			}catch(SocketTimeoutException Ex){
