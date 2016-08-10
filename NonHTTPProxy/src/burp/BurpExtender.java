@@ -33,7 +33,7 @@ import burp.*;
 	    {
 	        mCallbacks = callbacks;
 			helpers = mCallbacks.getHelpers();
-			mCallbacks.setExtensionName("NonHTTPMiTM");
+			mCallbacks.setExtensionName("NoPE Proxy");
 			
 			
 			
@@ -122,7 +122,7 @@ import burp.*;
 		@Override
 		public String getTabCaption() {
 			
-			return "NonHTTPMiTM ( ⧉ ⦣ ⧉ )";
+			return "NoPE";
 		}
 
 
