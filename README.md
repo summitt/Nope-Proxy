@@ -94,7 +94,14 @@ def postIntercept(input,isC2S):
 
 Below is an example of a server that is sending protobuf messages. Notice the stream would be difficult to modify by hand.
 
+![](NonHTTPProxy/screenshots/PreFormat.PNG)
+
 Now we use the pre and post interceptor functions to make it easier to modify in transit.
+![](NonHTTPProxy/screenshots/PythonConsole.PNG)
+
+Below is an example of the now Human Readable and Editable Protobufs.
+
+![](NonHTTPProxy/screenshots/Post%20Format.PNG)
 
 
  
