@@ -29,8 +29,10 @@ import burp.IBurpExtenderCallbacks;
 import josh.nonHttp.events.ProxyEvent;
 import josh.nonHttp.events.ProxyEventListener;
 import josh.nonHttp.utils.InterceptData;
+import josh.utils.events.PythonOutputEvent;
+import josh.utils.events.PythonOutputEventListener;
 
-public class GenericMiTMServer implements Runnable, ProxyEventListener{
+public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOutputEventListener{
 	
 	
 	public int ListenPort;
@@ -101,17 +103,31 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener{
 	}
 	
 	private List _listeners = new ArrayList();
+	private List _pylisteners = new ArrayList();
 	public synchronized void addEventListener(ProxyEventListener listener)	{
 		_listeners.add(listener);
 	}
 	public synchronized void removeEventListener(ProxyEventListener listener)	{
 		_listeners.remove(listener);
 	}
+	public synchronized void addPyEventListener(PythonOutputEventListener listener)	{
+		_pylisteners.add(listener);
+	}
+	public synchronized void removePyEventListener(PythonOutputEventListener listener)	{
+		_pylisteners.remove(listener);
+	}
 	private synchronized void NewDataEvent(ProxyEvent e)	{
 		ProxyEvent event = e;
 		Iterator i = _listeners.iterator();
 		while(i.hasNext())	{
 			((ProxyEventListener) i.next()).DataReceived(event);
+		}
+	}
+	
+	public synchronized void SendPyOutput(PythonOutputEvent event){
+		Iterator i = _pylisteners.iterator();
+		while(i.hasNext())	{
+			((PythonOutputEventListener) i.next()).PythonMessages(event);
 		}
 	}
 	
@@ -277,6 +293,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener{
 				        // Send data from client to server
 				        SendData send = new SendData(this,true,false);
 				        send.addEventListener(GenericMiTMServer.this);
+				        send.addPyEventListener(this);
 				        send.sock = connectionSocket;
 				        send.in = inFromClient;
 				        send.out = outToServer;
@@ -285,6 +302,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener{
 				     // Send data from server to Client
 				        SendData getD = new SendData(this,false,isSSL);
 				        getD.addEventListener(GenericMiTMServer.this);
+				        getD.addPyEventListener(this);
 				        getD.sock = cltSock;
 				        getD.in=inFromServer;
 				        getD.out=outToClient;
@@ -329,29 +347,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener{
 		
 	}
     
-    /*public void killStaleThreads(){
-    	Calendar killtime = Calendar.getInstance();
-    	killtime.add(Calendar.SECOND, -5);
-    	System.out.println("Send Threads:" +sends.size());
-    	for(SendData s : sends){
-    		if(s.lastaccess.getTime() > killtime.getTimeInMillis() && !s.SERVER.isInterceptOn){
-    			System.out.println("Killing Stale Thread");
-    			s.killme=true;
-    			
-    			try {
-					s.in.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-    			sends.remove(s);
-    			
-    		}
-    			
-    		
-    			
-    	}
-    }*/
+
     
     public boolean isRunning(){
     	return this.isRunning;
@@ -391,6 +387,14 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener{
 		InterceptedEvent(e, isC2S);
 		
 	}
+
+	@Override
+	public void PythonMessages(PythonOutputEvent e) {
+		SendPyOutput(e);
+		
+	}
+
+
     
     
     

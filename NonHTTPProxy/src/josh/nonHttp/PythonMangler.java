@@ -2,12 +2,17 @@ package josh.nonHttp;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import org.python.core.PyBoolean;
@@ -15,9 +20,28 @@ import org.python.core.PyByteArray;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
+import josh.nonHttp.events.ProxyEventListener;
+import josh.utils.events.PythonOutputEvent;
+import josh.utils.events.PythonOutputEventListener;
+
 public class PythonMangler {
 	private String pyCode;
 	private PythonInterpreter interpreter;
+	private List _listeners = new ArrayList();
+	private ByteArrayOutputStream out = new ByteArrayOutputStream();
+	private ByteArrayOutputStream err = new ByteArrayOutputStream();
+	
+	public String getError(){
+		String out  = err.toString();
+		err = new ByteArrayOutputStream();
+		return out;
+	}
+	public String getOutput(){
+		String tmp  = out.toString();
+		out = new ByteArrayOutputStream();
+		return tmp;
+	}
+	
 	
 	public PythonMangler(){
 			
@@ -32,8 +56,8 @@ public class PythonMangler {
 			
 			this.interpreter = new PythonInterpreter();
 			//TODO: Add output steam to this so that we can log errors to the console. 
-			interpreter.setOut(System.out);
-			interpreter.setErr(System.err);
+			interpreter.setOut(out);
+			interpreter.setErr(err);
 			
 			File f = new File(file);
 			if(!f.exists()){
@@ -78,6 +102,8 @@ public class PythonMangler {
 				pyCode="";
 				e.printStackTrace();
 			}
+			
+			
 	}
 	
 	public String getPyCode(){
@@ -103,51 +129,73 @@ public class PythonMangler {
 			
 	}
 	public byte [] preIntercept(byte [] input, boolean isC2S){
-		//PythonInterpreter interpreter = new PythonInterpreter();
-		//interpreter.exec(pyCode);
-		PyObject someFunc = interpreter.get("preIntercept");
-		//this means that the pre Intercept feature has not been implemented.
-		if(someFunc == null)
-			return input;
-		PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
-		PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
-		byte[] out = new byte [array.__len__()];
-		for(int i=0; i < array.__len__(); i++){
-			out[i] = (byte)array.get(i).__tojava__(Byte.class);
-		}
 		
-		return out;
+		byte[]original = input;
+		try{
+			PyObject someFunc = interpreter.get("preIntercept");
+			
+			//this means that the pre Intercept feature has not been implemented.
+			if(someFunc == null)
+				return input;
+			PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
+			PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
+			
+			byte[] out = new byte [array.__len__()];
+			for(int i=0; i < array.__len__(); i++){
+				out[i] = (byte)array.get(i).__tojava__(Byte.class);
+			}
+			
+			return out;
+		}catch(Exception ex){
+			ex.printStackTrace();
+			return original;
+		}
 	}
 	public byte [] postIntercept(byte [] input, boolean isC2S){
 		//PythonInterpreter interpreter = new PythonInterpreter();
-		//TODO: this might not work as expected
-		//interpreter.exec(pyCode);  
-		PyObject someFunc = interpreter.get("postIntercept");
-		//this means that the pre Intercept feature has not been implemented.
-		if(someFunc == null)
-			return input;
-		PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
-		PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
-		byte[] out = new byte [array.__len__()];
-		for(int i=0; i < array.__len__(); i++){
-			out[i] = (byte)array.get(i).__tojava__(Byte.class);
+		byte[]original = input;
+		try{
+			PyObject someFunc = interpreter.get("postIntercept");
+			//this means that the post Intercept feature has not been implemented.
+			if(someFunc == null)
+				return input;
+			PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
+			PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
+			
+			byte[] out = new byte [array.__len__()];
+			for(int i=0; i < array.__len__(); i++){
+				out[i] = (byte)array.get(i).__tojava__(Byte.class);
+			}
+			return out;
+		}catch(Exception ex){
+			ex.printStackTrace();
+			return original;
 		}
 		
-		return out;
+		
 	}
 	
 	public byte [] mangle(byte [] input, boolean isC2S){
-		//PythonInterpreter interpreter = new PythonInterpreter();
-		interpreter.exec(pyCode);
-		PyObject someFunc = interpreter.get("mangle");
-		PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
-		PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
-		byte[] out = new byte [array.__len__()];
-		for(int i=0; i < array.__len__(); i++){
-			out[i] = (byte)array.get(i).__tojava__(Byte.class);
+		byte[]original = input;
+		try{
+			interpreter.exec(pyCode);
+			PyObject someFunc = interpreter.get("mangle");
+			//this means that the mangle feature has not been implemented.
+			if(someFunc == null)
+				return input;
+			PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
+			PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
+			
+			byte[] out = new byte [array.__len__()];
+			for(int i=0; i < array.__len__(); i++){
+				out[i] = (byte)array.get(i).__tojava__(Byte.class);
+			}
+			
+			return out;
+		}catch(Exception ex){
+			ex.printStackTrace();
+			return original;
 		}
-		
-		return out;
 	}
 	
 	

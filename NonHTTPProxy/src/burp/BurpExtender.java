@@ -122,7 +122,7 @@ import burp.*;
 		@Override
 		public String getTabCaption() {
 			
-			return "NoPE";
+			return "NoPE Proxy";
 		}
 
 

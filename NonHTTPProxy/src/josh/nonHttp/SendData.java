@@ -26,6 +26,8 @@ import javax.net.ssl.SSLSocket;
 import josh.nonHttp.events.ProxyEvent;
 import josh.nonHttp.events.ProxyEventListener;
 //import josh.nonHttp.utils.InterceptData;
+import josh.utils.events.PythonOutputEvent;
+import josh.utils.events.PythonOutputEventListener;
 
 public class SendData implements Runnable{
 	public InputStream in;
@@ -48,12 +50,35 @@ public class SendData implements Runnable{
 	}
 	
 	private List _listeners = new ArrayList();
+	private List _pylisteners = new ArrayList();
 	
 	public synchronized void addEventListener(ProxyEventListener listener)	{
 		_listeners.add(listener);
 	}
 	public synchronized void removeEventListener(ProxyEventListener listener)	{
 		_listeners.remove(listener);
+	}
+	public synchronized void addPyEventListener(PythonOutputEventListener listener)	{
+		_pylisteners.add(listener);
+	}
+	public synchronized void removePyEventListener(PythonOutputEventListener listener)	{
+		_pylisteners.remove(listener);
+	}
+	
+	public synchronized void SendPyOutput(PythonMangler pm){
+		
+		PythonOutputEvent event = new PythonOutputEvent(this);
+		event.setMessage(pm.getOutput());
+		event.setError(pm.getError());
+		if(isC2S){
+			event.setDirection("Client-To-Server");
+		}else{
+			event.setDirection("Server-To-Client");
+		}
+		Iterator i = _pylisteners.iterator();
+		while(i.hasNext())	{
+			((PythonOutputEventListener) i.next()).PythonMessages(event);
+		}
 	}
 	private synchronized void NewDataEvent(byte [] data, byte[] original, String Direction)	{
 		ProxyEvent event = new ProxyEvent(this);
@@ -116,7 +141,6 @@ public class SendData implements Runnable{
 			}
 		}
 		Iterator i = _listeners.iterator();
-		//TODO: Change me
 		while(i.hasNext())	{
 			((ProxyEventListener) i.next()).Intercepted(event, isC2S);
 		}
@@ -159,6 +183,7 @@ public class SendData implements Runnable{
 					if(SERVER.isPythonOn()){
 						pm = new PythonMangler();
 						tmp = pm.mangle(tmp, isC2S);
+						SendPyOutput(pm);
 						// Check if we updated the data
 						if(!Arrays.equals(tmp,original))
 							this.Name = this.Name + " - Updated by Python (mangle)";
@@ -216,6 +241,7 @@ public class SendData implements Runnable{
 							// Here we format the data before sending it to the interceptor
 							if(SERVER.isPythonOn()){
 								tmp = pm.preIntercept(tmp, isC2S);
+								SendPyOutput(pm);
 							}
 							if(!Arrays.equals(tmp,original))
 								this.Name = this.Name + " - Formated by Python";
@@ -231,6 +257,7 @@ public class SendData implements Runnable{
 							// Here we format the data back before sending it back
 							if(SERVER.isPythonOn()){
 								tmp = pm.postIntercept(tmp, isC2S);
+								SendPyOutput(pm);
 							}
 							
 						}else{

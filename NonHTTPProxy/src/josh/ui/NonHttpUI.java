@@ -73,7 +73,8 @@ import josh.utils.events.DNSConfigListener;
 import josh.utils.events.DNSEvent;
 import josh.utils.events.DNSTableEvent;
 import josh.utils.events.DNSTableEventListener;
-
+import josh.utils.events.PythonOutputEvent;
+import josh.utils.events.PythonOutputEventListener;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -103,10 +104,11 @@ import java.awt.Desktop;
 import java.awt.FileDialog;
 import javax.swing.ListSelectionModel;
 import java.awt.FlowLayout;
+import javax.swing.JEditorPane;
 
 
 @SuppressWarnings("serial")
-public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEventListener{
+public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEventListener, PythonOutputEventListener{
 
 	public IBurpExtenderCallbacks Callbacks;
 	public IExtensionHelpers Helpers;
@@ -147,6 +149,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private JLabel lblSelected;
 	private Queue<LogEntry> queue = new LinkedList<LogEntry>();
 	private Timer timer;
+	private JEditorPane PythonConsole;
 	
 	public boolean useDefault= false;
 	
@@ -483,6 +486,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							mtm.ServerAddress = (String) tbm.getValueAt(rowid, 2);
 							mtm.setPythonMange( chckbxEnablePythonMangler.isSelected() );
 							mtm.addEventListener(NonHttpUI.this);
+							mtm.addPyEventListener(NonHttpUI.this);
 							if(btnIntercept.getText().endsWith("ON"))
 								mtm.setIntercept(true);
 							
@@ -855,9 +859,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		JPanel panel_8 = new JPanel();
 		splitPane_1.setRightComponent(panel_8);
 		GridBagLayout gbl_panel_8 = new GridBagLayout();
-		gbl_panel_8.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0};
+		gbl_panel_8.columnWidths = new int[]{0, 0, 0, 0, 0};
 		gbl_panel_8.rowHeights = new int[]{0, 0, 0};
-		gbl_panel_8.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_panel_8.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
 		gbl_panel_8.rowWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
 		panel_8.setLayout(gbl_panel_8);
 		
@@ -871,24 +875,41 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		JButton btnImportPython = new JButton("Import Python");
 		GridBagConstraints gbc_btnImportPython = new GridBagConstraints();
 		gbc_btnImportPython.insets = new Insets(0, 0, 5, 5);
-		gbc_btnImportPython.gridx = 2;
+		gbc_btnImportPython.gridx = 1;
 		gbc_btnImportPython.gridy = 0;
 		panel_8.add(btnImportPython, gbc_btnImportPython);
 		
 		JButton btnExportPython = new JButton("Export Python");
 		GridBagConstraints gbc_btnExportPython = new GridBagConstraints();
 		gbc_btnExportPython.insets = new Insets(0, 0, 5, 5);
-		gbc_btnExportPython.gridx = 4;
+		gbc_btnExportPython.gridx = 2;
 		gbc_btnExportPython.gridy = 0;
 		panel_8.add(btnExportPython, gbc_btnExportPython);
 		
+		JButton btnClearConsole = new JButton("Clear Console");
+		btnClearConsole.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				PythonConsole.setText("");
+			}
+		});
+		GridBagConstraints gbc_btnClearConsole = new GridBagConstraints();
+		gbc_btnClearConsole.anchor = GridBagConstraints.EAST;
+		gbc_btnClearConsole.insets = new Insets(0, 0, 5, 0);
+		gbc_btnClearConsole.gridx = 3;
+		gbc_btnClearConsole.gridy = 0;
+		panel_8.add(btnClearConsole, gbc_btnClearConsole);
+		
+		JSplitPane splitPane_2 = new JSplitPane();
+		splitPane_2.setResizeWeight(0.5);
+		GridBagConstraints gbc_splitPane_2 = new GridBagConstraints();
+		gbc_splitPane_2.fill = GridBagConstraints.BOTH;
+		gbc_splitPane_2.gridwidth = 4;
+		gbc_splitPane_2.gridx = 0;
+		gbc_splitPane_2.gridy = 1;
+		panel_8.add(splitPane_2, gbc_splitPane_2);
+		
 		JScrollPane scrollPane_2 = new JScrollPane();
-		GridBagConstraints gbc_scrollPane_2 = new GridBagConstraints();
-		gbc_scrollPane_2.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane_2.gridwidth = 6;
-		gbc_scrollPane_2.gridx = 0;
-		gbc_scrollPane_2.gridy = 1;
-		panel_8.add(scrollPane_2, gbc_scrollPane_2);
+		splitPane_2.setLeftComponent(scrollPane_2);
 		
 		pythonText = new JTextArea();
 		scrollPane_2.setViewportView(pythonText);
@@ -906,6 +927,12 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			}
 		});
 		pythonText.setText(pm.getPyCode());
+		
+		JScrollPane scrollPane_3 = new JScrollPane();
+		splitPane_2.setRightComponent(scrollPane_3);
+		
+		PythonConsole = new JEditorPane();
+		scrollPane_3.setViewportView(PythonConsole);
 		
 		JPanel panel_6 = new JPanel();
 		splitPane_1.setLeftComponent(panel_6);
@@ -1782,6 +1809,31 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		dnstTbm.insertRow(0, vec);
 		
 	}
+	@Override
+	public void PythonMessages(PythonOutputEvent e) {
+		System.out.println("Data Sent Back");
+		String Output = "";
+		Output +="Direction: " + e.getDirection() + "\n";
+		if(!e.getMessage().equals("")){
+			//Output += "<div style='color:green'><pre>";
+			Output += "Messages:\n";
+			Output += "\n" + e.getMessage();
+			//Output += "</pre></div><br/>";
+			
+		}
+		
+		if(!e.getError().equals("")){
+			//Output += "<div style='color:red'><plaintext>";
+			Output += "Errors:\n";
+			Output += "\n" + e.getError();
+			//Output += "<div><br/>";
+		}
+		this.PythonConsole.setText(this.PythonConsole.getText() + "\n" +Output);
+		
+		System.out.println(e.getError());
+		System.out.println(e.getMessage());
+		
+	}
 	public JTextArea getTxtRules() {
 		return txtRules;
 	}
@@ -1801,4 +1853,6 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	public JCheckBox getChckbxEnablePythonMangler() {
 		return chckbxEnablePythonMangler;
 	}
+
+
 }
