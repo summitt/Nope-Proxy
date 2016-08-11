@@ -55,6 +55,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+
 import org.bouncycastle.util.encoders.Hex;
 import org.hibernate.Session;
 
@@ -861,7 +865,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		GridBagLayout gbl_panel_8 = new GridBagLayout();
 		gbl_panel_8.columnWidths = new int[]{0, 0, 0, 0, 0};
 		gbl_panel_8.rowHeights = new int[]{0, 0, 0};
-		gbl_panel_8.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_panel_8.columnWeights = new double[]{0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE};
 		gbl_panel_8.rowWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
 		panel_8.setLayout(gbl_panel_8);
 		
@@ -881,6 +885,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		
 		JButton btnExportPython = new JButton("Export Python");
 		GridBagConstraints gbc_btnExportPython = new GridBagConstraints();
+		gbc_btnExportPython.anchor = GridBagConstraints.WEST;
 		gbc_btnExportPython.insets = new Insets(0, 0, 5, 5);
 		gbc_btnExportPython.gridx = 2;
 		gbc_btnExportPython.gridy = 0;
@@ -932,6 +937,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		splitPane_2.setRightComponent(scrollPane_3);
 		
 		PythonConsole = new JEditorPane();
+		PythonConsole.setEditable(false);
+		PythonConsole.setContentType("text/html");
+		
 		scrollPane_3.setViewportView(PythonConsole);
 		
 		JPanel panel_6 = new JPanel();
@@ -1811,24 +1819,41 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	@Override
 	public void PythonMessages(PythonOutputEvent e) {
-		System.out.println("Data Sent Back");
+		
 		String Output = "";
-		Output +="Direction: " + e.getDirection() + "\n";
+		if(e.getDirection().startsWith("Client"))
+			Output += "<div style='background-color: #7f8c8d; color:white; font-family: 'Lucida Console', 'Lucida Sans Typewriter', monaco, 'Bitstream Vera Sans Mono', monospace;'>";
+		else
+			Output += "<div style='background-color: #2c3e50; color: white; font-family: 'Lucida Console', 'Lucida Sans Typewriter', monaco, 'Bitstream Vera Sans Mono', monospace;'>";
+		Output +="Direction: " + e.getDirection() + " : " + new Date() + "<hr>";
 		if(!e.getMessage().equals("")){
-			//Output += "<div style='color:green'><pre>";
-			Output += "Messages:\n";
-			Output += "\n" + e.getMessage();
-			//Output += "</pre></div><br/>";
+			Output += "<div style='color:#2ecc71; font-size: 14px;'>";
+			Output += "###Messages:<br>";
+			Output +=  e.getMessage().replace(" ", "&nbsp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>");
+			Output += "</div><br/>";
 			
 		}
 		
 		if(!e.getError().equals("")){
-			//Output += "<div style='color:red'><plaintext>";
-			Output += "Errors:\n";
-			Output += "\n" + e.getError();
-			//Output += "<div><br/>";
+			Output += "<div style='color:#c0392b; font-size: 14px;'>";
+			Output += "###Errors:<br>";
+			Output += "<br>" + e.getError().replace(" ", "&nbsp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>");
+			Output += "<div><br/>";
 		}
-		this.PythonConsole.setText(this.PythonConsole.getText() + "\n" +Output);
+		Output+="</div>";
+		//this.PythonConsole.setText(this.PythonConsole.getText() + "\n" +Output);
+		HTMLDocument doc = (HTMLDocument)PythonConsole.getDocument();
+		HTMLEditorKit editorKit = (HTMLEditorKit)PythonConsole.getEditorKit();
+		
+		try {
+			editorKit.insertHTML(doc, doc.getLength(), Output, 0, 0, null);
+		} catch (BadLocationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		System.out.println(e.getError());
 		System.out.println(e.getMessage());
