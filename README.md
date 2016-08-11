@@ -96,7 +96,9 @@ Below is an example of a server that is sending protobuf messages. Notice the st
 
 ![](NonHTTPProxy/screenshots/PreFormat.PNG)
 
-Now we use the pre and post interceptor functions to make it easier to modify in transit.
+Now we use the pre and post interceptor functions to make it easier to modify in transit. Notice the python console on the Right will display in 'print' statements as well as errors in your python code when it runs. *Note that if the functions fail the NoPE proxy will send the original paylaods and ignore any changes to the stream you made.*
+
+
 ![](NonHTTPProxy/screenshots/PythonConsole.PNG)
 
 Below is an example of the now Human Readable and Editable Protobufs.
