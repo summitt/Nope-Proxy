@@ -81,6 +81,22 @@ def mangle(input, isC2S):
 ```
 You can import external libraries, create classes, and do anything you can do in normal python as long as there is a ‘mangle’ function with the same inputs to process the traffic. If you import custom classes they will need to be placed in the same folder that is running BurpSuite unless they are in your path. 
 
+##Python Pre and Post Interceptor Functions
+You can use the pre and post interceptors do all kinds of things with the stream. I was originally created to allow converting streams to a more human readable format before sending the data to the interceptor. Once modified in the interceptor the postInterceptor can convert it back to the binary stream.
+
+```
+def preIntercept(input,isC2S):
+    return input
+    
+def postIntercept(input,isC2S):
+    return input
+```
+
+Below is an example of a server that is sending protobuf messages. Notice the stream would be difficult to modify by hand.
+
+Now we use the pre and post interceptor functions to make it easier to modify in transit.
+
+
  
  
 
