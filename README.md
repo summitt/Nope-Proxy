@@ -1,4 +1,4 @@
-<img style="float: right;" src="http://www.reactiongifs.com/wp-content/uploads/2013/02/nope.gif"/>
+<p style="fload:right"><img  src="http://www.reactiongifs.com/wp-content/uploads/2013/02/nope.gif"/></p>
 
 #NoPE Proxy
 *Formerly known as 'Burp-Non-HTTP-Extension'*
