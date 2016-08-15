@@ -61,6 +61,10 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.hibernate.Session;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import josh.dao.HibHelper;
 import josh.dao.UpdateDBTask;
@@ -919,9 +923,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		pythonText = new JTextArea();
 		scrollPane_2.setViewportView(pythonText);
 		pythonText.setTabSize(3);
-		pythonText.setBackground(SystemColor.windowBorder);
+		pythonText.setBackground(new Color(44, 62, 80));
 		pythonText.setFont(new Font("Lucida Console", Font.PLAIN, 15));
-		pythonText.setForeground(SystemColor.inactiveCaptionBorder);
+		pythonText.setForeground(Color.WHITE);
 		pythonText.setWrapStyleWord(true);
 		pythonText.setLineWrap(true);
 		pythonText.addKeyListener(new KeyAdapter() {
@@ -1264,6 +1268,47 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 												gbc_btnRemoveProxy.gridx = 0;
 												gbc_btnRemoveProxy.gridy = 2;
 												panel_1.add(btnRemoveProxy, gbc_btnRemoveProxy);
+										
+										JButton btnAdd_1 = new JButton("Add 80 & 443 to Burp");
+										btnAdd_1.setToolTipText("This addes invisible proxy listeners to Burp's normal HTTP proxy configureation.");
+										btnAdd_1.addActionListener(new ActionListener() {
+											public void actionPerformed(ActionEvent arg0) {
+												//This is used to automagicaly add 80 and 443 invisible proxy listeners to burp's normal HTTP traffic listernes.
+												// These ports are used with the DNS server to proxy HTTP requests normally through burp.
+												String config = Callbacks.saveConfigAsJson("proxy.request_listeners");
+												JSONParser parser = new JSONParser();
+												try {
+													JSONObject jsonObject = (JSONObject) parser.parse(config);
+													JSONArray listeners = (JSONArray)((JSONObject)jsonObject.get("proxy")).get("request_listeners");
+													JSONObject list80 = new JSONObject();
+													list80.put("certificate_mode", "per_host");
+													list80.put("running", true);
+													list80.put("support_invisible_proxying", true);
+													list80.put("listen_mode", "all_interfaces");
+													list80.put("listener_port", 80);
+													JSONObject list443 = (JSONObject) parser.parse(list80.toJSONString());
+													list443.put("listener_port", 443);
+													listeners.add(list80);
+													listeners.add(list443);
+													Callbacks.loadConfigFromJson(jsonObject.toJSONString());
+													
+													
+												} catch (ParseException e) {
+													// TODO Auto-generated catch block
+													e.printStackTrace();
+												}
+												
+												//Callbacks.loadConfigFromJson(arg0);
+												
+											}
+										});
+										GridBagConstraints gbc_btnAdd_1 = new GridBagConstraints();
+										gbc_btnAdd_1.anchor = GridBagConstraints.EAST;
+										gbc_btnAdd_1.gridwidth = 2;
+										gbc_btnAdd_1.insets = new Insets(0, 0, 5, 5);
+										gbc_btnAdd_1.gridx = 3;
+										gbc_btnAdd_1.gridy = 2;
+										panel_1.add(btnAdd_1, gbc_btnAdd_1);
 										GridBagConstraints gbc_btnImportHistory = new GridBagConstraints();
 										gbc_btnImportHistory.anchor = GridBagConstraints.EAST;
 										gbc_btnImportHistory.fill = GridBagConstraints.VERTICAL;
