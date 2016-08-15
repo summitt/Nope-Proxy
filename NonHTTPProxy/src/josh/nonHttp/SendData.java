@@ -28,6 +28,8 @@ import josh.nonHttp.events.ProxyEventListener;
 //import josh.nonHttp.utils.InterceptData;
 import josh.utils.events.PythonOutputEvent;
 import josh.utils.events.PythonOutputEventListener;
+import josh.utils.events.SendClosedEvent;
+import josh.utils.events.SendClosedEventListener;
 
 public class SendData implements Runnable{
 	public InputStream in;
@@ -51,6 +53,7 @@ public class SendData implements Runnable{
 	
 	private List _listeners = new ArrayList();
 	private List _pylisteners = new ArrayList();
+	private List _sclisteners = new ArrayList();
 	
 	public synchronized void addEventListener(ProxyEventListener listener)	{
 		_listeners.add(listener);
@@ -63,6 +66,21 @@ public class SendData implements Runnable{
 	}
 	public synchronized void removePyEventListener(PythonOutputEventListener listener)	{
 		_pylisteners.remove(listener);
+	}
+	public synchronized void addSendClosedEventListener(SendClosedEventListener listener)	{
+		_sclisteners.add(listener);
+	}
+	public synchronized void removeSendClosedEventListener(SendClosedEventListener listener)	{
+		_sclisteners.remove(listener);
+	}
+	public synchronized void SendClosedEventTrigger(){
+		SendClosedEvent event = new SendClosedEvent(this);
+		event.setDirection(this.Name);
+		Iterator i = _sclisteners.iterator();
+		while(i.hasNext())	{
+			((SendClosedEventListener) i.next()).Closed(event);
+		}
+		
 	}
 	
 	public synchronized void SendPyOutput(PythonMangler pm){
@@ -163,10 +181,12 @@ public class SendData implements Runnable{
 						break;
 					
 				}
-				byte [] buffer = new byte[2056];
-				
+				byte [] buffer = new byte[2056*1000]; //Buffer at most 2Meg
 				//while((read = in.read(buffer, 0, buffer.length))!= -1 ){
-					read = in.read(buffer, 0, buffer.length);
+				read = in.read(buffer, 0, buffer.length);
+				//}
+
+				
 				
 					if(read == -1)
 						break; // we didn't read anything and the stream has ended.
@@ -290,6 +310,7 @@ public class SendData implements Runnable{
 			
 		}
 		System.out.println(this.Name + " Has Died.");
+		this.SendClosedEventTrigger();
 		//System.out.println("Socket Closed.");
 		
 		

@@ -31,8 +31,10 @@ import josh.nonHttp.events.ProxyEventListener;
 import josh.nonHttp.utils.InterceptData;
 import josh.utils.events.PythonOutputEvent;
 import josh.utils.events.PythonOutputEventListener;
+import josh.utils.events.SendClosedEvent;
+import josh.utils.events.SendClosedEventListener;
 
-public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOutputEventListener{
+public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOutputEventListener, SendClosedEventListener{
 	
 	
 	public int ListenPort;
@@ -48,8 +50,10 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	Object svrSock;
 	//SSLServerSocket sslSvrSock;
 	Socket connectionSocket;
+	Object cltSock;
 	Vector<Thread> threads = new Vector<Thread>();
 	Vector<SendData> sends = new Vector<SendData>();
+	HashMap<SendData,SendData> pairs = new HashMap<SendData,SendData>();
 	HashMap<Integer,Thread>treads2 = new HashMap<Integer,Thread>();
 	boolean isSSL = false;
 	boolean isRunning=false;
@@ -252,7 +256,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 			    	InputStream inFromClient = connectionSocket.getInputStream();
 			        DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 			        
-			        Object cltSock;
+			        //Object cltSock;
 			        if(isSSL){
 			        	SSLSocketFactory  ssf = (SSLSocketFactory) SSLSocketFactory.getDefault();
 			        	cltSock = (SSLSocket) ssf.createSocket(this.ServerAddress, this.ServerPort);
@@ -294,6 +298,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 				        SendData send = new SendData(this,true,false);
 				        send.addEventListener(GenericMiTMServer.this);
 				        send.addPyEventListener(this);
+				        send.addSendClosedEventListener(this);
 				        send.sock = connectionSocket;
 				        send.in = inFromClient;
 				        send.out = outToServer;
@@ -303,6 +308,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 				        SendData getD = new SendData(this,false,isSSL);
 				        getD.addEventListener(GenericMiTMServer.this);
 				        getD.addPyEventListener(this);
+				        getD.addSendClosedEventListener(this);
 				        getD.sock = cltSock;
 				        getD.in=inFromServer;
 				        getD.out=outToClient;
@@ -311,6 +317,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 				        
 				        sends.add(send);
 				        sends.add(getD);
+				        pairs.put(send, getD);
 				        
 				        
 		
@@ -337,7 +344,8 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 
 		        
 		       
-	        }        
+	        } 
+	        connectionSocket.close();
     	}catch(Exception ex){
     		Callbacks.printOutput(ex.getMessage());
     		
@@ -391,6 +399,48 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	@Override
 	public void PythonMessages(PythonOutputEvent e) {
 		SendPyOutput(e);
+		
+	}
+	
+	private void KillSocks(SendData sd){
+		System.out.println(sd.Name);
+		try{
+			if(sd.isSSL()){
+				/*((SSLSocket)sd.sock).shutdownInput();
+				((SSLSocket)sd.sock).shutdownOutput();*/
+				((SSLSocket)sd.sock).close();
+			}else{
+				/*((Socket)sd.sock).shutdownInput();
+				((Socket)sd.sock).shutdownOutput();*/
+				((Socket)sd.sock).close();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			
+		}
+	}
+
+	@Override
+	public void Closed(SendClosedEvent e) {
+		SendData tmp = (SendData)e.getSource();
+		if(pairs.containsKey(tmp)){
+			pairs.get(tmp).killme=true;
+			//pairs.remove(tmp);
+			
+		}
+		else if (pairs.containsValue(tmp)){
+			for(SendData key : pairs.keySet()){
+				if(pairs.get(key).equals(tmp)){
+					key.killme=true;
+					pairs.remove(key);
+					KillSocks(tmp);
+					KillSocks(key);
+				}
+			}
+		}
+		
 		
 	}
 
