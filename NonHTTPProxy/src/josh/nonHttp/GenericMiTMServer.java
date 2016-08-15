@@ -403,7 +403,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	}
 	
 	private void KillSocks(SendData sd){
-		System.out.println(sd.Name);
+		//System.out.println(sd.Name);
 		try{
 			if(sd.isSSL()){
 				/*((SSLSocket)sd.sock).shutdownInput();

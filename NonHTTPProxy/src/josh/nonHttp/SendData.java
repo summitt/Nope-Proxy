@@ -309,7 +309,7 @@ public class SendData implements Runnable{
 				}
 			
 		}
-		System.out.println(this.Name + " Has Died.");
+		System.out.println(this.Name + " - Connection Has Closed.");
 		this.SendClosedEventTrigger();
 		//System.out.println("Socket Closed.");
 		
