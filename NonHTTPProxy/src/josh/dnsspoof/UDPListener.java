@@ -101,6 +101,7 @@ public class UDPListener implements Runnable{
 		
 	}
 	public void StopServer(){
+		datagramSocket.close();
 		stop = true;
 	}
 	public boolean isStopped(){
@@ -137,13 +138,30 @@ public class UDPListener implements Runnable{
         	DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             // Receive the packet.
             try {
-            	datagramSocket.setSoTimeout(100);
+            	//datagramSocket.setSoTimeout(1000);
                 datagramSocket.receive(packet);
+                new Thread( new DNSResponder(packet, datagramSocket, ADDRESS)).start();
             } catch(SocketTimeoutException ex){
             	continue udpWhile;
             }catch (IOException e) {Callbacks.printError(e.getMessage()); e.printStackTrace(); }
             
-           
+        }
+        fireEvent();
+        //datagramSocket.close();
+	}
+	public class DNSResponder implements Runnable {
+		private DatagramPacket packet;
+		private DatagramSocket datagramSocket; 
+		private String [] ADDRESS;
+		
+		public DNSResponder(DatagramPacket packet, DatagramSocket datagramSocket, String [] ADDRESS){
+			this.packet = packet;
+			this.ADDRESS = ADDRESS;
+			this.datagramSocket = datagramSocket;
+		}
+		
+		public void run() {
+			byte[] buffer = new byte[1024];
             buffer = packet.getData();  
             int NN = packet.getLength();
             byte []copy = new byte [NN];
@@ -219,7 +237,7 @@ public class UDPListener implements Runnable{
             dnsResp[i++] = 0;
             dnsResp[i++] = 4;
             
-            List<String>hosts=this.readHosts();
+            List<String>hosts=readHosts();
             Boolean override=false;
             String returnIP = this.ADDRESS[0] + "." + this.ADDRESS[1] + "." +this.ADDRESS[2] + "." +this.ADDRESS[3];
             for(String line : hosts){
@@ -281,7 +299,7 @@ public class UDPListener implements Runnable{
          dnsResp[i++] = (byte)168;
          dnsResp[i++] = (byte)1;
          dnsResp[i++] = (byte)132;*/
-            this.fireTableEvent(hostname, ip, HostName, returnIP);
+            fireTableEvent(hostname, ip, HostName, returnIP);
             
             N = i;
             byte [] ans = new byte[N];
@@ -307,9 +325,10 @@ public class UDPListener implements Runnable{
 			}
             
             
-        }
-        this.fireEvent();
-        datagramSocket.close();		
+        //}
+        //fireEvent();
+        //datagramSocket.close();
+		}
 		
 	}
 	
@@ -381,5 +400,7 @@ public class UDPListener implements Runnable{
 		public void setPort(int port){
 			this.port = port;
 		}
+		
+		
 
 }
