@@ -84,18 +84,21 @@ public class SendData implements Runnable{
 	}
 	
 	public synchronized void SendPyOutput(PythonMangler pm){
-		
-		PythonOutputEvent event = new PythonOutputEvent(this);
-		event.setMessage(pm.getOutput());
-		event.setError(pm.getError());
-		if(isC2S){
-			event.setDirection("Client-To-Server");
-		}else{
-			event.setDirection("Server-To-Client");
-		}
-		Iterator i = _pylisteners.iterator();
-		while(i.hasNext())	{
-			((PythonOutputEventListener) i.next()).PythonMessages(event);
+		String output = pm.getOutput();
+		String error = pm.getError();
+		if(!output.equals("") || !error.equals("")){
+			PythonOutputEvent event = new PythonOutputEvent(this);
+			event.setMessage(pm.getOutput());
+			event.setError(pm.getError());
+			if(isC2S){
+				event.setDirection("Client-To-Server");
+			}else{
+				event.setDirection("Server-To-Client");
+			}
+			Iterator i = _pylisteners.iterator();
+			while(i.hasNext())	{
+				((PythonOutputEventListener) i.next()).PythonMessages(event);
+			}
 		}
 	}
 	private synchronized void NewDataEvent(byte [] data, byte[] original, String Direction)	{
@@ -103,7 +106,7 @@ public class SendData implements Runnable{
 		event.setData(data);
 		event.setOriginalData(original);
 		event.setDirection(Direction);
-		if(Direction.equals("c2s")){
+		if(Direction.contains("c2s")){
 			if(isSSL){
 				event.setSrcIP(this.getHostandIP(this.sock, true));//  ((SSLSocket)this.sock).getInetAddress().getHostAddress());
 				event.setSrcPort(((SSLSocket)this.sock).getPort());
@@ -137,7 +140,7 @@ public class SendData implements Runnable{
 		ProxyEvent event = new ProxyEvent(this);
 		event.setData(Data);
 		event.setDirection(Direction);
-		if(Direction.equals("c2s")){
+		if(Direction.contains("c2s")){
 			if(isSSL){
 				event.setSrcIP(this.getHostandIP(this.sock, true));//((SSLSocket)this.sock).getInetAddress().getHostAddress());
 				event.setSrcPort(((SSLSocket)this.sock).getPort());
@@ -150,6 +153,7 @@ public class SendData implements Runnable{
 		}else{
 			event.setDstIP(SERVER.connectionSocket.getInetAddress().getHostAddress());
 			event.setDstPort(SERVER.connectionSocket.getPort());
+			
 			if(isSSL){
 				event.setSrcIP(this.getHostandIP(this.sock, true));//((SSLSocket)this.sock).getInetAddress().getHostAddress());
 				event.setSrcPort(((SSLSocket)this.sock).getPort());
