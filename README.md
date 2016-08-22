@@ -11,7 +11,7 @@
 
 ##Introduction
 
-This extension is for those times when Burp just says '**Nope**, i'm not gonna deal with this.'. It's actually an acronym for <u><b>No</b></u>n-HTTP <u><b>P</b></u>rotocol <u><b>E</b></u>xtending <u><b>Proxy</b></u> for Burp Suite. 
+This extension is for those times when Burp just says '**Nope**, i'm not gonna deal with this.'. It's actually an acronym for <u><b>No</b></u>n-HTTP <u><b>P</b></u>rotocol <u><b>E</b></u>xtension <u><b>Proxy</b></u> for Burp Suite. 
 
 This burp extension adds two new features to BurpSuite.
  1.	A configurable DNS server. This will route all DNS requests to Burp or preconfigured hosts. It makes it easier to send mobile or thick client traffic to Burp. You need to create invisible proxy listeners in BurpSuite for the Burp to intercept HTTP traffic or you can use the second feature of this extension to intercept binary/non-http protocols.
