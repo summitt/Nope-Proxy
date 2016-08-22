@@ -46,8 +46,10 @@ public class PythonMangler {
 	public PythonMangler(){
 			
 			
-			String fs =  System.getProperty("file.separator");
-			String file = System.getProperty("user.dir") + fs  +"mangler.py";
+			//String fs =  System.getProperty("file.separator");
+			//String file = System.getProperty("user.dir") + fs  +"mangler.py";
+			String path = System.getProperty("user.home");
+			String file = path + "/.NoPEProxy/mangler.py";
 			/*Properties props = new Properties();
 			System.out.println(System.getProperty("python.path"));
 			props.setProperty("python.path", System.getProperty("user.dir"));
@@ -107,21 +109,23 @@ public class PythonMangler {
 	}
 	
 	public String getPyCode(){
-		return pyCode;
+		return pyCode.replaceAll("\r", "");
 	}
 	public String setPyCode(String code){
-		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "mangler.py";
+		////String fs =  System.getProperty("file.separator");
+		//String file = System.getProperty("user.dir") + fs + "mangler.py";
+		String path = System.getProperty("user.home");
+		String file = path + "/.NoPEProxy/mangler.py";
 		File f = new File(file);
 		this.pyCode = code;
 		if(pyCode.trim().equals("")){
-			pyCode= "def mangle(input, isC2S):\r\n";
-			pyCode+="\treturn input";
+			pyCode= "def mangle(input, isC2S):\n";
+			pyCode+="\treturn input\n";
 		}
 		Path p = Paths.get(file);
 		Charset charset = Charset.forName("UTF-8");
 		try (BufferedWriter writer = Files.newBufferedWriter(p, charset)) {
-			writer.write(pyCode);
+			writer.write(pyCode.replaceAll("\r", ""));
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}

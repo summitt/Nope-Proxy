@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -19,6 +20,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.InitialDirContext;
 
 import burp.IBurpExtenderCallbacks;
 import josh.utils.SharedBoolean;
@@ -39,18 +46,19 @@ public class UDPListener implements Runnable{
 	private int port=5351;
 	public IBurpExtenderCallbacks Callbacks; 
 	private SharedBoolean sb;
+	private static String ExternalDNS;
 	
 
 	private static void updateInterface(){
 		String path = System.getProperty("user.home");
 		
-		File f = new File(path + "/.dnsExtender/dns.properties");
+		File f = new File(path + "/.NoPEProxy/dns.properties");
 		Properties config = new Properties();
 		try{
 			if(f.exists()){
 				config.load( new FileInputStream(f));
 			}else{
-				File p = new File(path + "/.dnsExtender/");
+				File p = new File(path + "/.NoPEProxy/");
 				
 				if(!p.exists())
 					p.mkdir();
@@ -60,6 +68,7 @@ public class UDPListener implements Runnable{
 			}
 			
 			InterfaceNumber=Integer.parseInt(config.getProperty("interface", "0"));
+			ExternalDNS = config.getProperty("extDNS", "8.8.8.8");
 		}catch(Exception EX){
 			//Callbacks.printError(EX.getMessage());
 			EX.printStackTrace();
@@ -67,13 +76,13 @@ public class UDPListener implements Runnable{
 	}
 	private static void updateInterface(String iface){
 		String path = System.getProperty("user.home");
-		File f = new File(path + "/.dnsExtender/dns.properties");
+		File f = new File(path + "/.NoPEProxy/dns.properties");
 		Properties config = new Properties();
 		try{
 			if(f.exists()){
 				config.load( new FileInputStream(f));
 			}else{
-				File p = new File(path + "/.dnsExtender/");
+				File p = new File(path + "/.NoPEProxy/");
 				
 				if(!p.exists())
 					p.mkdir();
@@ -265,35 +274,52 @@ public class UDPListener implements Runnable{
 				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[3]);	
 			}else{
 				try {
-					InetAddress address = InetAddress.getByName(hostname);
-					byte[] octs = address.getAddress();
-					dnsResp[i++] = octs[0];
-					dnsResp[i++] = octs[1];
-					dnsResp[i++] = octs[2];
-					dnsResp[i++] = octs[3];
-					returnIP = octs[0] +"." + octs[1] +"." + octs[2] +"." + octs[3];
+					Properties env = new Properties();
+					env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.dns.DnsContextFactory");
+					env.put(Context.PROVIDER_URL, "dns://" + ExternalDNS);
+					InitialDirContext idc = new InitialDirContext(env);
+					String [] attribs = {"A"};
+					Attributes attrs = idc.getAttributes(hostname, attribs);
+					Attribute attr = attrs.get("A");
+					List<String> ipAddresses = new ArrayList<String>();
+					if (attr != null) {
+					    for (int iIP = 0; iIP < attr.size(); iIP++) {
+					      ipAddresses.add((String) attr.get(iIP));
+					    }
+					 }
+					//InetAddress [] addresses = InetAddress.getAllByName(hostname);
+					boolean found=false;
+					//for(InetAddress address : addresses){
+					for(String address : ipAddresses){
+						InetAddress inetaddress = InetAddress.getByName(address);
+						if(inetaddress instanceof Inet4Address){
+							//InetAddress address = InetAddress.getByName(hostname);
+							byte[] octs = inetaddress.getAddress();
+							dnsResp[i++] = octs[0];
+							dnsResp[i++] = octs[1];
+							dnsResp[i++] = octs[2];
+							dnsResp[i++] = octs[3];
+							returnIP = (octs[0]&0xFF) +"." + (octs[1]&0xFF) +"." + (octs[2]&0xFF) +"." + (octs[3]&0xFF);
+							found=true;
+							break;
+						}
+					}
+					if(!found){
+						returnIP="Unknown Hostname";
+						fireTableEvent(hostname, ip, HostName, returnIP);
+						return;
+					}
 					
 				} catch (UnknownHostException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					returnIP="Error Resolvng Hostname";
+					fireTableEvent(hostname, ip, HostName, returnIP);
+					return;
 				}
-//				NetworkInterface[] devices = JpcapCaptor.getDeviceList();
-//				NetworkInterfaceAddress[] nia = devices[InterfaceNumber].addresses;
-//				InetAddress addr=null;
-//				for(NetworkInterfaceAddress inet : nia){
-//					addr = inet.address;
-//					if(addr.getAddress().length == 4)
-//						break;
-//				}
-//				if(addr.getAddress()[0]==127 && addr.getAddress()[1]==0){
-//					System.out.println("Local host addresses not allowed.");
-//					System.exit(0);
-//				}
-//				//System.out.println("DNS Request for: " + hostname + " from " + ip + " set to " + addr.getHostAddress() );
-//				dnsResp[i++] = addr.getAddress()[0];
-//				dnsResp[i++] = addr.getAddress()[1];
-//				dnsResp[i++] = addr.getAddress()[2];
-//				dnsResp[i++] = addr.getAddress()[3];
+				catch (NamingException e) {
+					returnIP="Error Resolvng Hostname";
+					fireTableEvent(hostname, ip, HostName, returnIP);
+					return;
+				}
 			}
          /*dnsResp[i++] = (byte)192;
          dnsResp[i++] = (byte)168;
@@ -333,10 +359,12 @@ public class UDPListener implements Runnable{
 	}
 	
 	private List<String> readHosts(){
-		
-		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "hosts.txt";
+		String path = System.getProperty("user.home");
+		String file = path + "/.NoPEProxy/hosts.txt";
 		File f = new File(file);
+		/*String fs =  System.getProperty("file.separator");
+		String file = System.getProperty("user.dir") + fs + "hosts.txt";
+		File f = new File(file);*/
 		if(!f.exists()){
 			return new ArrayList<String>();
 		}

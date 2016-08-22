@@ -87,7 +87,7 @@ public class LogEntry
     
     public static LinkedList<LogEntry>restoreDB(){
     	//HibHelper.getSessionFactory().openSession();
-
+    	
     	Session s = HibHelper.getSessionFactory().openSession();
     	List<Requests> r = (List<Requests>)s.createQuery("from Requests order by id desc").list();
     	LinkedList<LogEntry> list = new LinkedList<LogEntry>();

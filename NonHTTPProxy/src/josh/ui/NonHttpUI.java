@@ -1182,8 +1182,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 										JButton btnImportHistory = new JButton("Import History");
 										btnImportHistory.addActionListener(new ActionListener() {
 											public void actionPerformed(ActionEvent e) {
-												String fs =  System.getProperty("file.separator");
-												String resultFile = System.getProperty("user.dir") + fs +"requests.sqlite";
+												//String fs =  System.getProperty("file.separator");
+												//String resultFile = System.getProperty("user.dir") + fs +"requests.sqlite";
+												String path = System.getProperty("user.home");
+												String resultFile = path + "/.NoPEProxy/requests.sqlite";
 												Frame fr = new Frame();
 												FileDialog fd = new FileDialog(fr,"Import Database", FileDialog.LOAD);
 												fd.setVisible(true);
@@ -1192,13 +1194,19 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 												Path impPath = Paths.get(imported);
 												Path localPath = Paths.get(resultFile);
 												try {
+													HibHelper.getSessionFactory().close();
+													Thread.sleep(2000); // wait for the threads to close
+													
 													Files.copy(impPath, localPath, StandardCopyOption.REPLACE_EXISTING);
 													//Delete The current table;
 													int rowCount=ntbm.getRowCount();
-													for (int i=rowCount -1; i>=0; i--) {
-														ntbm.log.remove(i);
-														//ntbm.fireTableRowsDeleted(i, i);
+													if(rowCount >0 ){
+														for (int i=rowCount -1; i>=0; i--) {
+															ntbm.log.remove(i);
+															//ntbm.fireTableRowsDeleted(i, i);
+														}
 													}
+													HibHelper.renew();
 													LinkedList<LogEntry> list = LogEntry.restoreDB();
 													for(LogEntry le : list){
 														ntbm.log.add(le);
@@ -1208,6 +1216,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 													
 												} catch (IOException e1) {
 													Callbacks.printError(e1.getMessage());
+												} catch (InterruptedException e1) {
+													// TODO Auto-generated catch block
+													e1.printStackTrace();
 												}
 												
 											}
@@ -1320,8 +1331,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 										JButton btnSaveHistory = new JButton("Export History");
 										btnSaveHistory.addActionListener(new ActionListener() {
 											public void actionPerformed(ActionEvent e) {
-												String fs =  System.getProperty("file.separator");
-												String file = System.getProperty("user.dir") + fs +"requests.sqlite";
+												//String fs =  System.getProperty("file.separator");
+												//String file = System.getProperty("user.dir") + fs +"requests.sqlite";
+												String path = System.getProperty("user.home");
+												String file = path + "/.NoPEProxy/requests.sqlite";
 												Frame fr = new Frame();
 												FileDialog fd = new FileDialog(fr,"Export File", FileDialog.SAVE);
 												fd.setVisible(true);
@@ -1350,6 +1363,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 												btnClearHistory.addActionListener(new ActionListener() {
 													public void actionPerformed(ActionEvent e) {
 														int rowCount=ntbm.getRowCount();
+														if(rowCount <=0)
+															return;
 
 														for (int i=rowCount -1; i>=0; i--) {
 															ntbm.log.remove(i);
@@ -1465,8 +1480,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 //############################################################################################################################
 	private void saveHosts(String hosts){
 		
-		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "hosts.txt";
+		/*String fs =  System.getProperty("file.separator");
+		String file = System.getProperty("user.dir") + fs + "hosts.txt";*/
+		String path = System.getProperty("user.home");
+		String file = path + "/.NoPEProxy/hosts.txt";
 		File f = new File(file);
 		if(!f.exists()){
 			Callbacks.printOutput("missing hosts.txt.. creating it.");
@@ -1492,8 +1509,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	private String readHosts(){
 		
-		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "hosts.txt";
+		//String fs =  System.getProperty("file.separator");
+		//String file = System.getProperty("user.dir") + fs + "hosts.txt";
+		String path = System.getProperty("user.home");
+		String file = path + "/.NoPEProxy/hosts.txt";
 		File f = new File(file);
 		if(!f.exists()){
 			return "";
@@ -1518,8 +1537,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	private void updateMatchRules(){
 	
-		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
+		//String fs =  System.getProperty("file.separator");
+		//String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
+		String path = System.getProperty("user.home");
+		String file = path + "/.NoPEProxy/nonHTTPmatch.txt";
 		File f = new File(file);
 		if(!f.exists()){
 			Callbacks.printOutput("missing nonHTTPsmatch.txt.. creating it.");
@@ -1569,8 +1590,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	private String getMatchRules(){
 		String out = "";
-		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
+		//String fs =  System.getProperty("file.separator");
+		//String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
+		String path = System.getProperty("user.home");
+		String file = path + "/.NoPEProxy/nonHTTPmatch.txt";
 		File f = new File(file);
 		if(!f.exists()){
 			try {
@@ -1636,12 +1659,12 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		try {
 			//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
 			String path = System.getProperty("user.home");
-			File f = new File(path + "/.dnsExtender/dns.properties");
+			File f = new File(path + "/.NoPEProxy/dns.properties");
 			if(f.exists()){
 				config.load( new FileInputStream(f));
 			}else{
 				//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-				File p = new File(path + "/.dnsExtender");
+				File p = new File(path + "/.NoPEProxy");
 				if(!p.exists())
 					p.mkdir();
 				f.createNewFile();
@@ -1668,12 +1691,12 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		try {
 			//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
 			String path = System.getProperty("user.home");
-			File f = new File(path + "/.dnsExtender/dns.properties");
+			File f = new File(path + "/.NoPEProxy/dns.properties");
 			if(f.exists()){
 				config.load( new FileInputStream(f));
 			}else{
 				//config.load(ClassLoader.getSystemResourceAsStream("dns.properties"));
-				File p = new File(path + "/.dnsExtender");
+				File p = new File(path + "/.NoPEProxy");
 				if(!p.exists())
 					p.mkdir();
 				f.createNewFile();

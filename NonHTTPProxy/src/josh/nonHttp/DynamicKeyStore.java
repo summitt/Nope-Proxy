@@ -124,7 +124,7 @@ public class DynamicKeyStore {
 			 String CP = System.getProperty("java.class.path");
 			 String OS = System.getProperty("os.name").toLowerCase();
 			 String fs =  System.getProperty("file.separator");
-			 System.out.println(System.getProperty("user.dir"));
+			 //System.out.println(System.getProperty("user.dir"));
 			 String dirs [];
 			 String JKS="";
 			 if(OS.indexOf("win") >= 0)
@@ -191,7 +191,7 @@ public class DynamicKeyStore {
 	        newStore.setKeyEntry("key", (Key)intkeyPair.getPrivate(), "changeit".toCharArray() ,chain);
 	        
 	        String hidden = System.getProperty("user.home");
-	        hidden += "/.dnsExtender/keystores/";
+	        hidden += "/.NoPEProxy/keystores/";
 	        File keyStoreDir= new File(hidden);
 	        if(!keyStoreDir.exists()){
 	        	keyStoreDir.mkdir();

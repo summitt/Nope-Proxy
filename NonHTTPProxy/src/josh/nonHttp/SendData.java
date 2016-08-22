@@ -365,8 +365,10 @@ public class SendData implements Runnable{
 	
 	private  List<String> regexMatch(){
 		List<String> tmp = new ArrayList<String>();
-		String fs =  System.getProperty("file.separator");
-		String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";
+		/*String fs =  System.getProperty("file.separator");
+		String file = System.getProperty("user.dir") + fs + "nonHTTPmatch.txt";*/
+		String path = System.getProperty("user.home");
+		String file = path + "/.NoPEProxy/nonHTTPmatch.txt";
 		File f = new File(file);
 		if(!f.exists()){
 			System.out.println("missing nonHTTPmatch.txt");
