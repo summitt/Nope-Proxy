@@ -1432,7 +1432,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_lblNopeProxy.gridy = 1;
 		panel_7.add(lblNopeProxy, gbc_lblNopeProxy);
 		
-		JLabel lblVersion = new JLabel("Version 1.4.1");
+		JLabel lblVersion = new JLabel("Version 1.4.3");
 		GridBagConstraints gbc_lblVersion = new GridBagConstraints();
 		gbc_lblVersion.insets = new Insets(0, 0, 5, 5);
 		gbc_lblVersion.gridx = 1;
