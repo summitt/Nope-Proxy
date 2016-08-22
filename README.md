@@ -6,6 +6,7 @@
 
 ## [Download latest release here](https://github.com/summitt/Burp-Non-HTTP-Extension/releases)
 <br>
+## [Instructions and Tutorials] (https://github.com/summitt/Burp-Non-HTTP-Extension/wiki)
 <br>
 <br>
 
