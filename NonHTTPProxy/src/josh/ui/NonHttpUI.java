@@ -203,253 +203,253 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_panel_2.gridx = 0;
 		gbc_panel_2.gridy = 0;
 		Options.add(panel_2, gbc_panel_2);
-				GridBagLayout gbl_panel_2 = new GridBagLayout();
-				gbl_panel_2.columnWidths = new int[]{42, 290, 242, 0, 0};
-				gbl_panel_2.rowHeights = new int[]{110, 27, 0, 223, 0};
-				gbl_panel_2.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
-				gbl_panel_2.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
-				panel_2.setLayout(gbl_panel_2);
+		GridBagLayout gbl_panel_2 = new GridBagLayout();
+		gbl_panel_2.columnWidths = new int[]{42, 290, 242, 0, 0};
+		gbl_panel_2.rowHeights = new int[]{110, 27, 0, 223, 0};
+		gbl_panel_2.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_panel_2.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		panel_2.setLayout(gbl_panel_2);
 																
-																		//#####################################################################################
-																	    // DNS Controls for  Options tab
-																		JPanel panel = new JPanel();
-																		GridBagConstraints gbc_panel = new GridBagConstraints();
-																		gbc_panel.fill = GridBagConstraints.BOTH;
-																		gbc_panel.insets = new Insets(0, 0, 5, 5);
-																		gbc_panel.gridwidth = 2;
-																		gbc_panel.gridx = 1;
-																		gbc_panel.gridy = 0;
-																		panel_2.add(panel, gbc_panel);
-																		panel.setBorder(null);
-																		GridBagLayout gbl_panel = new GridBagLayout();
-																		gbl_panel.columnWidths = new int[]{61, 44, 73, 130, 0};
-																		gbl_panel.rowHeights = new int[]{30, 33, 23, 0};
-																		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
-																		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
-																		panel.setLayout(gbl_panel);
-																		btnStartDns = new JButton("Start DNS");
-																		btnStartDns.setBackground(Color.RED);
-																		btnStartDns.setToolTipText("DNS will respond to all requests with the IP address in Blue below.");
-																		btnStartDns.addActionListener(new ActionListener() {
-																			public void actionPerformed(ActionEvent e) {
-																				ToggleDNS( dnsIpTxt.getText() ,Integer.parseInt(txtDNSPort.getText()));
-																				if(isDNSRunning){
+		//#####################################################################################
+	    // DNS Controls for  Options tab
+		JPanel panel = new JPanel();
+		GridBagConstraints gbc_panel = new GridBagConstraints();
+		gbc_panel.fill = GridBagConstraints.BOTH;
+		gbc_panel.insets = new Insets(0, 0, 5, 5);
+		gbc_panel.gridwidth = 2;
+		gbc_panel.gridx = 1;
+		gbc_panel.gridy = 0;
+		panel_2.add(panel, gbc_panel);
+		panel.setBorder(null);
+		GridBagLayout gbl_panel = new GridBagLayout();
+		gbl_panel.columnWidths = new int[]{61, 44, 73, 130, 0};
+		gbl_panel.rowHeights = new int[]{30, 33, 23, 0};
+		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panel.setLayout(gbl_panel);
+		btnStartDns = new JButton("Start DNS");
+		btnStartDns.setBackground(Color.RED);
+		btnStartDns.setToolTipText("DNS will respond to all requests with the IP address in Blue below.");
+		btnStartDns.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ToggleDNS( dnsIpTxt.getText() ,Integer.parseInt(txtDNSPort.getText()));
+				if(isDNSRunning){
 
 
-																				}else{
-																					btnStartDns.setBackground(Color.GREEN);
-																					btnStartDns.setText("Stop DNS");
-																					isDNSRunning = true;
-																					//lblStatusDNS.setText("DNS ON");
-																				}
+				}else{
+					btnStartDns.setBackground(Color.GREEN);
+					btnStartDns.setText("Stop DNS");
+					isDNSRunning = true;
+					//lblStatusDNS.setText("DNS ON");
+				}
 
-																			}
-																		});
-																		GridBagConstraints gbc_btnStartDns = new GridBagConstraints();
-																		gbc_btnStartDns.fill = GridBagConstraints.HORIZONTAL;
-																		gbc_btnStartDns.insets = new Insets(0, 0, 5, 5);
-																		gbc_btnStartDns.gridwidth = 2;
-																		gbc_btnStartDns.gridx = 0;
-																		gbc_btnStartDns.gridy = 0;
-																		panel.add(btnStartDns, gbc_btnStartDns);
-																		JLabel lblDnsIp = new JLabel("DNS Response Ip:");
-																		GridBagConstraints gbc_lblDnsIp = new GridBagConstraints();
-																		gbc_lblDnsIp.anchor = GridBagConstraints.EAST;
-																		gbc_lblDnsIp.insets = new Insets(0, 0, 5, 5);
-																		gbc_lblDnsIp.gridx = 2;
-																		gbc_lblDnsIp.gridy = 0;
-																		panel.add(lblDnsIp, gbc_lblDnsIp);
-																		
-																				//#####################################################################################
-																			    // Network Interfaces Information for  Options tab
-																				IfTxtBox = new JTextField();
-																				IfTxtBox.addKeyListener(new KeyAdapter() {
-																					@Override
-																					public void keyReleased(KeyEvent evt) {
-																						if(IfTxtBox.getText().matches("^[0-9]$")){
-																							updateInterface(IfTxtBox.getText());
-																							updateInterfaceInformation();	
-																						}
-																					}
-																				});
-																						
+			}
+		});
+		GridBagConstraints gbc_btnStartDns = new GridBagConstraints();
+		gbc_btnStartDns.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnStartDns.insets = new Insets(0, 0, 5, 5);
+		gbc_btnStartDns.gridwidth = 2;
+		gbc_btnStartDns.gridx = 0;
+		gbc_btnStartDns.gridy = 0;
+		panel.add(btnStartDns, gbc_btnStartDns);
+		JLabel lblDnsIp = new JLabel("DNS Response Ip:");
+		GridBagConstraints gbc_lblDnsIp = new GridBagConstraints();
+		gbc_lblDnsIp.anchor = GridBagConstraints.EAST;
+		gbc_lblDnsIp.insets = new Insets(0, 0, 5, 5);
+		gbc_lblDnsIp.gridx = 2;
+		gbc_lblDnsIp.gridy = 0;
+		panel.add(lblDnsIp, gbc_lblDnsIp);
+		
+		//#####################################################################################
+	    // Network Interfaces Information for  Options tab
+		IfTxtBox = new JTextField();
+		IfTxtBox.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent evt) {
+				if(IfTxtBox.getText().matches("^[0-9]$")){
+					updateInterface(IfTxtBox.getText());
+					updateInterfaceInformation();	
+				}
+			}
+		});
+				
 
-																						dnsIpTxt = new JTextField();
-																						dnsIpTxt.setToolTipText("Must restart the DNS server when the DNS IP is changed.");
-																						dnsIpTxt.addKeyListener(new KeyAdapter() {
-																							@Override
-																							public void keyReleased(KeyEvent e) {
-																								if(dnsIpTxt.getText().matches("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$")){
-																									DNSIP = dnsIpTxt.getText();
-																									Callbacks.printOutput("DNSIP Changed to : " +  DNSIP);
-																								}
-																							}
-																						});
-																						GridBagConstraints gbc_dnsIpTxt = new GridBagConstraints();
-																						gbc_dnsIpTxt.anchor = GridBagConstraints.NORTH;
-																						gbc_dnsIpTxt.fill = GridBagConstraints.HORIZONTAL;
-																						gbc_dnsIpTxt.insets = new Insets(0, 0, 5, 0);
-																						gbc_dnsIpTxt.gridx = 3;
-																						gbc_dnsIpTxt.gridy = 0;
-																						panel.add(dnsIpTxt, gbc_dnsIpTxt);
-																						dnsIpTxt.setColumns(10);
-																						dnsIpTxt.setText(local);
-																						DNSIP = dnsIpTxt.getText();
-																						
-																								JLabel lblInterface = new JLabel("Interface:");
-																								GridBagConstraints gbc_lblInterface = new GridBagConstraints();
-																								gbc_lblInterface.fill = GridBagConstraints.HORIZONTAL;
-																								gbc_lblInterface.insets = new Insets(0, 0, 5, 5);
-																								gbc_lblInterface.gridx = 0;
-																								gbc_lblInterface.gridy = 1;
-																								panel.add(lblInterface, gbc_lblInterface);
-																				
-																				
-																						IfTxtBox.setToolTipText("The interface number from the list below.");
-																						IfTxtBox.setText(""+IFNUM);
-																						GridBagConstraints gbc_IfTxtBox = new GridBagConstraints();
-																						gbc_IfTxtBox.anchor = GridBagConstraints.SOUTH;
-																						gbc_IfTxtBox.fill = GridBagConstraints.HORIZONTAL;
-																						gbc_IfTxtBox.insets = new Insets(0, 0, 5, 5);
-																						gbc_IfTxtBox.gridx = 1;
-																						gbc_IfTxtBox.gridy = 1;
-																						panel.add(IfTxtBox, gbc_IfTxtBox);
-																						IfTxtBox.setColumns(10);
-																		
-																		JLabel lblDnsport = new JLabel("DNS Listener Port:");
-																		GridBagConstraints gbc_lblDnsport = new GridBagConstraints();
-																		gbc_lblDnsport.anchor = GridBagConstraints.EAST;
-																		gbc_lblDnsport.insets = new Insets(0, 0, 5, 5);
-																		gbc_lblDnsport.gridx = 2;
-																		gbc_lblDnsport.gridy = 1;
-																		panel.add(lblDnsport, gbc_lblDnsport);
-																		
-																				final JCheckBox chckbxStartDnsOn = new JCheckBox("Start DNS on Start Up");
-																				chckbxStartDnsOn.addChangeListener(new ChangeListener() {
-																					public void stateChanged(ChangeEvent arg0) {
-																						updateAutoStart(chckbxStartDnsOn.isSelected());
-																					}
-																				});
-																				
-																				txtDNSPort = new JTextField();
-																				txtDNSPort.addKeyListener(new KeyAdapter() {
-																					@Override
-																					public void keyReleased(KeyEvent e) {
-																						DNSPort = Integer.parseInt(txtDNSPort.getText());
-																						updateProperties("dnsport", ""+DNSPort);
-																					}
-																				});
-																				txtDNSPort.addPropertyChangeListener(new PropertyChangeListener() {
-																					public void propertyChange(PropertyChangeEvent evt) {
-																					}
-																				});
-																				txtDNSPort.setText(tmpPort);
-																				GridBagConstraints gbc_txtDNSPort = new GridBagConstraints();
-																				gbc_txtDNSPort.anchor = GridBagConstraints.NORTH;
-																				gbc_txtDNSPort.fill = GridBagConstraints.HORIZONTAL;
-																				gbc_txtDNSPort.insets = new Insets(0, 0, 5, 0);
-																				gbc_txtDNSPort.gridx = 3;
-																				gbc_txtDNSPort.gridy = 1;
-																				panel.add(txtDNSPort, gbc_txtDNSPort);
-																				txtDNSPort.setColumns(10);
-																				GridBagConstraints gbc_chckbxStartDnsOn = new GridBagConstraints();
-																				gbc_chckbxStartDnsOn.anchor = GridBagConstraints.WEST;
-																				gbc_chckbxStartDnsOn.fill = GridBagConstraints.VERTICAL;
-																				gbc_chckbxStartDnsOn.gridx = 3;
-																				gbc_chckbxStartDnsOn.gridy = 2;
-																				panel.add(chckbxStartDnsOn, gbc_chckbxStartDnsOn);
-																		
-																		useDefaultIp = new JCheckBox("Use the above 'DNS Response IP' for all DNS responses excluding host entries below. ");
-																		useDefaultIp.addChangeListener(new ChangeListener() {
-																			public void stateChanged(ChangeEvent arg0) {
-																				sb.setDefault(useDefaultIp.isSelected());
-																			}
-																		});
-																		useDefaultIp.setSelected(true);
-																		GridBagConstraints gbc_useDefaultIp = new GridBagConstraints();
-																		gbc_useDefaultIp.anchor = GridBagConstraints.WEST;
-																		gbc_useDefaultIp.insets = new Insets(0, 0, 5, 5);
-																		gbc_useDefaultIp.gridx = 2;
-																		gbc_useDefaultIp.gridy = 1;
-																		panel_2.add(useDefaultIp, gbc_useDefaultIp);
-																		
-																				
-																				lblCurrentIpAddress.setToolTipText("Double Click to add IP address to DNS Config");
-																				lblCurrentIpAddress.addMouseListener(new MouseAdapter() {
-																					@Override
-																					public void mouseClicked(MouseEvent arg0) {
-																						//Check for double click
-																						if(arg0.getClickCount()==2){
-																							String [] theSplits = lblCurrentIpAddress.getText().split(":");
-																							String ip = theSplits[1];
-																							if(ip!=null){
-																								ip=ip.trim();
-																								dnsIpTxt.setText(ip);
-																							}
-																							
-																							
-																						}
-																					}
-																				});
-																				GridBagConstraints gbc_lblCurrentIpAddress = new GridBagConstraints();
-																				gbc_lblCurrentIpAddress.anchor = GridBagConstraints.NORTH;
-																				gbc_lblCurrentIpAddress.fill = GridBagConstraints.HORIZONTAL;
-																				gbc_lblCurrentIpAddress.insets = new Insets(0, 0, 5, 5);
-																				gbc_lblCurrentIpAddress.gridx = 1;
-																				gbc_lblCurrentIpAddress.gridy = 2;
-																				panel_2.add(lblCurrentIpAddress, gbc_lblCurrentIpAddress);
-																				
-																				
-																						lblCurrentIpAddress.setForeground(Color.BLUE);
-																						lblCurrentIpAddress.setText("Current Ip Address: " + local );
-																		
-																		JLabel lblNewLabel_1 = new JLabel("             Left unchecked the real IP address will be used instead.");
-																		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
-																		gbc_lblNewLabel_1.anchor = GridBagConstraints.WEST;
-																		gbc_lblNewLabel_1.insets = new Insets(0, 0, 5, 5);
-																		gbc_lblNewLabel_1.gridx = 2;
-																		gbc_lblNewLabel_1.gridy = 2;
-																		panel_2.add(lblNewLabel_1, gbc_lblNewLabel_1);
-																		
-																		JTextArea txtIfList = new JTextArea();
-																		GridBagConstraints gbc_txtIfList = new GridBagConstraints();
-																		gbc_txtIfList.insets = new Insets(0, 0, 0, 5);
-																		gbc_txtIfList.fill = GridBagConstraints.BOTH;
-																		gbc_txtIfList.gridx = 1;
-																		gbc_txtIfList.gridy = 3;
-																		panel_2.add(txtIfList, gbc_txtIfList);
-																		txtIfList.setEditable(false);
-																		txtIfList.setWrapStyleWord(true);
-																		txtIfList.setText(getInterfaceList());
-																		
-																		JPanel panel_4 = new JPanel();
-																		panel_4.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Custom Hosts file", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(59, 59, 59)));
-																		GridBagConstraints gbc_panel_4 = new GridBagConstraints();
-																		gbc_panel_4.insets = new Insets(0, 0, 0, 5);
-																		gbc_panel_4.fill = GridBagConstraints.BOTH;
-																		gbc_panel_4.gridx = 2;
-																		gbc_panel_4.gridy = 3;
-																		panel_2.add(panel_4, gbc_panel_4);
-																		GridBagLayout gbl_panel_4 = new GridBagLayout();
-																		gbl_panel_4.columnWidths = new int[]{12, 0};
-																		gbl_panel_4.rowHeights = new int[]{28, 0};
-																		gbl_panel_4.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-																		gbl_panel_4.rowWeights = new double[]{1.0, Double.MIN_VALUE};
-																		panel_4.setLayout(gbl_panel_4);
-																		
-																		JTextArea dnsHosts = new JTextArea();
-																		dnsHosts.setText(this.readHosts());
-																		dnsHosts.addKeyListener(new KeyAdapter() {
-																			@Override
-																			public void keyReleased(KeyEvent arg0) {
-																				saveHosts(dnsHosts.getText());
-																			}
-																		});
-																		GridBagConstraints gbc_dnsHosts = new GridBagConstraints();
-																		gbc_dnsHosts.fill = GridBagConstraints.BOTH;
-																		gbc_dnsHosts.gridx = 0;
-																		gbc_dnsHosts.gridy = 0;
-																		panel_4.add(dnsHosts, gbc_dnsHosts);
+		dnsIpTxt = new JTextField();
+		dnsIpTxt.setToolTipText("Must restart the DNS server when the DNS IP is changed.");
+		dnsIpTxt.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if(dnsIpTxt.getText().matches("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$")){
+					DNSIP = dnsIpTxt.getText();
+					Callbacks.printOutput("DNSIP Changed to : " +  DNSIP);
+				}
+			}
+		});
+		GridBagConstraints gbc_dnsIpTxt = new GridBagConstraints();
+		gbc_dnsIpTxt.anchor = GridBagConstraints.NORTH;
+		gbc_dnsIpTxt.fill = GridBagConstraints.HORIZONTAL;
+		gbc_dnsIpTxt.insets = new Insets(0, 0, 5, 0);
+		gbc_dnsIpTxt.gridx = 3;
+		gbc_dnsIpTxt.gridy = 0;
+		panel.add(dnsIpTxt, gbc_dnsIpTxt);
+		dnsIpTxt.setColumns(10);
+		dnsIpTxt.setText(local);
+		DNSIP = dnsIpTxt.getText();
+		
+				JLabel lblInterface = new JLabel("Interface:");
+				GridBagConstraints gbc_lblInterface = new GridBagConstraints();
+				gbc_lblInterface.fill = GridBagConstraints.HORIZONTAL;
+				gbc_lblInterface.insets = new Insets(0, 0, 5, 5);
+				gbc_lblInterface.gridx = 0;
+				gbc_lblInterface.gridy = 1;
+				panel.add(lblInterface, gbc_lblInterface);
+
+
+		IfTxtBox.setToolTipText("The interface number from the list below.");
+		IfTxtBox.setText(""+IFNUM);
+		GridBagConstraints gbc_IfTxtBox = new GridBagConstraints();
+		gbc_IfTxtBox.anchor = GridBagConstraints.SOUTH;
+		gbc_IfTxtBox.fill = GridBagConstraints.HORIZONTAL;
+		gbc_IfTxtBox.insets = new Insets(0, 0, 5, 5);
+		gbc_IfTxtBox.gridx = 1;
+		gbc_IfTxtBox.gridy = 1;
+		panel.add(IfTxtBox, gbc_IfTxtBox);
+		IfTxtBox.setColumns(10);
+		
+		JLabel lblDnsport = new JLabel("DNS Listener Port:");
+		GridBagConstraints gbc_lblDnsport = new GridBagConstraints();
+		gbc_lblDnsport.anchor = GridBagConstraints.EAST;
+		gbc_lblDnsport.insets = new Insets(0, 0, 5, 5);
+		gbc_lblDnsport.gridx = 2;
+		gbc_lblDnsport.gridy = 1;
+		panel.add(lblDnsport, gbc_lblDnsport);
+		
+		final JCheckBox chckbxStartDnsOn = new JCheckBox("Start DNS on Start Up");
+		chckbxStartDnsOn.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				updateAutoStart(chckbxStartDnsOn.isSelected());
+			}
+		});
+		
+		txtDNSPort = new JTextField();
+		txtDNSPort.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				DNSPort = Integer.parseInt(txtDNSPort.getText());
+				updateProperties("dnsport", ""+DNSPort);
+			}
+		});
+		txtDNSPort.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+			}
+		});
+		txtDNSPort.setText(tmpPort);
+		GridBagConstraints gbc_txtDNSPort = new GridBagConstraints();
+		gbc_txtDNSPort.anchor = GridBagConstraints.NORTH;
+		gbc_txtDNSPort.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtDNSPort.insets = new Insets(0, 0, 5, 0);
+		gbc_txtDNSPort.gridx = 3;
+		gbc_txtDNSPort.gridy = 1;
+		panel.add(txtDNSPort, gbc_txtDNSPort);
+		txtDNSPort.setColumns(10);
+		GridBagConstraints gbc_chckbxStartDnsOn = new GridBagConstraints();
+		gbc_chckbxStartDnsOn.anchor = GridBagConstraints.WEST;
+		gbc_chckbxStartDnsOn.fill = GridBagConstraints.VERTICAL;
+		gbc_chckbxStartDnsOn.gridx = 3;
+		gbc_chckbxStartDnsOn.gridy = 2;
+		panel.add(chckbxStartDnsOn, gbc_chckbxStartDnsOn);
+		
+		useDefaultIp = new JCheckBox("Use the above 'DNS Response IP' for all DNS responses excluding host entries below. ");
+		useDefaultIp.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				sb.setDefault(useDefaultIp.isSelected());
+			}
+		});
+		useDefaultIp.setSelected(true);
+		GridBagConstraints gbc_useDefaultIp = new GridBagConstraints();
+		gbc_useDefaultIp.anchor = GridBagConstraints.WEST;
+		gbc_useDefaultIp.insets = new Insets(0, 0, 5, 5);
+		gbc_useDefaultIp.gridx = 2;
+		gbc_useDefaultIp.gridy = 1;
+		panel_2.add(useDefaultIp, gbc_useDefaultIp);
+		
+				
+				lblCurrentIpAddress.setToolTipText("Double Click to add IP address to DNS Config");
+				lblCurrentIpAddress.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseClicked(MouseEvent arg0) {
+						//Check for double click
+						if(arg0.getClickCount()==2){
+							String [] theSplits = lblCurrentIpAddress.getText().split(":");
+							String ip = theSplits[1];
+							if(ip!=null){
+								ip=ip.trim();
+								dnsIpTxt.setText(ip);
+							}
+							
+							
+						}
+					}
+				});
+				GridBagConstraints gbc_lblCurrentIpAddress = new GridBagConstraints();
+				gbc_lblCurrentIpAddress.anchor = GridBagConstraints.NORTH;
+				gbc_lblCurrentIpAddress.fill = GridBagConstraints.HORIZONTAL;
+				gbc_lblCurrentIpAddress.insets = new Insets(0, 0, 5, 5);
+				gbc_lblCurrentIpAddress.gridx = 1;
+				gbc_lblCurrentIpAddress.gridy = 2;
+				panel_2.add(lblCurrentIpAddress, gbc_lblCurrentIpAddress);
+				
+				
+						lblCurrentIpAddress.setForeground(Color.BLUE);
+						lblCurrentIpAddress.setText("Current Ip Address: " + local );
+		
+		JLabel lblNewLabel_1 = new JLabel("             Left unchecked the real IP address will be used instead.");
+		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
+		gbc_lblNewLabel_1.anchor = GridBagConstraints.WEST;
+		gbc_lblNewLabel_1.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNewLabel_1.gridx = 2;
+		gbc_lblNewLabel_1.gridy = 2;
+		panel_2.add(lblNewLabel_1, gbc_lblNewLabel_1);
+		
+		JTextArea txtIfList = new JTextArea();
+		GridBagConstraints gbc_txtIfList = new GridBagConstraints();
+		gbc_txtIfList.insets = new Insets(0, 0, 0, 5);
+		gbc_txtIfList.fill = GridBagConstraints.BOTH;
+		gbc_txtIfList.gridx = 1;
+		gbc_txtIfList.gridy = 3;
+		panel_2.add(txtIfList, gbc_txtIfList);
+		txtIfList.setEditable(false);
+		txtIfList.setWrapStyleWord(true);
+		txtIfList.setText(getInterfaceList());
+		
+		JPanel panel_4 = new JPanel();
+		panel_4.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Custom Hosts file", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(59, 59, 59)));
+		GridBagConstraints gbc_panel_4 = new GridBagConstraints();
+		gbc_panel_4.insets = new Insets(0, 0, 0, 5);
+		gbc_panel_4.fill = GridBagConstraints.BOTH;
+		gbc_panel_4.gridx = 2;
+		gbc_panel_4.gridy = 3;
+		panel_2.add(panel_4, gbc_panel_4);
+		GridBagLayout gbl_panel_4 = new GridBagLayout();
+		gbl_panel_4.columnWidths = new int[]{12, 0};
+		gbl_panel_4.rowHeights = new int[]{28, 0};
+		gbl_panel_4.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+		gbl_panel_4.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+		panel_4.setLayout(gbl_panel_4);
+		
+		JTextArea dnsHosts = new JTextArea();
+		dnsHosts.setText(this.readHosts());
+		dnsHosts.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				saveHosts(dnsHosts.getText());
+			}
+		});
+		GridBagConstraints gbc_dnsHosts = new GridBagConstraints();
+		gbc_dnsHosts.fill = GridBagConstraints.BOTH;
+		gbc_dnsHosts.gridx = 0;
+		gbc_dnsHosts.gridy = 0;
+		panel_4.add(dnsHosts, gbc_dnsHosts);
 	
 		//tbm = (DefaultTableModel)ListTable.getModel();
 		tbm = new DefaultTableModel(){
@@ -505,16 +505,18 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							else if(isBoth.isSelected())
 								mtm.setInterceptDir(mtm.INTERCEPT_BOTH);
 							
-							threads.put(mtm.ListenPort, mtm); /// track threads by the listening port
+							//threads.put(mtm.ListenPort, mtm); /// track threads by the listening port
+							threads.put(rowid, mtm); /// track threads by the rowid
 							Thread t = new Thread(mtm);
 							t.start();
 						}
 					}else{ //delete a server thread
-						int lPort = Integer.parseInt((String)tbm.getValueAt(rowid, 1));
-						GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(lPort));
+						/*int lPort = Integer.parseInt((String)tbm.getValueAt(rowid, 1));
+						GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(lPort));*/
+						GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(rowid));
 						if(mtm != null){
 							mtm.KillThreads();
-							threads.remove(lPort);
+							threads.remove(rowid);
 						}
 					}
 				}
@@ -1084,26 +1086,26 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						btnAdd.addActionListener(new ActionListener() {
 							public void actionPerformed(ActionEvent arg0) {
 								int lPort = Integer.parseInt(LstnPort.getText());
-								if(threads.containsKey(lPort))
+								/*if(threads.containsKey(lPort))
 									Callbacks.printOutput("Listener Already Exits");
-								else{
-									Vector<Object> vec = new Vector<Object>();
+								else{*/
+								Vector<Object> vec = new Vector<Object>();
 
+								vec.add(false);
+								vec.add(LstnPort.getText());
+								vec.add(SvrAddr.getText());
+								vec.add(SvrPort.getText());
+								vec.add(certName.getText());
+								if(isSSL.isSelected())
+									vec.add(true);
+								else 
 									vec.add(false);
-									vec.add(LstnPort.getText());
-									vec.add(SvrAddr.getText());
-									vec.add(SvrPort.getText());
-									vec.add(certName.getText());
-									if(isSSL.isSelected())
-										vec.add(true);
-									else 
-										vec.add(false);
 
-									tbm.addRow(vec);
-									int rowInserted=tbm.getRowCount()-1;
-									tbm.fireTableRowsInserted(rowInserted,rowInserted);
+								tbm.addRow(vec);
+								int rowInserted=tbm.getRowCount()-1;
+								tbm.fireTableRowsInserted(rowInserted,rowInserted);
 									
-								}
+								//}
 
 							}
 							

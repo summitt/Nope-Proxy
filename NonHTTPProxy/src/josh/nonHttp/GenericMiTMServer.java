@@ -77,7 +77,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	
 	public static boolean available(int port) {
 	    if (port < 1 || port > 65535) {
-	        throw new IllegalArgumentException("Invalid start port: " + port);
+	    	return false;
 	    }
 
 	    ServerSocket ss = null;
@@ -98,7 +98,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	            try {
 	                ss.close();
 	            } catch (IOException e) {
-	                /* should not be thrown */
+	       
 	            }
 	        }
 	    }
