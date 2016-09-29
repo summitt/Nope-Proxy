@@ -38,6 +38,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -49,6 +53,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -109,6 +114,7 @@ import java.awt.SystemColor;
 import javax.swing.JPopupMenu;
 import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.FileDialog;
 import javax.swing.ListSelectionModel;
 import java.awt.FlowLayout;
@@ -455,9 +461,20 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		tbm = new DefaultTableModel(){
 			 @Override
 			    public boolean isCellEditable(int row, int column) {
-			       if(column == 0)
+			       if(column == 0){
+			    	   int port = Integer.parseInt(""+tbm.getValueAt(row,1));
+			    	   for(int i=0; i< tbm.getRowCount(); i++){
+			    		   if(i == row)
+			    			   continue;
+			    		   else if(port == Integer.parseInt(""+tbm.getValueAt(i,1)) && (boolean)tbm.getValueAt(i,0))
+			    			   return false;
+			    	   }
 			    	   return true;
-			       else 
+			       }else if((boolean)tbm.getValueAt(row,0) && column == 5) 
+			    	   return false;
+			       else if(!(boolean)tbm.getValueAt(row,0) && column == 5) 
+			    	   return true;
+			       else
 			    	   return false;
 			    }
 			
@@ -474,7 +491,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 
 				///OK something changed in the table... it could be a new row added or 
 				
-				if(e.getType()==e.UPDATE){
+				
+				if(e.getType()==e.UPDATE && e.getColumn() == 0){
 					int rowid = ListTable.getSelectedRow();
 					//System.out.println("Updated Table");
 					//update create 
@@ -484,8 +502,22 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						if(!GenericMiTMServer.available(listport)){
 							tbm.setValueAt(false, rowid, 0);
 							Callbacks.printOutput("Port is already in use or port is outside range.");
-						}else{
+						}else if((Boolean)tbm.getValueAt(rowid, 5) && !checkCert()){
+							tbm.setValueAt(false, rowid, 0);
+							Callbacks.printOutput("SSL Cert is not installed correctly");
+							isSSL.setForeground(Color.red);	
+							lblNewLabel.setForeground(Color.red);
+							Timer timer = new Timer();
+							timer.schedule(new TimerTask() {
+								  @Override
+								  public void run() {
+									  isSSL.setForeground(Color.black);
+									  lblNewLabel.setForeground(Color.black);
+								  }
+								}, 3*1000);
 							
+						}else{
+							///isSSL.setBackground();
 							GenericMiTMServer mtm = new GenericMiTMServer((Boolean)tbm.getValueAt(rowid, 5), Callbacks);
 							//TODO: Add validation
 							mtm.ListenPort = listport;
@@ -506,22 +538,21 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 								mtm.setInterceptDir(mtm.INTERCEPT_BOTH);
 							
 							//threads.put(mtm.ListenPort, mtm); /// track threads by the listening port
-							threads.put(rowid, mtm); /// track threads by the rowid
+							threads.put(listport, mtm); /// track threads by the rowid
 							Thread t = new Thread(mtm);
 							t.start();
+							
 						}
-					}else{ //delete a server thread
-						/*int lPort = Integer.parseInt((String)tbm.getValueAt(rowid, 1));
-						GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(lPort));*/
-						GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(rowid));
+					}else if (e.getColumn() == 0){ //delete a server thread
+						int lPort = Integer.parseInt((String)tbm.getValueAt(rowid, 1));
+						GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(lPort));
+						//GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(rowid));
 						if(mtm != null){
 							mtm.KillThreads();
-							threads.remove(rowid);
+							threads.remove(lPort);
 						}
 					}
 				}
-
-
 			}
 		});
 		
@@ -1150,6 +1181,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						panel_1.add(lblPort, gbc_lblPort);
 				
 				isSSL = new JCheckBox("SSL - (Export Burp's CACert as pkcs12 with  password 'changeit'. ");
+				isSSL.setBackground(UIManager.getColor("ArrowButton.background"));
 				GridBagConstraints gbc_isSSL = new GridBagConstraints();
 				gbc_isSSL.anchor = GridBagConstraints.NORTH;
 				gbc_isSSL.fill = GridBagConstraints.HORIZONTAL;
@@ -1229,15 +1261,17 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 												JButton btnRemoveProxy = new JButton("Remove Proxy");
 												btnRemoveProxy.addActionListener(new ActionListener() {
 													public void actionPerformed(ActionEvent e) {
-														int rowid = ListTable.getSelectedRow();
-														int lPort = Integer.parseInt((String)tbm.getValueAt(rowid, 1));
-														if(threads.get(lPort) != null && threads.get(lPort).isRunning()){
-															threads.get(lPort).KillThreads();
-															threads.remove(lPort);
-															
+														if(ListTable.getSelectedRow() != -1){
+															int rowid = ListTable.getSelectedRow();
+															int lPort = Integer.parseInt((String)tbm.getValueAt(rowid, 1));
+															GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(lPort));
+															if(mtm != null){
+																mtm.KillThreads();
+																threads.remove(lPort);
+															}
+															tbm.removeRow(rowid);
+															tbm.fireTableRowsDeleted(rowid, rowid);
 														}
-														tbm.removeRow(rowid);
-														tbm.fireTableRowsDeleted(rowid, rowid);
 														
 													}
 												});
@@ -1264,7 +1298,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 														panel_1.add(LstnPort, gbc_LstnPort);
 														LstnPort.setColumns(10);
 												
-												JLabel lblNewLabel = new JLabel("Name the cert 'burpca.p12'  in Burp's installation folder)");
+												lblNewLabel = new JLabel("Name the cert 'burpca.p12'  in Burp's installation folder)");
 												GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
 												gbc_lblNewLabel.anchor = GridBagConstraints.NORTH;
 												gbc_lblNewLabel.fill = GridBagConstraints.HORIZONTAL;
@@ -1412,6 +1446,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 																}
 															}
 														};
+														ListTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
+														ListTable.setRowHeight(ListTable.getRowHeight()+50);
 														scrollPane_1.setViewportView(ListTable);
 														ListTable.setModel(tbm);
 		// Add Tabs to main component
@@ -1434,14 +1470,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_lblNopeProxy.gridy = 1;
 		panel_7.add(lblNopeProxy, gbc_lblNopeProxy);
 		
-		JLabel lblVersion = new JLabel("Version 1.4.3");
+		JLabel lblVersion = new JLabel("Version 1.4.4");
 		GridBagConstraints gbc_lblVersion = new GridBagConstraints();
 		gbc_lblVersion.insets = new Insets(0, 0, 5, 5);
 		gbc_lblVersion.gridx = 1;
 		gbc_lblVersion.gridy = 2;
 		panel_7.add(lblVersion, gbc_lblVersion);
 		
-		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt");
+		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt @null0perat0r");
 		GridBagConstraints gbc_lblDevelopedByJosh = new GridBagConstraints();
 		gbc_lblDevelopedByJosh.insets = new Insets(0, 0, 5, 5);
 		gbc_lblDevelopedByJosh.gridx = 1;
@@ -1480,6 +1516,34 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 //############################################################################################################################
 // Supporting Functions
 //############################################################################################################################
+	private boolean checkCert(){
+		File f = new File("./burpca.p12");
+		if(f.exists()){
+			try {
+				 KeyStore keyStoreFile = KeyStore.getInstance("PKCS12");
+			     keyStoreFile.load(new FileInputStream("./burpca.p12"),"changeit".toCharArray());
+			     return true;
+			} catch (KeyStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (CertificateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+			return false;
+		}else{
+			return false;
+		}
+	}
 	private void saveHosts(String hosts){
 		
 		/*String fs =  System.getProperty("file.separator");
@@ -1781,6 +1845,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private JCheckBox useDefaultIp;
 	private JTextArea pythonText;
 	private JCheckBox chckbxEnablePythonMangler;
+	private JLabel lblNewLabel;
 	
 	public synchronized void addEventListener(DNSConfigListener listener)	{
 		_listeners.add(listener);
@@ -1950,4 +2015,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 
 
+	protected JLabel getLblNewLabel() {
+		return lblNewLabel;
+	}
 }

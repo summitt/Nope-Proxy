@@ -88,8 +88,8 @@ public class SendData implements Runnable{
 		String error = pm.getError();
 		if(!output.equals("") || !error.equals("")){
 			PythonOutputEvent event = new PythonOutputEvent(this);
-			event.setMessage(pm.getOutput());
-			event.setError(pm.getError());
+			event.setMessage(output);
+			event.setError(error);
 			if(isC2S){
 				event.setDirection("Client-To-Server");
 			}else{
