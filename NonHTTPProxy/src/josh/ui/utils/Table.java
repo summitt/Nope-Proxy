@@ -1,9 +1,11 @@
-package josh.nonHttp.utils;
+package josh.ui.utils;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.UIManager;
@@ -11,6 +13,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import org.hibernate.Session;
 import burp.IMessageEditor;
+import jiconfont.icons.Elusive;
+import jiconfont.swing.IconFontSwing;
 import josh.dao.Requests;
 
 @SuppressWarnings("serial")
@@ -52,10 +56,27 @@ public class Table extends JTable
         originalViewer.setMessage(req.getOriginal(), true);
        
         currentlyDisplayedItem = logEntry.requestResponse;
+        JLabel start = new JLabel(""+logEntry.Index + " - " + logEntry.Direction + " - " +
+        		logEntry.SrcIP + ":" + logEntry.SrcPort);
+        JLabel arrow = new JLabel();
+        arrow.setIcon(IconFontSwing.buildIcon(Elusive.ARROW_RIGHT,16));
+        JLabel end = new JLabel(""+ logEntry.DstIP + ":" + logEntry.DstPort +
+        		" Size: " + logEntry.Bytes);
+        
         ((NonHTTPTableModel)this.getModel()).getLabel().setText(
         		""+logEntry.Index + " - " + logEntry.Direction + " - " +
-        		logEntry.SrcIP + ":" + logEntry.SrcPort + " -> " + logEntry.DstIP + ":" + logEntry.DstPort +
+        		logEntry.SrcIP + ":" + logEntry.SrcPort +" " +(char)0xBB+(char)0xBB + " " +logEntry.DstIP + ":" + logEntry.DstPort +
         		" Size: " + logEntry.Bytes );
+        /*((NonHTTPTableModel)this.getModel()).getLabel().removeAll();
+        
+        ((NonHTTPTableModel)this.getModel()).getLabel().setLayout(new BoxLayout(((NonHTTPTableModel)this.getModel()).getLabel(), BoxLayout.X_AXIS));
+        ((NonHTTPTableModel)this.getModel()).getLabel().add(start);
+        ((NonHTTPTableModel)this.getModel()).getLabel().add(arrow);
+        ((NonHTTPTableModel)this.getModel()).getLabel().add(end);
+        ((NonHTTPTableModel)this.getModel()).getLabel().setText("");
+        ((NonHTTPTableModel)this.getModel()).getLabel().*/
+        
+        
         
         
         super.changeSelection(row, col, toggle, extend);
@@ -78,12 +99,15 @@ public class Table extends JTable
             
             int r = this.convertRowIndexToModel(row);
             if( super.isRowSelected(row)){
-            	//c.setBackground(new Color(41, 128, 185));
             	c.setBackground(new Color(52, 73, 94));
             }else if(log.get(r).Direction.contains("**")){
-             	c.setBackground(new Color(0xf1,0xc4,0x0f));  
-            }else if(log.get(r).Direction.contains("Python")){
-            	c.setBackground( new Color(0x2e,0xcc, 0x71));
+             	c.setBackground(new Color(0xf1,0xc4,0x0f));
+            }else if( log.get(r).Direction.contains("Repeater")){
+	        	c.setBackground( new Color(0xF3,0xFA,0xB6));
+	        }else if(log.get(r).Direction.contains("Python")){
+            	//c.setBackground( new Color(0x2e,0xcc, 0x71));
+	        	
+	        	c.setBackground( new Color(0xCB,0xE3,0x2D));
 	        }else if( log.get(r).Direction.contains("Match")){
 	        	c.setBackground( new Color(149, 165, 166));
 	        }else if((row%2)==0){

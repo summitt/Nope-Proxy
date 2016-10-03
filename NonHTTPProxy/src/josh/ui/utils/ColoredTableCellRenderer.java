@@ -1,4 +1,4 @@
-package josh.nonHttp.utils;
+package josh.ui.utils;
 
 import java.awt.Color;
 import java.awt.Component;

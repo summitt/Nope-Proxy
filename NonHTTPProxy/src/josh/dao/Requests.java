@@ -36,6 +36,11 @@ public class Requests {
 	private Long date;
 	 @Column(name = "direction")
 	private String direction;
+	 @Column(name = "data_str")
+	private String data_str;
+	 @Column(name = "original_str")
+	private String original_str;
+	
 	 
     public Requests(){};
 	 
@@ -50,6 +55,9 @@ public class Requests {
 		this.direction = Direction;
 		this.date = time;
 		this.bytes = bytes;
+		this.original_str = new String(original).replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
+		this.data_str = new String(requestResponse).replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
+		
 		
 	}
 
@@ -142,6 +150,23 @@ public class Requests {
 	public void setDirection(String direction) {
 		this.direction = direction;
 	}
+
+	public String getData_str() {
+		return data_str;
+	}
+
+	public void setData_str(String data_str) {
+		this.data_str = data_str;
+	}
+
+	public String getOriginal_str() {
+		return original_str;
+	}
+
+	public void setOriginal_str(String original_str) {
+		this.original_str = original_str;
+	}
+	
 	
 	
 	

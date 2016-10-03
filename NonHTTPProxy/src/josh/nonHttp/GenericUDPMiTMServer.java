@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -34,7 +35,7 @@ import josh.utils.events.PythonOutputEventListener;
 import josh.utils.events.SendClosedEvent;
 import josh.utils.events.SendClosedEventListener;
 
-public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOutputEventListener, SendClosedEventListener{
+public class GenericUDPMiTMServer implements Runnable, ProxyEventListener, PythonOutputEventListener, SendClosedEventListener{
 	
 	
 	public int ListenPort;
@@ -52,8 +53,8 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	Socket connectionSocket;
 	Object cltSock;
 	Vector<Thread> threads = new Vector<Thread>();
-	Vector<SendData> sends = new Vector<SendData>();
-	HashMap<SendData,SendData> pairs = new HashMap<SendData,SendData>();
+	Vector<SendUDPData> sends = new Vector<SendUDPData>();
+	HashMap<SendUDPData,SendUDPData> pairs = new HashMap<SendUDPData,SendUDPData>();
 	HashMap<Integer,Thread>treads2 = new HashMap<Integer,Thread>();
 	boolean isSSL = false;
 	boolean isRunning=false;
@@ -68,7 +69,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	
 	
 	
-	public GenericMiTMServer(boolean isSSL, IBurpExtenderCallbacks Callbacks){
+	public GenericUDPMiTMServer(boolean isSSL, IBurpExtenderCallbacks Callbacks){
 		this.interceptc2s = new InterceptData(null);
 		this.intercepts2c = new InterceptData(null);
 		this.isSSL = isSSL;
@@ -233,7 +234,8 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
     	         svrSock = (SSLServerSocket) ssf.createServerSocket(this.ListenPort);
     			
     		}else
-    			svrSock = new ServerSocket(this.ListenPort);
+    			svrSock = new DatagramSocket(this.ListenPort);
+    			//svrSock = new ServerSocket(this.ListenPort);
     		
     		
     		
@@ -243,8 +245,11 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 		        	//System.out.println("Number of Threads is: " + threads.size());
 		        	if(isSSL)
 		        		connectionSocket = ((SSLServerSocket)svrSock).accept();
-		        	else
-		        		connectionSocket = ((ServerSocket)svrSock).accept();
+		        	
+		        	
+		        	
+		        	byte[] buffer = new byte[1024];
+		        	DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		        	
 		        	
 		        	
@@ -295,8 +300,8 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 			       
 			        
 				        // Send data from client to server
-				        SendData send = new SendData(this,true,false);
-				        send.addEventListener(GenericMiTMServer.this);
+			        	SendUDPData send = new SendUDPData(this,true,false);
+				        send.addEventListener(GenericUDPMiTMServer.this);
 				        send.addPyEventListener(this);
 				        send.addSendClosedEventListener(this);
 				        send.sock = connectionSocket;
@@ -305,8 +310,8 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 				        send.Name="c2s";
 				        
 				     // Send data from server to Client
-				        SendData getD = new SendData(this,false,isSSL);
-				        getD.addEventListener(GenericMiTMServer.this);
+				        SendUDPData getD = new SendUDPData(this,false,isSSL);
+				        getD.addEventListener(GenericUDPMiTMServer.this);
 				        getD.addPyEventListener(this);
 				        getD.addSendClosedEventListener(this);
 				        getD.sock = cltSock;
@@ -355,19 +360,6 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 		
 	}
     
-    public void repeatToServer(byte[] repeat){
-    	System.out.println("There are " + pairs.size() + " Threads for this connection");
-    	for(SendData sd : pairs.keySet()){
-    		sd.repeatRequest(repeat);
-    	}
-    }
-    public void repeatToClient(byte[] repeat){
-    	System.out.println("There are " + pairs.size() + " Threads for this connection");
-    	for(SendData sd : pairs.values()){
-    		sd.repeatRequest(repeat);
-    	}
-    }
-    
 
     
     public boolean isRunning(){
@@ -415,7 +407,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 		
 	}
 	
-	private void KillSocks(SendData sd){
+	private void KillSocks(SendUDPData sd){
 		//System.out.println(sd.Name);
 		try{
 			if(sd.isSSL()){
@@ -437,14 +429,14 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 
 	@Override
 	public void Closed(SendClosedEvent e) {
-		SendData tmp = (SendData)e.getSource();
+		SendUDPData tmp = (SendUDPData)e.getSource();
 		if(pairs.containsKey(tmp)){
 			pairs.get(tmp).killme=true;
 			//pairs.remove(tmp);
 			
 		}
 		else if (pairs.containsValue(tmp)){
-			for(SendData key : pairs.keySet()){
+			for(SendUDPData key : pairs.keySet()){
 				if(pairs.get(key).equals(tmp)){
 					key.killme=true;
 					pairs.remove(key);

@@ -3,17 +3,21 @@ package josh.dao;
 import java.util.Queue;
 import java.util.TimerTask;
 
-import josh.nonHttp.utils.LogEntry;
-import josh.nonHttp.utils.NonHTTPTableModel;
+import javax.swing.JTextField;
+
+import josh.ui.utils.LogEntry;
+import josh.ui.utils.NonHTTPTableModel;
 
 public class UpdateDBTask extends TimerTask{
 	
 	private Queue<LogEntry> queue;
 	private NonHTTPTableModel ntbm;
+	private JTextField searchTerm;
 	
-	public UpdateDBTask(Queue<LogEntry> queue, NonHTTPTableModel ntbm){
+	public UpdateDBTask(Queue<LogEntry> queue, NonHTTPTableModel ntbm, JTextField searchTerm){
 		this.queue = queue;
 		this.ntbm = ntbm;
+		this.searchTerm = searchTerm;
 	}
 	
 
@@ -23,8 +27,10 @@ public class UpdateDBTask extends TimerTask{
 		LogEntry le;
 		while((le = queue.poll())!= null){
 			le.save();
-			ntbm.log.addFirst(le);
-			ntbm.fireTableRowsInserted(0, 0);
+			if(le.canAdd(searchTerm.getText())){
+				ntbm.log.addFirst(le);
+				ntbm.fireTableRowsInserted(0, 0);
+			}
 		}
 		//System.out.println("Finished with Queue");
 		

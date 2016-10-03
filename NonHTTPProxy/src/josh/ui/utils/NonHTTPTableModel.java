@@ -1,6 +1,7 @@
-package josh.nonHttp.utils;
+package josh.ui.utils;
 
 
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import javax.swing.JLabel;
 import javax.swing.table.AbstractTableModel;
@@ -16,7 +17,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 	public IMessageEditor originalViewer;
 	
 	public LinkedList<LogEntry> log = new LinkedList<LogEntry>();
-	public IHttpRequestResponse currentlyDisplayedItem;
+	private IHttpRequestResponse currentlyDisplayedItem;
 	public JLabel label;
 
 	public void initDB(){
@@ -39,7 +40,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 	@Override
 	public int getColumnCount()
 	{
-		return 8;
+		return 9;
 	}
 
 	@Override
@@ -52,14 +53,16 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 		case 1:
 			return "Time";
 		case 2:
-			return "Direction";
+			return "Direction - Annotation";
 		case 3:
-			return "Source IP";
+			return "Method";
 		case 4:
-			return "Source Port";
+			return "Source IP";
 		case 5:
-			return "Dst IP";
+			return "Source Port";
 		case 6:
+			return "Dst IP";
+		case 7:
 			return "Dst Port";
 		default:
 			return "Bytes";
@@ -82,6 +85,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex)
 	{
+		SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss dd MMM yy");
 		if(log.size() != 0){
 			LogEntry logEntry = log.get(rowIndex);
 	
@@ -90,19 +94,35 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 			case 0:
 				return logEntry.Index;
 			case 1:
-				return logEntry.time.toString();
+				return sdf.format(logEntry.time);
 			case 2:
 				return logEntry.Direction;
 			case 3:
-				return logEntry.SrcIP;
+				if(logEntry.Direction.contains("Repeater"))
+					return "TCP Repeater";
+				else if (logEntry.Direction.contains("Match"))
+					return "Match";
+				else if (logEntry.Direction.contains("mangle"))
+					return "Mangle";
+				else if (logEntry.Direction.contains("format"))
+					return "Pre/Post Intercept";
+				else if (logEntry.Direction.contains("**"))
+					return "Intercept";
+				else
+					return "Normal";
 			case 4:
-				return logEntry.SrcPort;
+				return logEntry.SrcIP;
 			case 5:
-				return logEntry.DstIP;
+				return logEntry.SrcPort;
 			case 6:
-				return logEntry.DstPort;
+				return logEntry.DstIP;
 			case 7:
+				return logEntry.DstPort;
+			case 8:
 				return logEntry.Bytes;
+			
+				
+				
 			default: return null;
 			}
 		}else{
@@ -115,6 +135,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 	@Override
 	public byte[] getRequest()
 	{
+		
 		if(currentlyDisplayedItem==null)
 			return new byte[]{};
 		else
@@ -125,6 +146,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 	@Override
 	public byte[] getResponse()
 	{
+		
 		if(currentlyDisplayedItem==null)
 			return new byte[]{};
 		else

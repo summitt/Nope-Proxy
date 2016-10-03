@@ -31,14 +31,13 @@ import josh.utils.events.PythonOutputEventListener;
 import josh.utils.events.SendClosedEvent;
 import josh.utils.events.SendClosedEventListener;
 
-public class SendData implements Runnable{
+public class SendUDPData implements Runnable{
 	public InputStream in;
 	public DataOutputStream out;
 	public Object sock;
 	public String Name;
 	public boolean killme=false;
-	private GenericMiTMServer SERVER;
-	private GenericUDPMiTMServer UDPSERVER;
+	private GenericUDPMiTMServer SERVER;
 	//private boolean isInterceptOn=true;
 	private boolean isC2S;
 	private boolean isSSL;
@@ -46,12 +45,12 @@ public class SendData implements Runnable{
 	//private Date lastaccess;
 	
 	
-	public SendData(GenericMiTMServer srv, boolean isC2s, boolean isSSL){
+
+	public SendUDPData(GenericUDPMiTMServer srv, boolean isC2s, boolean isSSL){
 		this.SERVER = srv;
 		this.isC2S=isC2s;
-		this.isSSL = isSSL;
+		this.isSSL =false;// isSSL;
 	}
-	
 	
 	private List _listeners = new ArrayList();
 	private List _pylisteners = new ArrayList();
@@ -325,72 +324,6 @@ public class SendData implements Runnable{
 		this.SendClosedEventTrigger();
 		//System.out.println("Socket Closed.");
 		
-		
-	}
-	
-	public void repeatRequest(byte [] repeater){
-		String annotation = "";
-		byte []original = repeater;
-		try{
-			if(SERVER.isPythonOn()){
-				pm = new PythonMangler();
-				repeater = pm.mangle(repeater, isC2S);
-				SendPyOutput(pm);
-				if(repeater != original)
-					annotation += " - Modified by Python (mangle)";
-				
-				
-			}else{
-				List<String>mtch = regexMatch();
-				if(mtch != null){
-					
-					for(String line : mtch){
-						
-						//System.out.println(tmpStr);
-						String []kv = line.split("\\|\\|");
-						// Check for direction specific options
-						String option = "both";
-						if(kv.length == 3){
-							option = kv[2];
-						}
-						if(option.equals("both")){
-							//Do nothing and let the rest process
-						}else if(option.equals("c2sOnly") && this.isC2S){
-							//Do nothing and let the rest process
-						}else if(option.equals("s2cOnly") && !this.isC2S){
-							//Do nothing and let the rest process
-						}else{
-							// return to for loop
-							continue;
-						}
-						
-						if(kv[0].startsWith("#")){
-							//do nothing this is a comment
-						}
-						else if(kv[0].startsWith("0x")){ 
-							// This indicates we are doing hex replacement
-							byte [] match = new BigInteger(kv[0].replace("0x", ""),16).toByteArray();
-							byte [] replace = new BigInteger(kv[1].replace("0x", ""),16).toByteArray();
-							repeater = this.replace(repeater, match, replace);
-						}else{
-							// this will be just a basic string replacement
-							byte [] match = kv[0].getBytes();
-							byte [] replace = kv[1].getBytes();
-							repeater = this.replace(repeater, match, replace);
-						}	
-					}
-					
-				}
-				if(repeater != original)
-					annotation += " - Modified by Match and Replace";
-				
-			}
-			NewDataEvent(repeater, original, this.Name + " Repeater " + annotation);
-			
-			out.write(repeater);
-		}catch(Exception ex){
-			
-		}
 		
 	}
 	

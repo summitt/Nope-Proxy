@@ -1,4 +1,4 @@
-package josh.nonHttp.utils;
+package josh.ui.utils;
 
 
 import java.util.Calendar;
@@ -54,6 +54,16 @@ public class LogEntry
        
         
     }
+    public boolean canAdd(String term){
+    	if(term==null || term.trim().equals(""))
+    		return true;
+    	else if( new String(requestResponse).contains(term.trim()))
+    		return true;
+    	else if(new String(original).contains(term.trim()))
+    		return true;
+    	else 
+    		return false;
+    }
     public long save(){
     	Session s = HibHelper.getSessionFactory().openSession();
     	Requests dao = new Requests(0, this.requestResponse, this.original, this.SrcIP, this.SrcPort, this.DstIP, this.DstPort, this.Direction, this.time.getTime(), this.Bytes);
@@ -90,6 +100,24 @@ public class LogEntry
     	
     	Session s = HibHelper.getSessionFactory().openSession();
     	List<Requests> r = (List<Requests>)s.createQuery("from Requests order by id desc").list();
+    	LinkedList<LogEntry> list = new LinkedList<LogEntry>();
+    	for(Requests q : r){
+    		list.add(new LogEntry((long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes()));
+    	}
+    	s.close();
+    	return list;
+    	
+    }
+    
+    public static LinkedList<LogEntry>searchDB(String query){
+    	//HibHelper.getSessionFactory().openSession();
+    	
+    	Session s = HibHelper.getSessionFactory().openSession();
+    	List<Requests> r = (List<Requests>)s
+    			.createQuery("from Requests where original_str like :term or data_str like :term2 order by id desc")
+    			.setParameter("term", "%"+query+"%")
+    			.setParameter("term2", "%"+query+"%")
+    			.list();
     	LinkedList<LogEntry> list = new LinkedList<LogEntry>();
     	for(Requests q : r){
     		list.add(new LogEntry((long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes()));

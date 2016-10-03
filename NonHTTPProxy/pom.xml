@@ -61,6 +61,21 @@
   		<artifactId>commons-codec</artifactId>
   		<version>20041127.091804</version>
   	</dependency>
+  	<dependency>
+  		<groupId>com.github.jiconfont</groupId>
+  		<artifactId>jiconfont-swing</artifactId>
+  		<version>1.0.0</version>
+  	</dependency>
+  	 <dependency>
+            <groupId>com.github.jiconfont</groupId>
+            <artifactId>jiconfont-bundle</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+  	 <dependency>
+  	 	<groupId>com.fifesoft</groupId>
+  	 	<artifactId>rsyntaxtextarea</artifactId>
+  	 	<version>2.5.8</version>
+  	 </dependency>
   </dependencies>
   <name>NonHttp Burp Extension</name>
   <url>http://github.com/summitt/</url>

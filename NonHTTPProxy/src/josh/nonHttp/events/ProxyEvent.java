@@ -3,6 +3,7 @@ package josh.nonHttp.events;
 import java.util.EventObject;
 
 import josh.nonHttp.GenericMiTMServer;
+import josh.nonHttp.GenericUDPMiTMServer;
 
 @SuppressWarnings("serial")
 public class ProxyEvent extends EventObject {
@@ -13,7 +14,8 @@ public class ProxyEvent extends EventObject {
 	private int DstPort;
 	private String SrcIP;
 	private String DstIP;
-	private GenericMiTMServer mtm;
+	private Object mtm;
+	private GenericUDPMiTMServer mtmUDP;
 
 	public ProxyEvent(Object arg0) {
 		super(arg0);
@@ -46,13 +48,33 @@ public class ProxyEvent extends EventObject {
 	}
 
 
-	public GenericMiTMServer getMtm() {
+	public Object getMtm() {
 		return mtm;
 	}
+	public boolean isTCPMtm(){
+		if(this.mtm.getClass().getName().contains("UDP"))
+			return false;
+		else 
+			return true;
+	}
+	
+	public GenericUDPMiTMServer getUDPMtm(){
+		return (GenericUDPMiTMServer)this.mtm;
+	}
+	public GenericMiTMServer getTCPMtm(){
+		return (GenericMiTMServer)this.mtm;
+	}
 
-	public void setMtm(GenericMiTMServer mtm) {
+	public void setMtm(Object mtm) {
 		this.mtm = mtm;
 	}
+	/*public GenericUDPMiTMServer getUDPMtm() {
+		return mtmUDP;
+	}
+
+	public void setUDPMtm(GenericUDPMiTMServer mtm) {
+		this.mtmUDP = mtm;
+	}*/
 
 	public int getSrcPort() {
 		return SrcPort;

@@ -14,5 +14,6 @@
   		<property name="hibernate.c3p0.max_statements">150</property>
   		<property name="hibernate.c3p0.idle_test_period">3000</property>
        <mapping class="josh.dao.Requests"/>
+       <mapping class="josh.dao.ListenerSetting"/>
        </session-factory>
     </hibernate-configuration>
