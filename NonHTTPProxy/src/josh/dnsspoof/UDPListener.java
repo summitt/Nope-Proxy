@@ -152,7 +152,7 @@ public class UDPListener implements Runnable{
                 new Thread( new DNSResponder(packet, datagramSocket, ADDRESS)).start();
             } catch(SocketTimeoutException ex){
             	continue udpWhile;
-            }catch (IOException e) {Callbacks.printError(e.getMessage()); e.printStackTrace(); }
+            }catch (IOException e) {Callbacks.printError(e.getMessage()); /*e.printStackTrace();*/ }
             
         }
         fireEvent();

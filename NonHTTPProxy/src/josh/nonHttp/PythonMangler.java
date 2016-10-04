@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -40,6 +41,41 @@ public class PythonMangler {
 		String tmp  = out.toString();
 		out = new ByteArrayOutputStream();
 		return tmp;
+	}
+	
+	public static HashMap<String,Object> runRepeaterCode(String code){
+		HashMap<String,Object> outputs = new HashMap<String,Object>();
+		PythonInterpreter interpreter = new PythonInterpreter();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayOutputStream err = new ByteArrayOutputStream();
+		interpreter.setOut(out);
+		interpreter.setErr(err);
+		String JavaError = "";
+		byte[] output = new byte[0];
+		try{
+			interpreter.exec(code);
+			PyObject someFunc = interpreter.get("sendPayload");
+			if(someFunc == null)
+				return null;
+			PyObject result = someFunc.__call__();
+			PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
+			
+			output = new byte [array.__len__()];
+			for(int i=0; i < array.__len__(); i++){
+				output[i] = (byte)array.get(i).__tojava__(Byte.class);
+			}
+			
+		}catch(Exception ex){
+			ex.printStackTrace();
+			JavaError = ex.getLocalizedMessage();
+			output=null;
+		}
+		
+		outputs.put("out", output);
+		outputs.put("stdout", out.toString());
+		outputs.put("stderr", JavaError + "\n\n" + err.toString());
+		return outputs;
+		
 	}
 	
 	

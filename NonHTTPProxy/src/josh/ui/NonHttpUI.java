@@ -91,6 +91,7 @@ import josh.ui.utils.ListenerDB;
 import josh.ui.utils.LogEntry;
 import josh.ui.utils.NonHTTPTableModel;
 import josh.ui.utils.Table;
+import josh.utils.PayloadAnalysis;
 import josh.utils.SharedBoolean;
 import josh.utils.events.DNSConfigListener;
 import josh.utils.events.DNSEvent;
@@ -275,15 +276,15 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		panel_2.add(panel, gbc_panel);
 		panel.setBorder(null);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{61, 44, 73, 130, 0};
+		gbl_panel.columnWidths = new int[]{0, 61, 59, 73, 130, 0};
 		gbl_panel.rowHeights = new int[]{30, 33, 23, 0};
-		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
 		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
 		panel.setLayout(gbl_panel);
 		btnStartDns = new JButton(""); //Start DNS
 		btnStartDns.setIcon(IconFontSwing.buildIcon(FontAwesome.PLAY,40));
 		btnStartDns.setBackground(NopeRed);//red
-		btnStartDns.setToolTipText("DNS will respond to all requests with the IP address in Blue below.");
+		btnStartDns.setToolTipText("Start and Stop DNS Server");
 		btnStartDns.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				ToggleDNS( dnsIpTxt.getText() ,Integer.parseInt(txtDNSPort.getText()));
@@ -301,7 +302,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			}
 		});
 		GridBagConstraints gbc_btnStartDns = new GridBagConstraints();
-		gbc_btnStartDns.anchor = GridBagConstraints.WEST;
+		gbc_btnStartDns.gridwidth = 2;
+		gbc_btnStartDns.fill = GridBagConstraints.BOTH;
 		gbc_btnStartDns.gridheight = 2;
 		gbc_btnStartDns.insets = new Insets(0, 0, 5, 5);
 		gbc_btnStartDns.gridx = 1;
@@ -311,7 +313,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		GridBagConstraints gbc_lblDnsIp = new GridBagConstraints();
 		gbc_lblDnsIp.fill = GridBagConstraints.HORIZONTAL;
 		gbc_lblDnsIp.insets = new Insets(0, 0, 5, 5);
-		gbc_lblDnsIp.gridx = 2;
+		gbc_lblDnsIp.gridx = 3;
 		gbc_lblDnsIp.gridy = 0;
 		panel.add(lblDnsIp, gbc_lblDnsIp);
 				
@@ -331,7 +333,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_dnsIpTxt.anchor = GridBagConstraints.NORTH;
 		gbc_dnsIpTxt.fill = GridBagConstraints.HORIZONTAL;
 		gbc_dnsIpTxt.insets = new Insets(0, 0, 5, 0);
-		gbc_dnsIpTxt.gridx = 3;
+		gbc_dnsIpTxt.gridx = 4;
 		gbc_dnsIpTxt.gridy = 0;
 		panel.add(dnsIpTxt, gbc_dnsIpTxt);
 		dnsIpTxt.setColumns(10);
@@ -342,7 +344,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		GridBagConstraints gbc_lblDnsport = new GridBagConstraints();
 		gbc_lblDnsport.fill = GridBagConstraints.HORIZONTAL;
 		gbc_lblDnsport.insets = new Insets(0, 0, 5, 5);
-		gbc_lblDnsport.gridx = 2;
+		gbc_lblDnsport.gridx = 3;
 		gbc_lblDnsport.gridy = 1;
 		panel.add(lblDnsport, gbc_lblDnsport);
 		
@@ -370,7 +372,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_txtDNSPort.anchor = GridBagConstraints.NORTH;
 		gbc_txtDNSPort.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtDNSPort.insets = new Insets(0, 0, 5, 0);
-		gbc_txtDNSPort.gridx = 3;
+		gbc_txtDNSPort.gridx = 4;
 		gbc_txtDNSPort.gridy = 1;
 		panel.add(txtDNSPort, gbc_txtDNSPort);
 		txtDNSPort.setColumns(10);
@@ -388,28 +390,29 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			}
 		});
 				
-						JLabel lblInterface = new JLabel("Interface:");
-						GridBagConstraints gbc_lblInterface = new GridBagConstraints();
-						gbc_lblInterface.anchor = GridBagConstraints.WEST;
-						gbc_lblInterface.insets = new Insets(0, 0, 0, 5);
-						gbc_lblInterface.gridx = 0;
-						gbc_lblInterface.gridy = 2;
-						panel.add(lblInterface, gbc_lblInterface);
+				JLabel lblInterface = new JLabel("Interface:");
+				GridBagConstraints gbc_lblInterface = new GridBagConstraints();
+				gbc_lblInterface.anchor = GridBagConstraints.WEST;
+				gbc_lblInterface.insets = new Insets(0, 0, 0, 5);
+				gbc_lblInterface.gridx = 1;
+				gbc_lblInterface.gridy = 2;
+				panel.add(lblInterface, gbc_lblInterface);
 		
 		
-				IfTxtBox.setToolTipText("The interface number from the list below.");
-				IfTxtBox.setText(""+IFNUM);
-				GridBagConstraints gbc_IfTxtBox = new GridBagConstraints();
-				gbc_IfTxtBox.anchor = GridBagConstraints.SOUTHEAST;
-				gbc_IfTxtBox.insets = new Insets(0, 0, 0, 5);
-				gbc_IfTxtBox.gridx = 1;
-				gbc_IfTxtBox.gridy = 2;
-				panel.add(IfTxtBox, gbc_IfTxtBox);
-				IfTxtBox.setColumns(10);
+		IfTxtBox.setToolTipText("The interface number from the list below.");
+		IfTxtBox.setText(""+IFNUM);
+		GridBagConstraints gbc_IfTxtBox = new GridBagConstraints();
+		gbc_IfTxtBox.fill = GridBagConstraints.HORIZONTAL;
+		gbc_IfTxtBox.anchor = GridBagConstraints.SOUTH;
+		gbc_IfTxtBox.insets = new Insets(0, 0, 0, 5);
+		gbc_IfTxtBox.gridx = 2;
+		gbc_IfTxtBox.gridy = 2;
+		panel.add(IfTxtBox, gbc_IfTxtBox);
+		//IfTxtBox.setColumns(10);
 		GridBagConstraints gbc_chckbxStartDnsOn = new GridBagConstraints();
 		gbc_chckbxStartDnsOn.anchor = GridBagConstraints.WEST;
 		gbc_chckbxStartDnsOn.fill = GridBagConstraints.VERTICAL;
-		gbc_chckbxStartDnsOn.gridx = 3;
+		gbc_chckbxStartDnsOn.gridx = 4;
 		gbc_chckbxStartDnsOn.gridy = 2;
 		panel.add(chckbxStartDnsOn, gbc_chckbxStartDnsOn);
 		
@@ -1039,15 +1042,23 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		BurpTabs.addTab("TCP History  ", splitPane);
 		BurpTabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.HISTORY,20, NopeOrange));
 		
-		JPanel panel_9 = new JPanel();
-		BurpTabs.addTab("TCP Repeater  ", null, panel_9, null);
+		JSplitPane RepeaterPanel = new JSplitPane();
+		RepeaterPanel.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		BurpTabs.addTab("TCP Repeater  ", null, RepeaterPanel, null);
+		
+		JPanel Repeater = new JPanel();
+		RepeaterPanel.setLeftComponent(Repeater);
+				
+		
+
+		//BurpTabs.addTab("TCP Repeater  ", null, Repeater, null);
 		BurpTabs.setIconAt(2,IconFontSwing.buildIcon(FontAwesome.RECYCLE,20, NopePink));
-		GridBagLayout gbl_panel_9 = new GridBagLayout();
-		gbl_panel_9.columnWidths = new int[]{0, 492, 12, 90, 0, 0};
-		gbl_panel_9.rowHeights = new int[]{28, 0, 0, 0, 0};
-		gbl_panel_9.columnWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gbl_panel_9.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
-		panel_9.setLayout(gbl_panel_9);
+		GridBagLayout gbl_Repeater = new GridBagLayout();
+		gbl_Repeater.columnWidths = new int[]{0, 492, 12, 90, 0, 0};
+		gbl_Repeater.rowHeights = new int[]{28, 0, 0, 0, 0};
+		gbl_Repeater.columnWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_Repeater.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		Repeater.setLayout(gbl_Repeater);
 		
 		JButton btnNewButton = new JButton("");//
 		btnNewButton.setLayout(new BoxLayout(btnNewButton, BoxLayout.X_AXIS));
@@ -1078,7 +1089,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_btnNewButton.anchor = GridBagConstraints.NORTHWEST;
 		gbc_btnNewButton.gridx = 3;
 		gbc_btnNewButton.gridy = 0;
-		panel_9.add(btnNewButton, gbc_btnNewButton);
+		Repeater.add(btnNewButton, gbc_btnNewButton);
 		
 		JLabel lblSelectAStream = new JLabel("Select A Stream to Repeat Request:");
 		GridBagConstraints gbc_lblSelectAStream = new GridBagConstraints();
@@ -1086,7 +1097,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_lblSelectAStream.insets = new Insets(0, 0, 5, 5);
 		gbc_lblSelectAStream.gridx = 0;
 		gbc_lblSelectAStream.gridy = 1;
-		panel_9.add(lblSelectAStream, gbc_lblSelectAStream);
+		Repeater.add(lblSelectAStream, gbc_lblSelectAStream);
 		
 		currentListeners = new JComboBox();
 		GridBagConstraints gbc_currentListeners = new GridBagConstraints();
@@ -1094,7 +1105,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_currentListeners.fill = GridBagConstraints.HORIZONTAL;
 		gbc_currentListeners.gridx = 1;
 		gbc_currentListeners.gridy = 1;
-		panel_9.add(currentListeners, gbc_currentListeners);
+		Repeater.add(currentListeners, gbc_currentListeners);
 		
 		JButton btnSendToClient = new JButton("");/// Send to Client
 		btnSendToClient.setLayout(new BoxLayout(btnSendToClient, BoxLayout.X_AXIS));
@@ -1122,7 +1133,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_btnSendToClient.insets = new Insets(0, 0, 5, 5);
 		gbc_btnSendToClient.gridx = 3;
 		gbc_btnSendToClient.gridy = 1;
-		panel_9.add(btnSendToClient, gbc_btnSendToClient);
+		Repeater.add(btnSendToClient, gbc_btnSendToClient);
 		
 		repeaterPane = new JTabbedPane(JTabbedPane.TOP);
 		GridBagConstraints gbc_repeaterPane2 = new GridBagConstraints();
@@ -1133,7 +1144,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_repeaterPane2.gridy = 2;
 		RepeaterJPane repeaterJPane = new RepeaterJPane();
 		repeater = Callbacks.createMessageEditor(repeaterJPane, true);
-		panel_9.add(repeaterPane, gbc_repeaterPane2);
+		Repeater.add(repeaterPane, gbc_repeaterPane2);
 		
 		repeaterPane.addTab("Message", repeater.getComponent());
 		
@@ -1143,7 +1154,199 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_rigidArea_1.insets = new Insets(0, 0, 5, 0);
 		gbc_rigidArea_1.gridx = 4;
 		gbc_rigidArea_1.gridy = 2;
-		panel_9.add(rigidArea_1, gbc_rigidArea_1);
+		Repeater.add(rigidArea_1, gbc_rigidArea_1);
+		
+		JPanel genCodePanel = new JPanel();
+		RepeaterPanel.setRightComponent(genCodePanel);
+		GridBagLayout gbl_genCodePanel = new GridBagLayout();
+		gbl_genCodePanel.columnWidths = new int[]{0, 0, 0, 0};
+		gbl_genCodePanel.rowHeights = new int[]{0, 0, 0, 0, 0};
+		gbl_genCodePanel.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_genCodePanel.rowWeights = new double[]{0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE};
+		genCodePanel.setLayout(gbl_genCodePanel);
+		
+		RSyntaxTextArea pyRepeaterCode = new RSyntaxTextArea();
+		pyRepeaterCode.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+		pyRepeaterCode.setCodeFoldingEnabled(true);
+		SyntaxScheme ptscheme = pyRepeaterCode.getSyntaxScheme();
+		ptscheme.getStyle(Token.RESERVED_WORD).foreground = new Color(134, 226, 213);
+		ptscheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = new Color(253, 227, 167);
+		ptscheme.getStyle(Token.OPERATOR).foreground = new Color(137, 196, 244);
+		ptscheme.getStyle(Token.FUNCTION).foreground = new Color(135, 211, 124);
+		pyRepeaterCode.setHighlightCurrentLine(false);
+		pyRepeaterCode.revalidate();
+		
+		JLabel repeaterCodeLabel = new JLabel("Code Playground");
+		repeaterCodeLabel.setIcon(IconFontSwing.buildIcon(FontAwesome.CODE,18, NopeGreen));
+		GridBagConstraints gbc_repeaterCodeLabel = new GridBagConstraints();
+		gbc_repeaterCodeLabel.anchor = GridBagConstraints.WEST;
+		gbc_repeaterCodeLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_repeaterCodeLabel.gridx = 1;
+		gbc_repeaterCodeLabel.gridy = 1;
+		genCodePanel.add(repeaterCodeLabel, gbc_repeaterCodeLabel);
+		pyRepeaterCode.setBackground(new Color(44, 62, 80));
+		pyRepeaterCode.setForeground(Color.WHITE);
+		
+		GridBagConstraints gbc_pyRepeaterCode = new GridBagConstraints();
+		gbc_pyRepeaterCode.insets = new Insets(0, 0, 5, 5);
+		gbc_pyRepeaterCode.fill = GridBagConstraints.BOTH;
+		gbc_pyRepeaterCode.gridx = 1;
+		gbc_pyRepeaterCode.gridy = 2;
+		genCodePanel.add(pyRepeaterCode, gbc_pyRepeaterCode);
+		
+		JPanel panel_7 = new JPanel();
+		GridBagConstraints gbc_panel_7 = new GridBagConstraints();
+		gbc_panel_7.insets = new Insets(0, 0, 5, 0);
+		gbc_panel_7.anchor = GridBagConstraints.EAST;
+		gbc_panel_7.fill = GridBagConstraints.VERTICAL;
+		gbc_panel_7.gridx = 2;
+		gbc_panel_7.gridy = 2;
+		genCodePanel.add(panel_7, gbc_panel_7);
+		GridBagLayout gbl_panel_7 = new GridBagLayout();
+		gbl_panel_7.columnWidths = new int[]{0, 0};
+		gbl_panel_7.rowHeights = new int[]{0, 0, 0, 0};
+		gbl_panel_7.columnWeights = new double[]{0.0, Double.MIN_VALUE};
+		gbl_panel_7.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panel_7.setLayout(gbl_panel_7);
+		
+		JButton rptGenCode = new JButton("Gen Code");
+		rptGenCode.setIcon(IconFontSwing.buildIcon(FontAwesome.CODE,18, NopeGreen));
+		GridBagConstraints gbc_rptGenCode = new GridBagConstraints();
+		gbc_rptGenCode.fill = GridBagConstraints.HORIZONTAL;
+		gbc_rptGenCode.insets = new Insets(0, 0, 5, 0);
+		gbc_rptGenCode.gridx = 0;
+		gbc_rptGenCode.gridy = 0;
+		panel_7.add(rptGenCode, gbc_rptGenCode);
+		
+		
+		
+		
+		
+		JButton btnServerCode = new JButton(""); // Repeater Code to Server
+		btnServerCode.setLayout(new BoxLayout(btnServerCode, BoxLayout.X_AXIS));
+		JLabel serverIconLabel1 = new JLabel();
+		serverIconLabel1.setIcon(IconFontSwing.buildIcon(FontAwesome.SERVER,18, NopePink));
+		JLabel directionIconLabel1 = new JLabel();
+		directionIconLabel1.setIcon(IconFontSwing.buildIcon(Elusive.ARROW_RIGHT,18, NopePink));
+		JLabel toSeverText1 = new JLabel(" To Server");
+		btnServerCode.add(directionIconLabel1);
+		btnServerCode.add(serverIconLabel1);
+		btnServerCode.add(toSeverText1);
+		
+		btnServerCode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String code = pyRepeaterCode.getText();
+				try{
+					HashMap<String, Object> out = PythonMangler.runRepeaterCode(code);
+					if(out != null){
+						byte [] bytes = (byte []) out.get("out");
+						repCodeOutput.setText("");
+						if(currentListeners.getSelectedItem() != null && bytes != null){
+							String selected = ""+currentListeners.getSelectedItem();
+							String portStr = selected.split("-")[0];
+							int port = Integer.parseInt(portStr.trim());
+							GenericMiTMServer x = threads.get(port);
+							x.repeatToServer(bytes);
+						}
+						String stdout = ""+out.get("stdout");
+						String stderr = ""+out.get("stderr");
+						repCodeOutput.setText("###Standard Out: \n" + stdout + "\n\n###Standard Error:\n" + stderr);
+					}else{
+						repCodeOutput.setText("");
+						repCodeOutput.setText("Something is wrong with your code. Missing function sendPayload maybe?");
+						
+					}
+				}catch(Exception ex){
+					repCodeOutput.setText("");
+					repCodeOutput.setText(ex.getMessage()+"\n\nCast exceptions usually are cause becuase you are trying to return something that is not a byte array? \nexample: \n  return bytearray('somestring') ");
+				}
+				
+				
+				
+			}
+		});
+		GridBagConstraints gbc_btnServerCode = new GridBagConstraints();
+		gbc_btnServerCode.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnServerCode.insets = new Insets(0, 0, 5, 0);
+		gbc_btnServerCode.gridx = 0;
+		gbc_btnServerCode.gridy = 1;
+		panel_7.add(btnServerCode, gbc_btnServerCode);
+		
+		JButton btnClientCode = new JButton(""); // repeater code client
+		btnClientCode.setLayout(new BoxLayout(btnClientCode, BoxLayout.X_AXIS));
+		JLabel clientIconLabel1 = new JLabel();
+		clientIconLabel1.setIcon(IconFontSwing.buildIcon(GoogleMaterialDesignIcons.COMPUTER,18, NopeBlue));
+		JLabel clientDirIconLabel1 = new JLabel();
+		clientDirIconLabel1.setIcon(IconFontSwing.buildIcon(Elusive.ARROW_LEFT,18, NopeBlue));
+		JLabel toClientText1 = new JLabel(" To Client");
+		btnClientCode.add(clientIconLabel1);
+		btnClientCode.add(clientDirIconLabel1);
+		btnClientCode.add(toClientText1);
+		
+		btnClientCode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String code = pyRepeaterCode.getText();
+				 
+				try{
+					HashMap<String, Object> out = PythonMangler.runRepeaterCode(code);
+					if(out != null){
+						byte [] bytes = (byte []) out.get("out");
+						repCodeOutput.setText("");
+						if(currentListeners.getSelectedItem() != null && bytes != null){
+							String selected = ""+currentListeners.getSelectedItem();
+							String portStr = selected.split("-")[0];
+							int port = Integer.parseInt(portStr.trim());
+							GenericMiTMServer x = threads.get(port);
+							x.repeatToClient(bytes);
+						}
+						String stdout = ""+out.get("stdout");
+						String stderr = ""+out.get("stderr");
+						repCodeOutput.setText("###Standard Out: \n" + stdout + "\n\n###Standard Error:\n" + stderr);
+					}else{
+						repCodeOutput.setText("");
+						repCodeOutput.setText("Something is wrong with your code. Missing function sendPayload maybe?");
+						
+					}
+				}catch(Exception ex){
+					repCodeOutput.setText("");
+					repCodeOutput.setText(ex.getMessage()+"\n\nCast exceptions usually are cause becuase you are trying to return something that is not a byte array? \nexample: \n  return bytearray('somestring') ");
+				}
+			}
+		});
+		GridBagConstraints gbc_btnClientCode = new GridBagConstraints();
+		gbc_btnClientCode.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnClientCode.gridx = 0;
+		gbc_btnClientCode.gridy = 2;
+		panel_7.add(btnClientCode, gbc_btnClientCode);
+		
+		repCodeOutput = new RSyntaxTextArea();
+		repCodeOutput.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+		GridBagConstraints gbc_repCodeOutput = new GridBagConstraints();
+		gbc_repCodeOutput.insets = new Insets(0, 0, 0, 5);
+		gbc_repCodeOutput.fill = GridBagConstraints.BOTH;
+		gbc_repCodeOutput.gridx = 1;
+		gbc_repCodeOutput.gridy = 3;
+		genCodePanel.add(repCodeOutput, gbc_repCodeOutput);
+		repCodeOutput.setColumns(10);
+		rptGenCode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(repeater.getMessage() != null){
+					String code = PayloadAnalysis.createPyCode(repeater.getMessage());
+					if(pyRepeaterCode.getText() == null || pyRepeaterCode.getText().trim().equals("")){
+						code +="\n\n\ndef sendPayload():\n";
+						code +="   return bytearray(payload)\n\n";
+						pyRepeaterCode.setText(code);
+					}else{
+						String currentCode = pyRepeaterCode.getText();
+						String newCode = currentCode.replaceFirst("^payload='.*'", code);
+						pyRepeaterCode.setText(newCode);
+					}
+				}
+				
+			}
+		});
+		
+		
 		JPanel Automation = new JPanel();
 		BurpTabs.addTab("Automation  ", null, Automation, null);
 		BurpTabs.setIconAt(3,IconFontSwing.buildIcon(FontAwesome.CODE,20, NopeGreen));
@@ -1668,7 +1871,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 												panel_1.add(btnRemoveProxy, gbc_btnRemoveProxy);
 										
 										JButton btnAdd_1 = new JButton("Add 80 & 443 to Burp");
-										btnAdd_1.setIcon(IconFontSwing.buildIcon(FontAwesome.COGS,20, NopeOrange));
+										btnAdd_1.setIcon(IconFontSwing.buildIcon(FontAwesome.COGS,16, NopeOrange));
 										btnAdd_1.setToolTipText("This addes invisible proxy listeners to Burp's normal HTTP proxy configureation.");
 										btnAdd_1.addActionListener(new ActionListener() {
 											public void actionPerformed(ActionEvent arg0) {
@@ -1827,28 +2030,28 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 														
 		
 		
-		JPanel panel_7 = new JPanel();
-		BurpTabs.addTab("About   ", IconFontSwing.buildIcon(FontAwesome.INFO,16, NopeGrey), panel_7, null);
-		GridBagLayout gbl_panel_7 = new GridBagLayout();
-		gbl_panel_7.columnWidths = new int[]{0, 0, 0, 0};
-		gbl_panel_7.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_panel_7.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
-		gbl_panel_7.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		panel_7.setLayout(gbl_panel_7);
+		JPanel About = new JPanel();
+		BurpTabs.addTab("About   ", IconFontSwing.buildIcon(FontAwesome.INFO,16, NopeGrey), About, null);
+		GridBagLayout gbl_About = new GridBagLayout();
+		gbl_About.columnWidths = new int[]{0, 0, 0, 0};
+		gbl_About.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
+		gbl_About.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_About.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		About.setLayout(gbl_About);
 		
 		JLabel lblNopeProxy = new JLabel("NOn Http Protocol Extending (NoPE) Proxy");
 		GridBagConstraints gbc_lblNopeProxy = new GridBagConstraints();
 		gbc_lblNopeProxy.insets = new Insets(0, 0, 5, 5);
 		gbc_lblNopeProxy.gridx = 1;
 		gbc_lblNopeProxy.gridy = 1;
-		panel_7.add(lblNopeProxy, gbc_lblNopeProxy);
+		About.add(lblNopeProxy, gbc_lblNopeProxy);
 		
 		JLabel lblVersion = new JLabel("Version 1.5");
 		GridBagConstraints gbc_lblVersion = new GridBagConstraints();
 		gbc_lblVersion.insets = new Insets(0, 0, 5, 5);
 		gbc_lblVersion.gridx = 1;
 		gbc_lblVersion.gridy = 2;
-		panel_7.add(lblVersion, gbc_lblVersion);
+		About.add(lblVersion, gbc_lblVersion);
 		
 		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt @null0perat0r");
 		lblDevelopedByJosh.addMouseListener(new MouseListener() {
@@ -1895,7 +2098,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_lblDevelopedByJosh.insets = new Insets(0, 0, 5, 5);
 		gbc_lblDevelopedByJosh.gridx = 1;
 		gbc_lblDevelopedByJosh.gridy = 4;
-		panel_7.add(lblDevelopedByJosh, gbc_lblDevelopedByJosh);
+		About.add(lblDevelopedByJosh, gbc_lblDevelopedByJosh);
 		
 		JButton btnHttpgithubcomsummitt = new JButton("https://github.com/summitt");
 		Icon ghicon = IconFontSwing.buildIcon(Elusive.GITHUB, 23);
@@ -1917,7 +2120,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_btnHttpgithubcomsummitt.insets = new Insets(0, 0, 0, 5);
 		gbc_btnHttpgithubcomsummitt.gridx = 1;
 		gbc_btnHttpgithubcomsummitt.gridy = 6;
-		panel_7.add(btnHttpgithubcomsummitt, gbc_btnHttpgithubcomsummitt);
+		About.add(btnHttpgithubcomsummitt, gbc_btnHttpgithubcomsummitt);
 		
 		
 		// Add Tabs to main component
@@ -1927,6 +2130,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		//Set DataUpdate Timer
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new UpdateDBTask(queue,ntbm, searchDb), 0, 2*1000);
+		
+		
 	    //timer.schedule(new UpdateDBTask(queue,ntbm), 2 * 1000);
 		
 		
@@ -2272,6 +2477,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private JComboBox currentListeners;
 	private JTextField searchDb;
 	private JPanel Intercept;
+	private RSyntaxTextArea repCodeOutput;
 	
 	public synchronized void addEventListener(DNSConfigListener listener)	{
 		_listeners.add(listener);
