@@ -20,7 +20,9 @@ This burp extension adds two new features to BurpSuite.
  2.	A Non-HTTP MiTM Intercepting proxy. This extension allows you to create multiple listening ports that can MiTM server side services. It also uses Burp's CA cert so that if the browser or mobile device is already configured to access SSL/TLS requests using this cert then the encrypted binary protocols will be able to connect without generating errors too. It also provides the ability to automatically match and replace hex or strings as they pass through the proxy or you can use custom python code to manipulate the traffic.
  
 ##DNS Sever Configuration
+
 ![](http://imgur.com/0ezoO7f.png)
+
 The DNS server configuration allows granular control over your DNS settings. You can configure it to send all traffic to the same IP address as Burp or you can use a Custom Hosts File to configure only some hosts to be forward to Burp while others can be forwarded to other hosts. It can also be confgured to send all requests to the real IP unless specified in the custom hosts file.
 
 The DNS server automatically starts with the IP address of the last interface you set in the Interface input box. Changing the interface number will automatically change the IP address. The server will need to be restarted for this change to take effect.
@@ -35,20 +37,20 @@ Nope Proxy has a port monitor that will only display tcp ports that a remote cli
 
 This non-HTTP proxy has several features built in.
 
- - All requests and responses are saved to a sqlite database and can be exported or imported into the tool. 
- - Automatic Match and Replace Rules that are customizable based on the direction of traffic. (Client to Server, Server to Client, or Both.
- - Match and replace rules support both hex and string replacement. 
- - Manual Interception binary protocols and change them before sending them back to the server or client. Just like the normal Burp proxy but with binary streams.
- - Python Code can be used instead of the normal Match and Replace Rules for more advancing mangling of requests and responses.
+- All requests and responses are saved to a sqlite database and can be exported or imported into the tool. 
+- Automatic Match and Replace Rules that are customizable based on the direction of traffic. (Client to Server, Server to Client, or Both.
+- Match and replace rules support both hex and string replacement. 
+- Manual Interception binary protocols and change them before sending them back to the server or client. Just like the normal Burp proxy but with binary streams.
+- Python Code can be used instead of the normal Match and Replace Rules for more advancing mangling of requests and responses.
  
  
- ##TCP Repeater
+##TCP Repeater
  
- ![](http://imgur.com/aNpzAdz.png)
+![](http://imgur.com/aNpzAdz.png)
  
 - TCP repeater can be used to replay requests to the client or server on the currently connected socket streams.
- - Code Playground allows you to create a custom python payload based on the request currently displayed in the repeater.
- - Search TCP proxy History
+- Code Playground allows you to create a custom python payload based on the request currently displayed in the repeater.
+- Search TCP proxy History
 
 ##Configure the proxies
 
