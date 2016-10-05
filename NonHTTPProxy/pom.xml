@@ -24,21 +24,21 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
-  <dependency>
-  <groupId>org.pcap4j</groupId>
-  <artifactId>pcap4j-core</artifactId>
-  <version>[1.0, 2.0)</version>
-  	 </dependency>
-<dependency>
-  <groupId>org.pcap4j</groupId>
-  <artifactId>pcap4j-packetfactory-static</artifactId>
-  <version>[1.0, 2.0)</version>
-</dependency>
+	  <dependencies>
+	  <dependency>
+	  <groupId>org.pcap4j</groupId>
+	  <artifactId>pcap4j-core</artifactId>
+	  <version>[1.0, 2.0)</version>
+	  	 </dependency>
+	<dependency>
+	  <groupId>org.pcap4j</groupId>
+	  <artifactId>pcap4j-packetfactory-static</artifactId>
+	  <version>[1.0, 2.0)</version>
+	</dependency>
   	<dependency>
   		<groupId>org.hibernate</groupId>
   		<artifactId>hibernate</artifactId>
-  		<version>3.5.4-Final</version>
+  		<version>3.6.0.Beta2</version>
   		<type>pom</type>
   	</dependency>
   	<dependency>
@@ -87,6 +87,7 @@
   	 	<version>2.5.8</version>
   	 </dependency>
   	 
+
   </dependencies>
   <name>NonHttp Burp Extension</name>
   <url>http://github.com/summitt/</url>

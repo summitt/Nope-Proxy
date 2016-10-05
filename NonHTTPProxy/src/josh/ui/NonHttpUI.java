@@ -40,6 +40,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -59,6 +60,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
 import javax.swing.text.Style;
@@ -91,6 +93,7 @@ import josh.ui.utils.ListenerDB;
 import josh.ui.utils.LogEntry;
 import josh.ui.utils.NonHTTPTableModel;
 import josh.ui.utils.Table;
+import josh.utils.Lister;
 import josh.utils.PayloadAnalysis;
 import josh.utils.SharedBoolean;
 import josh.utils.events.DNSConfigListener;
@@ -99,6 +102,8 @@ import josh.utils.events.DNSTableEvent;
 import josh.utils.events.DNSTableEventListener;
 import josh.utils.events.PythonOutputEvent;
 import josh.utils.events.PythonOutputEventListener;
+import josh.utils.events.TCPConnectionAttemptListener;
+import josh.utils.events.TCPPacketEvt;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -208,7 +213,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private Color NopeOrange = new Color(249, 191, 59);
 	private Color NopePink = new Color(0xc2,0x18,0x5b);
 	private Color NopeGrey = new Color(0x26,0x32,0x38);
-	
+	private Lister lister;
 	
 
 	//GenericMiTMServer mtm;
@@ -283,7 +288,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		panel.setLayout(gbl_panel);
 		btnStartDns = new JButton(""); //Start DNS
 		btnStartDns.setIcon(IconFontSwing.buildIcon(FontAwesome.PLAY,40));
-		btnStartDns.setBackground(NopeRed);//red
+		btnStartDns.setBackground(NopeGreen);//green
 		btnStartDns.setToolTipText("Start and Stop DNS Server");
 		btnStartDns.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -292,7 +297,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 
 
 				}else{
-					btnStartDns.setBackground(NopeGreen); //Green
+					btnStartDns.setBackground(NopeRed); //red
 					btnStartDns.setIcon(IconFontSwing.buildIcon(FontAwesome.STOP,40));
 					btnStartDns.setText("");// Stop DNS
 					isDNSRunning = true;
@@ -549,7 +554,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					//update create 
 					if(((Boolean)tbm.getValueAt(rowid, 0))){
 						//Check if the port is in use
-						int listport = (int)tbm.getValueAt(rowid, 1);
+						int listport = Integer.parseInt(""+tbm.getValueAt(rowid, 1));
 						if(!GenericMiTMServer.available(listport)){
 							tbm.setValueAt(false, rowid, 0);
 							Callbacks.printOutput("Port is already in use or port is outside range.");
@@ -573,7 +578,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							//GenericUDPMiTMServer mtm = new GenericUDPMiTMServer((Boolean)tbm.getValueAt(rowid, 5), Callbacks);
 							//TODO: Add validation
 							mtm.ListenPort = listport;
-							mtm.ServerPort = (int)tbm.getValueAt(rowid, 3);
+							mtm.ServerPort = Integer.parseInt("" + tbm.getValueAt(rowid, 3));
 							mtm.CertHostName = (String)tbm.getValueAt(rowid, 4);
 							mtm.ServerAddress = (String) tbm.getValueAt(rowid, 2);
 							mtm.setPythonMange( chckbxEnablePythonMangler.isSelected() );
@@ -610,8 +615,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					}
 				}else if(e.getType()==e.UPDATE && e.getColumn() == 5){
 					int rowid = ListTable.getSelectedRow();
-					int lport = (int) tbm.getValueAt(rowid, 1);
-					int sport = (int) tbm.getValueAt(rowid, 3);
+					int lport = Integer.parseInt("" +tbm.getValueAt(rowid, 1));
+					int sport = Integer.parseInt("" +tbm.getValueAt(rowid, 3));
 					String cert = (String)tbm.getValueAt(rowid, 4);
 					String sip = (String)tbm.getValueAt(rowid, 2);
 					boolean ssl = (boolean)tbm.getValueAt(rowid, 5);
@@ -990,31 +995,6 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		Callbacks.customizeUiComponent(Intercept);
 		
 		
-		
-		//#####################################################################################
-		// Setup UI for DNS log
-		JScrollPane DNSRequests = new JScrollPane();
-		DnsListTable = new JTable(){
-			@Override
-			public Class getColumnClass(int column) {
-				switch (column) {
-				case 0:
-					return String.class;
-				case 1:
-					return String.class;
-				default:
-					return String.class;
-				}
-			}
-		};
-		DnsListTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
-
-		DNSRequests.setViewportView(DnsListTable);
-		
-		dnstTbm = (DefaultTableModel)DnsListTable.getModel();
-		String DNSheader[] = new String[]{"Time","Domain","Resolved Ip", "Client Address", "Client Name"};
-		dnstTbm.setColumnIdentifiers(DNSheader);
-		
 	
 
 		
@@ -1038,9 +1018,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		updateInterfaceInformation();
 		// order the tabs
 		BurpTabs.addTab("TCP Intercept  ", Intercept);
-		BurpTabs.setIconAt(0,IconFontSwing.buildIcon(FontAwesome.EYE,20, NopeBlue));
 		BurpTabs.addTab("TCP History  ", splitPane);
-		BurpTabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.HISTORY,20, NopeOrange));
+		//BurpTabs.setIconAt(4,IconFontSwing.buildIcon(FontAwesome.HISTORY,20, NopeOrange));
 		
 		JSplitPane RepeaterPanel = new JSplitPane();
 		RepeaterPanel.setOrientation(JSplitPane.VERTICAL_SPLIT);
@@ -1052,7 +1031,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		
 
 		//BurpTabs.addTab("TCP Repeater  ", null, Repeater, null);
-		BurpTabs.setIconAt(2,IconFontSwing.buildIcon(FontAwesome.RECYCLE,20, NopePink));
+		//BurpTabs.setIconAt(2,IconFontSwing.buildIcon(FontAwesome.RECYCLE,20, NopePink));
 		GridBagLayout gbl_Repeater = new GridBagLayout();
 		gbl_Repeater.columnWidths = new int[]{0, 492, 12, 90, 0, 0};
 		gbl_Repeater.rowHeights = new int[]{28, 0, 0, 0, 0};
@@ -1084,6 +1063,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				
 			}
 		});
+		
+		JLabel lblClientAndServer = new JLabel("Client and Server must be connected for this to function properly");
+		lblClientAndServer.setFont(new Font("SansSerif", Font.ITALIC, 12));
+		GridBagConstraints gbc_lblClientAndServer = new GridBagConstraints();
+		gbc_lblClientAndServer.insets = new Insets(0, 0, 5, 5);
+		gbc_lblClientAndServer.gridx = 1;
+		gbc_lblClientAndServer.gridy = 0;
+		Repeater.add(lblClientAndServer, gbc_lblClientAndServer);
 		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
 		gbc_btnNewButton.insets = new Insets(0, 0, 5, 5);
 		gbc_btnNewButton.anchor = GridBagConstraints.NORTHWEST;
@@ -1092,6 +1079,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		Repeater.add(btnNewButton, gbc_btnNewButton);
 		
 		JLabel lblSelectAStream = new JLabel("Select A Stream to Repeat Request:");
+		lblSelectAStream.setFont(new Font("SansSerif", Font.BOLD, 12));
 		GridBagConstraints gbc_lblSelectAStream = new GridBagConstraints();
 		gbc_lblSelectAStream.anchor = GridBagConstraints.EAST;
 		gbc_lblSelectAStream.insets = new Insets(0, 0, 5, 5);
@@ -1349,7 +1337,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		
 		JPanel Automation = new JPanel();
 		BurpTabs.addTab("Automation  ", null, Automation, null);
-		BurpTabs.setIconAt(3,IconFontSwing.buildIcon(FontAwesome.CODE,20, NopeGreen));
+		//BurpTabs.setIconAt(3,IconFontSwing.buildIcon(FontAwesome.CODE,20, NopeGreen));
 		Automation.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Match and Replace Rules", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		GridBagLayout gbl_Automation = new GridBagLayout();
 		gbl_Automation.columnWidths = new int[]{472, 0};
@@ -1591,10 +1579,166 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				}*/
 			}
 		});
-		BurpTabs.addTab("DNS History  ", null, DNSRequests, null);
-		BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC,20, NopePurple));
+		
+		
+		
+		//#####################################################################################
+		// Setup UI for DNS log
+		JPanel DNSPanel = new JPanel();
+		GridBagLayout gbl_DNSPanel = new GridBagLayout();
+		gbl_DNSPanel.columnWidths = new int[]{456, 0, 0, 0};
+		gbl_DNSPanel.rowHeights = new int[]{406, 0};
+		gbl_DNSPanel.columnWeights = new double[]{1.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_DNSPanel.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+		DNSPanel.setLayout(gbl_DNSPanel);
+		BurpTabs.addTab("DNS History  ", null, DNSPanel, null);
+		//BurpTabs.setIconAt(0,IconFontSwing.buildIcon(FontAwesome.EYE,20, NopeBlue));
+		
+		JScrollPane DNSRequests = new JScrollPane();
+		GridBagConstraints gbc_DNSRequests = new GridBagConstraints();
+		gbc_DNSRequests.fill = GridBagConstraints.BOTH;
+		gbc_DNSRequests.insets = new Insets(0, 0, 0, 5);
+		gbc_DNSRequests.gridx = 0;
+		gbc_DNSRequests.gridy = 0;
+		DNSPanel.add(DNSRequests, gbc_DNSRequests);
+		DnsListTable = new JTable(){
+			@Override
+			public Class getColumnClass(int column) {
+				switch (column) {
+				case 0:
+					return String.class;
+				case 1:
+					return String.class;
+				default:
+					return String.class;
+				}
+			}
+		};
+		DnsListTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
+		
+				DNSRequests.setViewportView(DnsListTable);
+				
+				Component rigidArea_3 = Box.createRigidArea(new Dimension(20, 20));
+				GridBagConstraints gbc_rigidArea_3 = new GridBagConstraints();
+				gbc_rigidArea_3.fill = GridBagConstraints.VERTICAL;
+				gbc_rigidArea_3.insets = new Insets(0, 0, 0, 5);
+				gbc_rigidArea_3.gridx = 1;
+				gbc_rigidArea_3.gridy = 0;
+				DNSPanel.add(rigidArea_3, gbc_rigidArea_3);
+				
+				JPanel panel_9 = new JPanel();
+				GridBagConstraints gbc_panel_9 = new GridBagConstraints();
+				gbc_panel_9.fill = GridBagConstraints.BOTH;
+				gbc_panel_9.gridx = 2;
+				gbc_panel_9.gridy = 0;
+				DNSPanel.add(panel_9, gbc_panel_9);
+				GridBagLayout gbl_panel_9 = new GridBagLayout();
+				gbl_panel_9.columnWidths = new int[]{0, 0, 0};
+				gbl_panel_9.rowHeights = new int[]{0, 0, 0, 0, 0};
+				gbl_panel_9.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+				gbl_panel_9.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+				panel_9.setLayout(gbl_panel_9);
+				
+				JButton btnPortMonitor = new JButton("");
+				btnPortMonitor.setIcon(IconFontSwing.buildIcon(FontAwesome.PLAY,20));
+				btnPortMonitor.setBackground(NopeGreen);
+				btnPortMonitor.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						if(lister == null){
+							btnPortMonitor.setBackground(NopeRed);
+							btnPortMonitor.setIcon(IconFontSwing.buildIcon(FontAwesome.STOP,20));
+							lister = new Lister( dnsIpTxt.getText());
+							lister.addEventListener(new TCPConnectionAttemptListener(){
+								DefaultTableModel model = (DefaultTableModel) portTable.getModel();
+								
+	
+								@Override
+								public void TcpConnAttempt(TCPPacketEvt pkt) {
+									BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.INFO_OUTLINE,20, NopeRed));
+									Vector<Object> vec = new Vector<Object>();
+									
+									vec.add(model.getRowCount());
+									vec.add(1, pkt.getTime());
+									vec.add(2, pkt.getSip());
+									vec.add(3, pkt.getDport());
+									vec.add(4, pkt.getService());
+									model.addRow(vec);
+									Timer t = new Timer();
+									t.schedule(new TimerTask() {
+										  @Override
+										  public void run() {
+											  BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC,20, NopePurple));
+										  }
+										}, 2*1000);
+									
+									
+								}
+								
+							});
+							Thread listerThread = new Thread(lister);
+							listerThread.start();
+						}else{
+							lister.kill();
+							lister = null;
+							btnPortMonitor.setIcon(IconFontSwing.buildIcon(FontAwesome.PLAY,20));
+							
+							btnPortMonitor.setBackground(NopeGreen);
+						}
+					}
+				});
+				
+				JLabel lblPortMonitor = new JLabel("Port Monitor");
+				Font portFont = UIManager.getFont("Label.font").deriveFont(Font.BOLD);
+				lblPortMonitor.setFont(portFont);
+				GridBagConstraints gbc_lblPortMonitor = new GridBagConstraints();
+				gbc_lblPortMonitor.fill = GridBagConstraints.HORIZONTAL;
+				gbc_lblPortMonitor.insets = new Insets(0, 0, 5, 0);
+				gbc_lblPortMonitor.gridx = 1;
+				gbc_lblPortMonitor.gridy = 0;
+				panel_9.add(lblPortMonitor, gbc_lblPortMonitor);
+				
+				JLabel lblNewLabel_2 = new JLabel("Ensure you have libpcap or winpcap installed .");
+				GridBagConstraints gbc_lblNewLabel_2 = new GridBagConstraints();
+				gbc_lblNewLabel_2.fill = GridBagConstraints.HORIZONTAL;
+				gbc_lblNewLabel_2.insets = new Insets(0, 0, 5, 5);
+				gbc_lblNewLabel_2.gridx = 0;
+				gbc_lblNewLabel_2.gridy = 1;
+				panel_9.add(lblNewLabel_2, gbc_lblNewLabel_2);
+				GridBagConstraints gbc_btnPortMonitor = new GridBagConstraints();
+				gbc_btnPortMonitor.fill = GridBagConstraints.HORIZONTAL;
+				gbc_btnPortMonitor.insets = new Insets(0, 0, 5, 0);
+				gbc_btnPortMonitor.gridx = 1;
+				gbc_btnPortMonitor.gridy = 1;
+				panel_9.add(btnPortMonitor, gbc_btnPortMonitor);
+				
+				JScrollPane scrollPane_4 = new JScrollPane();
+				GridBagConstraints gbc_scrollPane_4 = new GridBagConstraints();
+				gbc_scrollPane_4.gridwidth = 2;
+				gbc_scrollPane_4.fill = GridBagConstraints.BOTH;
+				gbc_scrollPane_4.gridx = 0;
+				gbc_scrollPane_4.gridy = 3;
+				panel_9.add(scrollPane_4, gbc_scrollPane_4);
+				
+				portTable = new JTable();
+				portTable.setModel(new DefaultTableModel(
+					new Object[][] {
+					},
+					new String[] {
+						"#", "Time", "Source IP", "Port", "Service"
+					}
+				));
+				portTable.getColumnModel().getColumn(0).setMaxWidth(50);
+				portTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
+				scrollPane_4.setViewportView(portTable);
+				
+				dnstTbm = (DefaultTableModel)DnsListTable.getModel();
+				String DNSheader[] = new String[]{"Time","Domain","Resolved Ip", "Client Address", "Client Name"};
+				dnstTbm.setColumnIdentifiers(DNSheader);
+				
+		//BurpTabs.addTab("DNS History  ", null, DNSRequests, null);
+		//BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC,20, NopePurple));
 		BurpTabs.add("Server Config  ", Options);
-		BurpTabs.setIconAt(5,IconFontSwing.buildIcon(FontAwesome.COGS,20, NopePink));
+		//BurpTabs.setIconAt(5,IconFontSwing.buildIcon(FontAwesome.COGS,20, NopePink));
 		
 		//#####################################################################################
 	    // Mitm Listner tables and controls for  Options tab
@@ -1698,7 +1842,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						panel_1.add(lblPort, gbc_lblPort);
 				
 				isSSL = new JCheckBox("SSL - (Export Burp's CACert as pkcs12 with  password 'changeit'. ");
-				isSSL.setIcon(IconFontSwing.buildIcon(Elusive.LOCK_ALT,16));
+				//isSSL.setIcon(IconFontSwing.buildIcon(Elusive.LOCK_ALT,16));
 				isSSL.setBackground(UIManager.getColor("ArrowButton.background"));
 				GridBagConstraints gbc_isSSL = new GridBagConstraints();
 				gbc_isSSL.anchor = GridBagConstraints.NORTH;
@@ -1809,8 +1953,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 													public void actionPerformed(ActionEvent e) {
 														if(ListTable.getSelectedRow() != -1){
 															int rowid = ListTable.getSelectedRow();
-															int lPort = (int)tbm.getValueAt(rowid, 1);
-															int sport = (int) tbm.getValueAt(rowid, 3);
+															int lPort = Integer.parseInt("" + tbm.getValueAt(rowid, 1));
+															int sport = Integer.parseInt("" +  tbm.getValueAt(rowid, 3));
 															String cert = (String)tbm.getValueAt(rowid, 4);
 															String sip = (String)tbm.getValueAt(rowid, 2);
 															boolean ssl = (boolean)tbm.getValueAt(rowid, 5);
@@ -2122,6 +2266,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_btnHttpgithubcomsummitt.gridy = 6;
 		About.add(btnHttpgithubcomsummitt, gbc_btnHttpgithubcomsummitt);
 		
+		BurpTabs.setIconAt(0,IconFontSwing.buildIcon(FontAwesome.EYE,20, NopeBlue));
+		BurpTabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.HISTORY,20, NopeOrange));
+		BurpTabs.setIconAt(2,IconFontSwing.buildIcon(FontAwesome.RECYCLE,20, NopePink));
+		BurpTabs.setIconAt(3,IconFontSwing.buildIcon(FontAwesome.CODE,20, NopeGreen));
+		BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC,20, NopePurple));
+		BurpTabs.setIconAt(5,IconFontSwing.buildIcon(FontAwesome.COGS,20, NopeRed));
+		BurpTabs.setIconAt(6,IconFontSwing.buildIcon(FontAwesome.INFO,20, NopeGrey));
+		
 		
 		// Add Tabs to main component
 		add(BurpTabs);
@@ -2129,7 +2281,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		
 		//Set DataUpdate Timer
 		timer = new Timer();
-		timer.scheduleAtFixedRate(new UpdateDBTask(queue,ntbm, searchDb), 0, 2*1000);
+		timer.scheduleAtFixedRate(new UpdateDBTask(queue,ntbm, searchDb, BurpTabs), 0, 1*1500);
 		
 		
 	    //timer.schedule(new UpdateDBTask(queue,ntbm), 2 * 1000);
@@ -2424,7 +2576,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	public void DNSStopped(){
 		btnStartDns.setText("");//Start DNS
 		btnStartDns.setIcon(IconFontSwing.buildIcon(FontAwesome.PLAY,40));
-		btnStartDns.setBackground(NopeRed);//red
+		btnStartDns.setBackground(NopeGreen);//red
 		isDNSRunning = false;
 		//lblStatusDNS.setText("DNS OFF");
 
@@ -2478,6 +2630,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	private JTextField searchDb;
 	private JPanel Intercept;
 	private RSyntaxTextArea repCodeOutput;
+	private JTable portTable;
 	
 	public synchronized void addEventListener(DNSConfigListener listener)	{
 		_listeners.add(listener);
@@ -2489,12 +2642,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	@SuppressWarnings("rawtypes")
 	private synchronized void ToggleDNS(String Address, Integer Port){
 		Iterator i = _listeners.iterator();
+		
 		while(i.hasNext())	{
 			DNSEvent evt = new DNSEvent(this);
 			evt.setAddress(Address);
 			evt.setPort(Port);
 			((DNSConfigListener) i.next()).DNSToggle(evt);
 		}
+		
 	}
 
 	public synchronized void addEventListener(ProxyEventListener listener)	{
@@ -2598,11 +2753,12 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	@Override
 	public void NewDomainRequest(DNSTableEvent e) {
+		BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.INFO_OUTLINE,20, NopeRed));
 		String Domain = e.getDomain();
 		String ClientIp = e.getClientIP();
 		Vector<Object> vec = new Vector<Object>();
-		Date now = Calendar.getInstance().getTime();
-		vec.add(now.toString());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd hh:mm:ss");
+		vec.add(sdf.format(new Date()));
 		vec.add(Domain);
 		vec.add(e.getResponseIp());
 		vec.add(ClientIp);
@@ -2610,7 +2766,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		int N = dnstTbm.getRowCount();
 		for(int i=0; i< N; i++){
 			String dname = dnstTbm.getValueAt(i, 1).toString();
-			String ip = dnstTbm.getValueAt(i, 2).toString();
+			String ip = dnstTbm.getValueAt(i, 3).toString();
 			if(ip.equals(ClientIp) && dname.equals(Domain)){
 				dnstTbm.removeRow(i);
 				break;
@@ -2618,6 +2774,13 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		}
 		
 		dnstTbm.insertRow(0, vec);
+		Timer t = new Timer();
+		t.schedule(new TimerTask() {
+			  @Override
+			  public void run() {
+				  BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC,20, NopePurple));
+			  }
+			}, 2*1000);
 		
 	}
 	@Override

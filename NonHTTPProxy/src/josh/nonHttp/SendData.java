@@ -43,6 +43,7 @@ public class SendData implements Runnable{
 	private boolean isC2S;
 	private boolean isSSL;
 	private PythonMangler pm;
+	public SendData doppel;
 	//private Date lastaccess;
 	
 	
@@ -322,8 +323,27 @@ public class SendData implements Runnable{
 			
 		}
 		//System.out.println(this.Name + " - Connection Has Closed.");
-		this.SendClosedEventTrigger();
-		//System.out.println("Socket Closed.");
+		//this.SendClosedEventTrigger();
+		if(doppel!= null){
+			doppel.killme=true;
+			try{
+				if(doppel.isSSL()){
+					/*((SSLSocket)sd.sock).shutdownInput();
+					((SSLSocket)sd.sock).shutdownOutput();*/
+					((SSLSocket)doppel.sock).close();
+				}else{
+					/*((Socket)sd.sock).shutdownInput();
+					((Socket)sd.sock).shutdownOutput();*/
+					((Socket)doppel.sock).close();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}finally{
+				
+			}
+		}
+		//System.out.println("Socket Closed. " + this.Name);
 		
 		
 	}

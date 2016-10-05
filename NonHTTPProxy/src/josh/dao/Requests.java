@@ -70,13 +70,18 @@ public class Requests {
 	}
 
 	public byte[] getData() {
-		
-		return Base64.getDecoder().decode(data);
+		if(data == null)
+			return null;
+		else
+			return Base64.getDecoder().decode(data);
 		
 	}
 
 	public byte[] getOriginal() {
-		return Base64.getDecoder().decode(original);
+		if(original == null)
+			return null;
+		else
+			return Base64.getDecoder().decode(original);
 	}
 
 	public String getSrcIp() {

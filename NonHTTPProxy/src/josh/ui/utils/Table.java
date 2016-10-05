@@ -52,8 +52,8 @@ public class Table extends JTable
     	
         LogEntry logEntry = log.get(r);
         Requests req = logEntry.getData(logEntry.Index);
-        requestViewer.setMessage(req.getData(), true);
-        originalViewer.setMessage(req.getOriginal(), true);
+        requestViewer.setMessage( req.getData() == null ? "Nope Proxy thinks you're requesting data too fast from Database. :( Try again in a sec ....".getBytes() : req.getData(), true);
+        originalViewer.setMessage(req.getOriginal()== null ? "Nope Proxy thinks you're requesting data too fast from Database. :( Try again in a sec ....".getBytes() : req.getOriginal(), true);
        
         currentlyDisplayedItem = logEntry.requestResponse;
         JLabel start = new JLabel(""+logEntry.Index + " - " + logEntry.Direction + " - " +

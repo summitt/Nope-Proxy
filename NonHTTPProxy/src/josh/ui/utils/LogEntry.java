@@ -11,18 +11,20 @@ import josh.dao.Requests;
 
 public class LogEntry
 {
-    final Date time;
-    byte[] requestResponse;
-    final int SrcPort;
-    final int DstPort;
-    final String SrcIP;
-    final String DstIP;
-    final String Direction;
-    final int Bytes;
-    Long Index;
-    byte [] original; 
+    public Date time;
+    public byte[] requestResponse;
+    public int SrcPort;
+    public int DstPort;
+    public String SrcIP;
+    public String DstIP;
+    public String Direction;
+    public int Bytes;
+    public Long Index;
+    public byte [] original; 
 
 
+    public LogEntry(){
+    }
     
     public LogEntry(byte[] requestResponse, byte[] original, String SrcIp,int SrcPort, String DstIP, int DstPort, String Direction)
     {
@@ -68,9 +70,26 @@ public class LogEntry
     	Session s = HibHelper.getSessionFactory().openSession();
     	Requests dao = new Requests(0, this.requestResponse, this.original, this.SrcIP, this.SrcPort, this.DstIP, this.DstPort, this.Direction, this.time.getTime(), this.Bytes);
     	s.getTransaction().begin();
-    	s.save(dao);
+    	s.saveOrUpdate(dao);
     	s.getTransaction().commit();
     	s.close();
+    	this.Index = (long)dao.getId();
+    	return dao.getId();
+    	
+    	
+    }
+    private  Session session;
+    public void init(){
+    	session = HibHelper.getSessionFactory().openSession();
+    	session.getTransaction().begin();
+    }
+    public  void commit(){
+    	session.getTransaction().commit();
+    	session.close();
+    }
+    public long saveCommitDeferred(LogEntry le){
+    	Requests dao = new Requests(0, le.requestResponse, le.original, le.SrcIP, le.SrcPort, le.DstIP, le.DstPort, le.Direction, le.time.getTime(), le.Bytes);
+    	session.save(dao);
     	this.Index = (long)dao.getId();
     	return dao.getId();
     	
@@ -89,9 +108,18 @@ public class LogEntry
     	
     }
     public Requests getData(Long index){
+    	Requests r = new Requests();
     	Session s = HibHelper.getSessionFactory().openSession();
-    	Requests r = (Requests)s.createQuery("from Requests where id = :id").setInteger("id", index.intValue()).uniqueResult();
-    	s.close();
+    	try{
+	    	
+	    	r = (Requests)s.createQuery("from Requests where id = :id").setInteger("id", index.intValue()).uniqueResult();
+	    	
+    	}catch(Exception ex){
+    		System.out.println(ex.getMessage());
+    		System.out.println(ex.getLocalizedMessage());
+    	}finally{
+    		s.close();
+    	}
     	return r;
     }
     
@@ -103,6 +131,7 @@ public class LogEntry
     	LinkedList<LogEntry> list = new LinkedList<LogEntry>();
     	for(Requests q : r){
     		list.add(new LogEntry((long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes()));
+    		//list.add(new LogEntry(q.getData(), q.getOriginal(), (long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes()));
     	}
     	s.close();
     	return list;

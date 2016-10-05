@@ -9,8 +9,9 @@ public class HibHelper {
 	 private static SessionFactory sessionFactory = buildSessionFactory();
 
 	    private static SessionFactory buildSessionFactory() {
-	    	java.util.logging.Logger.getLogger("org.hibernate").setLevel(java.util.logging.Level.OFF);
-	    	java.util.logging.Logger.getLogger("com.mchange").setLevel(java.util.logging.Level.OFF);
+	    	System.out.println("Built new session factory");
+	    	//java.util.logging.Logger.getLogger("org.hibernate").setLevel(java.util.logging.Level.OFF);
+	    	//java.util.logging.Logger.getLogger("com.mchange").setLevel(java.util.logging.Level.OFF);
 	        try {
 	        	String path = System.getProperty("user.home");
 				String resultFile = path + "/.NoPEProxy/requests.sqlite";

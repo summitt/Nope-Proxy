@@ -9,10 +9,10 @@
        <property name="hibernate.show_sql">false</property>
        <property name="hibernate.hbm2ddl.auto">update</property>
         <property name="hibernate.c3p0.min_size">20</property>
-  		<property name="hibernate.c3p0.max_size">100</property>
+  		<property name="hibernate.c3p0.max_size">50</property>
   		<property name="hibernate.c3p0.timeout">300</property>
-  		<property name="hibernate.c3p0.max_statements">150</property>
-  		<property name="hibernate.c3p0.idle_test_period">3000</property>
+  		<property name="hibernate.c3p0.max_statements">300</property>
+  		<property name="hibernate.c3p0.idle_test_period">300</property>
        <mapping class="josh.dao.Requests"/>
        <mapping class="josh.dao.ListenerSetting"/>
        </session-factory>

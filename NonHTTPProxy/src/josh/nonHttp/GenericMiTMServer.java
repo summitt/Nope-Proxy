@@ -313,11 +313,15 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 				        getD.in=inFromServer;
 				        getD.out=outToClient;
 				        getD.Name="s2c";
-				        
+				        send.doppel = getD;
+				        getD.doppel = send;
 				        
 				        sends.add(send);
 				        sends.add(getD);
-				        pairs.put(send, getD);
+				        
+				       synchronized(this) {
+				        	pairs.put(send, getD);
+				        }
 				        
 				        
 		
@@ -436,7 +440,8 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	}
 
 	@Override
-	public void Closed(SendClosedEvent e) {
+	public  void Closed(SendClosedEvent e) {
+		/*System.out.println("There are " + pairs.size() + " number of threads.");
 		SendData tmp = (SendData)e.getSource();
 		if(pairs.containsKey(tmp)){
 			pairs.get(tmp).killme=true;
@@ -444,15 +449,17 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 			
 		}
 		else if (pairs.containsValue(tmp)){
-			for(SendData key : pairs.keySet()){
-				if(pairs.get(key).equals(tmp)){
-					key.killme=true;
-					pairs.remove(key);
-					KillSocks(tmp);
-					KillSocks(key);
+			synchronized(this) {
+				for(SendData key : pairs.keySet()){
+					if(pairs.get(key).equals(tmp)){
+						key.killme=true;
+						pairs.remove(key);
+						KillSocks(tmp);
+						KillSocks(key);
+					}
 				}
 			}
-		}
+		}*/
 		
 		
 	}
