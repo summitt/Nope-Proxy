@@ -2198,7 +2198,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_lblVersion.gridy = 2;
 		About.add(lblVersion, gbc_lblVersion);
 		
-		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt @null0perat0r");
+		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt - @null0perat0r - josh.summitt@fusesoft.co");
 		lblDevelopedByJosh.addMouseListener(new MouseListener() {
 			
 			@Override
