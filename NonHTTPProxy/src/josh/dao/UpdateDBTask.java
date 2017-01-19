@@ -53,7 +53,7 @@ public class UpdateDBTask extends TimerTask{
 			
 			if(queue.peek() == null)
 				return;
-			tabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.DOWNLOAD,20, NopeRed));
+			tabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.HISTORY,20, NopeRed));
 			LogEntry le;
 			List<LogEntry> updated = new ArrayList<LogEntry>();
 			session.getTransaction().begin();
@@ -63,7 +63,7 @@ public class UpdateDBTask extends TimerTask{
 				le.Index =(long)dao.getId();
 				updated.add(le);
 			}
-			tabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.DOWNLOAD,20, NopePurple));
+			tabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.HISTORY,20, NopePurple));
 			session.getTransaction().commit();
 			for(LogEntry log : updated){
 				if(searchTerm.getText().equals("") || le.canAdd(searchTerm.getText())){

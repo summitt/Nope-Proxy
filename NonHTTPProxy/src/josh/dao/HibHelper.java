@@ -6,6 +6,9 @@ import org.hibernate.cfg.Configuration;
 
 public class HibHelper {
 	
+
+
+	
 	 private static SessionFactory sessionFactory = buildSessionFactory();
 
 	    private static SessionFactory buildSessionFactory() {

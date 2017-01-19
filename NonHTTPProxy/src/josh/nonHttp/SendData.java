@@ -15,9 +15,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -44,6 +47,7 @@ public class SendData implements Runnable{
 	private boolean isSSL;
 	private PythonMangler pm;
 	public SendData doppel;
+	public long createTime;
 	//private Date lastaccess;
 	
 	
@@ -51,6 +55,7 @@ public class SendData implements Runnable{
 		this.SERVER = srv;
 		this.isC2S=isC2s;
 		this.isSSL = isSSL;
+		this.createTime = Calendar.getInstance().getTimeInMillis();
 	}
 	
 	
@@ -174,10 +179,40 @@ public class SendData implements Runnable{
 	public boolean isSSL(){
 		return this.isSSL;
 	}
-	
+	private Date lastaccess=new Date();
+	private SendData ref;
 	@Override
 	public void run() {
-		//System.out.println("new Send Data");
+		ref = this;
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+				  @Override
+				  public void run() {  
+					int threads=0;
+					// Checking the number of running threads. 
+					for (Thread t : Thread.getAllStackTraces().keySet()) {
+					  if (t.getState()==Thread.State.RUNNABLE && t.getName().startsWith("SD-")){
+					  	threads++;
+					  }
+					}
+					if(threads > 10){  
+						System.out.println("Running more than 10 threads... checking if we can clean up that have not been accessed in a while.");
+					    //System.out.println(ref.Name + " :: " + ((SSLSocket)ref.sock).getLocalPort() + " " + ((SSLSocket)ref.sock).getPort() + " " +lastaccess);
+						Calendar c =  Calendar.getInstance();
+						c.setTime(new Date());
+						c.set(Calendar.SECOND, -60); // No activity in over a minute then we kill it
+						if(lastaccess.getTime() < c.getTimeInMillis()){
+							System.out.println("Killing stale thread");
+							ref.killme=true;
+							this.cancel();
+							
+						}
+				   }else{
+					   System.out.println("Thread Monitor says: No Excessive Threading.");
+				   }
+				  }
+				},0, 10*1000); //Check every 10 seconds		
+		
 		while(true && !killme){
 			
 			int read=-1;
@@ -191,6 +226,7 @@ public class SendData implements Runnable{
 				byte [] buffer = new byte[2056*1000]; //Buffer at most 2Meg
 				//while((read = in.read(buffer, 0, buffer.length))!= -1 ){
 				read = in.read(buffer, 0, buffer.length);
+				lastaccess=new Date();
 				//}
 
 				
@@ -343,6 +379,7 @@ public class SendData implements Runnable{
 				
 			}
 		}
+		this.SendClosedEventTrigger();
 		//System.out.println("Socket Closed. " + this.Name);
 		
 		

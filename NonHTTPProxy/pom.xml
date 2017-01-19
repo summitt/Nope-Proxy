@@ -86,9 +86,29 @@
   	 	<artifactId>rsyntaxtextarea</artifactId>
   	 	<version>2.5.8</version>
   	 </dependency>
-  	 
 
-  </dependencies>
+
+  	 <dependency>
+  	 	<groupId>com.googlecode.json-simple</groupId>
+  	 	<artifactId>json-simple</artifactId>
+  	 	<version>1.1.1</version>
+  	 </dependency>
+  	 <dependency>
+  	 	<groupId>org.python</groupId>
+  	 	<artifactId>jython-standalone</artifactId>
+  	 	<version>2.7.0</version>
+  	 </dependency>
+  	 <dependency>
+  	 	<groupId>net.portswigger.burp.extender</groupId>
+  	 	<artifactId>burp-extender-api</artifactId>
+  	 	<version>1.7.13</version>
+  	 </dependency>
+  	 <dependency>
+  	 	<groupId>org.hibernate.ogm</groupId>
+  	 	<artifactId>hibernate-ogm-neo4j</artifactId>
+  	 	<version>5.0.1.Final</version>
+  	 </dependency>
+	  </dependencies>
   <name>NonHttp Burp Extension</name>
   <url>http://github.com/summitt/</url>
 </project>

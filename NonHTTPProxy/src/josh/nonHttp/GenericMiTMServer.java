@@ -13,9 +13,14 @@ import java.net.SocketException;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -160,12 +165,12 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 			//System.out.println("Interrrpting Thread");
 			try {
 				if(sends.get(i).isSSL()){
-					((SSLSocket)sends.get(i).sock).shutdownInput();
-					((SSLSocket)sends.get(i).sock).shutdownOutput();
+					//((SSLSocket)sends.get(i).sock).shutdownInput();
+					//((SSLSocket)sends.get(i).sock).shutdownOutput();
 					((SSLSocket)sends.get(i).sock).close();
 				}else{
-					((Socket)sends.get(i).sock).shutdownInput();
-					((Socket)sends.get(i).sock).shutdownOutput();
+					//((Socket)sends.get(i).sock).shutdownInput();
+					//((Socket)sends.get(i).sock).shutdownOutput();
 					((Socket)sends.get(i).sock).close();
 				}
 			} catch (SocketException e) {
@@ -198,7 +203,7 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 	}
 	
     @Override
-	public void run() {
+	public void  run() {
     	Callbacks.printOutput("Starting New Server.");
     	this.isRunning=true;
     	if(this.ServerAddress == null || this.ServerPort == 0 | this.ListenPort == 0){
@@ -227,13 +232,23 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
     	         X509Certificate[] result = new X509Certificate[ks.getCertificateChain(ks.aliases().nextElement()).length];
     	         //System.out.println(result.length);
     	         
-    	         SSLContext sc = SSLContext.getInstance("TLS");
+    	         SSLContext sc = SSLContext.getInstance("TLSv1.2");
     	         sc.init(kmf.getKeyManagers(), null, null);
     	         SSLServerSocketFactory ssf = sc.getServerSocketFactory();
     	         svrSock = (SSLServerSocket) ssf.createServerSocket(this.ListenPort);
     			
     		}else
     			svrSock = new ServerSocket(this.ListenPort);
+    		
+    		Timer timer = new Timer();
+    		timer.scheduleAtFixedRate(new TimerTask() {
+    				  @Override
+    				  public void run() {  
+    				    //System.out.println(ref.Name + " :: " + ((SSLSocket)ref.sock).getLocalPort() + " " + ((SSLSocket)ref.sock).getPort() + " " +lastaccess);
+    					//System.out.println("Listener " + ListenPort + " has " +pairs.size() + " threads running");
+    					
+    				  }
+    				},0, 5*1000);
     		
     		
     		
@@ -293,49 +308,57 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 			        
 			        
 			       
-			        
+			        	
 				        // Send data from client to server
-				        SendData send = new SendData(this,true,false);
-				        send.addEventListener(GenericMiTMServer.this);
-				        send.addPyEventListener(this);
-				        send.addSendClosedEventListener(this);
+			            System.out.println(connectionSocket.getPort() + " :: " + connectionSocket.getLocalPort() + " :: " + pairs.size());
+				        SendData send = new SendData(this,true,isSSL); // bug... changed from false
+				        /*if(pairs.size() != 0){
+				        	send = (SendData)pairs.keySet().toArray()[0];
+				        }else{*/
+
+					        send.addEventListener(GenericMiTMServer.this);
+					        send.addPyEventListener(this);
+					        send.addSendClosedEventListener(this);
+					        send.Name="c2s";
+				       // }
 				        send.sock = connectionSocket;
 				        send.in = inFromClient;
 				        send.out = outToServer;
-				        send.Name="c2s";
 				        
 				     // Send data from server to Client
 				        SendData getD = new SendData(this,false,isSSL);
-				        getD.addEventListener(GenericMiTMServer.this);
-				        getD.addPyEventListener(this);
-				        getD.addSendClosedEventListener(this);
+				        /*if(pairs.size() != 0){
+				        	getD = ((SendData)pairs.keySet().toArray()[0]).doppel;
+				        }else{*/
+					        getD.addEventListener(GenericMiTMServer.this);
+					        getD.addPyEventListener(this);
+					        getD.addSendClosedEventListener(this);
+					        getD.Name="s2c";
+				       // }
 				        getD.sock = cltSock;
 				        getD.in=inFromServer;
 				        getD.out=outToClient;
-				        getD.Name="s2c";
-				        send.doppel = getD;
-				        getD.doppel = send;
-				        
-				        sends.add(send);
-				        sends.add(getD);
-				        
-				       synchronized(this) {
-				        	pairs.put(send, getD);
-				        }
-				        
-				        
-		
-				        Thread c2s = new Thread(send);
-				        Thread s2c = new Thread(getD);
 				       
-				        c2s.start();
-				        s2c.start();
-				        threads.add(c2s);
-				        threads.add(s2c);
 				        
-			        
-			        
-			       
+				       // if(pairs.size() == 0){
+					        send.doppel = getD;
+					        getD.doppel = send;
+					        sends.add(send);
+					        sends.add(getD);
+					        synchronized(this) {
+					        	System.out.println("Creating pairs");
+					        	pairs.put(send, getD);
+					        }
+					        Thread c2s = new Thread(send);
+					        Thread s2c = new Thread(getD);
+					        c2s.setName("SD-" + Calendar.getInstance().getTimeInMillis());
+					        s2c.setName("SD-" + Calendar.getInstance().getTimeInMillis());
+					        c2s.start();
+					        s2c.start();
+					        threads.add(c2s);
+					        threads.add(s2c);
+				       // }
+				        
 	        	}catch(ConnectException e){
 	        		String message = e.getMessage();
 	        		System.out.println(e.getMessage());
@@ -358,18 +381,38 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
     	isRunning=false;
 		
 	}
-    
-    public void repeatToServer(byte[] repeat){
+    //TODO: add ports to test for ephemeral ports.
+    public void repeatToServer(byte[] repeat, int srcPort){
     	System.out.println("There are " + pairs.size() + " Threads for this connection");
-    	for(SendData sd : pairs.keySet()){
-    		sd.repeatRequest(repeat);
-    	}
+    	SendData LastAccessed = null;
+    	
+		for(SendData sd : pairs.keySet()){
+			if(LastAccessed == null || LastAccessed.createTime < sd.createTime){
+    			LastAccessed = sd;
+			}	
+		}
+		if(LastAccessed != null){
+			LastAccessed.repeatRequest(repeat);
+		}else{
+			System.out.println("All Connections closed...");
+		}
+    	
     }
-    public void repeatToClient(byte[] repeat){
+  //TODO: add ports to test for ephemeral ports.
+    public void repeatToClient(byte[] repeat, int srcPort){
     	System.out.println("There are " + pairs.size() + " Threads for this connection");
+    	SendData LastAccessed = null;
     	for(SendData sd : pairs.values()){
-    		sd.repeatRequest(repeat);
+    		if(LastAccessed == null || LastAccessed.createTime < sd.createTime){
+    			LastAccessed = sd;
+    		}
     	}
+    	
+    	if(LastAccessed != null){
+			LastAccessed.repeatRequest(repeat);
+		}else{
+			System.out.println("All Connections closed...");
+		}
     }
     
 
@@ -441,25 +484,29 @@ public class GenericMiTMServer implements Runnable, ProxyEventListener, PythonOu
 
 	@Override
 	public  void Closed(SendClosedEvent e) {
-		/*System.out.println("There are " + pairs.size() + " number of threads.");
-		SendData tmp = (SendData)e.getSource();
-		if(pairs.containsKey(tmp)){
-			pairs.get(tmp).killme=true;
-			//pairs.remove(tmp);
-			
-		}
-		else if (pairs.containsValue(tmp)){
-			synchronized(this) {
-				for(SendData key : pairs.keySet()){
-					if(pairs.get(key).equals(tmp)){
-						key.killme=true;
-						pairs.remove(key);
-						KillSocks(tmp);
-						KillSocks(key);
-					}
-				}
+		synchronized(this){
+			Random rand = new Random();
+			int to = rand.nextInt(1000);
+			try {
+				this.wait(to);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
 			}
-		}*/
+			SendData tmp = (SendData)e.getSource();
+			/*System.out.println(tmp.Name + ": Socket with " + ((SSLSocket)tmp.sock).getLocalPort() + " :: " + ((SSLSocket)tmp.sock).getPort());
+			System.out.println("There are " + pairs.size() + " number of threads.");
+			for(SendData s : pairs.keySet()){
+				System.out.println("---"+s.Name + " :: " + ((SSLSocket)s.sock).getLocalPort() + " :: " + ((SSLSocket)s.sock).getPort());
+				System.out.println("---"+s.doppel.Name + " :: " + ((SSLSocket)s.doppel.sock).getLocalPort() + " :: " + ((SSLSocket)s.doppel.sock).getPort());
+			}*/
+			
+			if(pairs.containsKey(tmp)){
+				System.out.println("first");
+				pairs.remove(tmp);
+			}
+			else if (pairs.containsValue(tmp)){
+			}
+		}
 		
 		
 	}

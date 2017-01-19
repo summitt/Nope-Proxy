@@ -603,7 +603,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							
 						}
 					}else if (e.getColumn() == 0){ //delete a server thread
-						int lPort = (int)tbm.getValueAt(rowid, 1);
+						int lPort = Integer.parseInt(""+tbm.getValueAt(rowid, 1));
 						GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(lPort));
 						//GenericUDPMiTMServer mtm = ((GenericUDPMiTMServer)threads.get(lPort));
 						//GenericMiTMServer mtm = ((GenericMiTMServer)threads.get(rowid));
@@ -1058,7 +1058,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					String portStr = selected.split("-")[0];
 					int port = Integer.parseInt(portStr.trim());
 					GenericMiTMServer x = threads.get(port);
-					x.repeatToServer(repeater.getMessage());
+					//TODO: I need to match ephemeral ports here because there can be several threads on the same server.
+					x.repeatToServer(repeater.getMessage(), port);
 				}
 				
 			}
@@ -1112,7 +1113,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					String portStr = selected.split("-")[0];
 					int port = Integer.parseInt(portStr.trim());
 					GenericMiTMServer x = threads.get(port);
-					x.repeatToClient(repeater.getMessage());
+					x.repeatToClient(repeater.getMessage(),port);
 				}
 			}
 		});
@@ -1234,7 +1235,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							String portStr = selected.split("-")[0];
 							int port = Integer.parseInt(portStr.trim());
 							GenericMiTMServer x = threads.get(port);
-							x.repeatToServer(bytes);
+							x.repeatToServer(bytes, port);
 						}
 						String stdout = ""+out.get("stdout");
 						String stderr = ""+out.get("stderr");
@@ -1285,7 +1286,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							String portStr = selected.split("-")[0];
 							int port = Integer.parseInt(portStr.trim());
 							GenericMiTMServer x = threads.get(port);
-							x.repeatToClient(bytes);
+							x.repeatToClient(bytes, port);
 						}
 						String stdout = ""+out.get("stdout");
 						String stderr = ""+out.get("stderr");
@@ -1654,7 +1655,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	
 								@Override
 								public void TcpConnAttempt(TCPPacketEvt pkt) {
-									BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.INFO_OUTLINE,20, NopeRed));
+									BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC,20, NopeRed));
 									Vector<Object> vec = new Vector<Object>();
 									
 									vec.add(model.getRowCount());
@@ -2190,7 +2191,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_lblNopeProxy.gridy = 1;
 		About.add(lblNopeProxy, gbc_lblNopeProxy);
 		
-		JLabel lblVersion = new JLabel("Version 1.5");
+		JLabel lblVersion = new JLabel("Version 1.5.1");
 		GridBagConstraints gbc_lblVersion = new GridBagConstraints();
 		gbc_lblVersion.insets = new Insets(0, 0, 5, 5);
 		gbc_lblVersion.gridx = 1;
@@ -2753,7 +2754,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	}
 	@Override
 	public void NewDomainRequest(DNSTableEvent e) {
-		BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.INFO_OUTLINE,20, NopeRed));
+		//This may be fucking up the interface
+		//BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.INFO_OUTLINE,20, NopeRed));
 		String Domain = e.getDomain();
 		String ClientIp = e.getClientIP();
 		Vector<Object> vec = new Vector<Object>();
@@ -2774,13 +2776,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		}
 		
 		dnstTbm.insertRow(0, vec);
-		Timer t = new Timer();
+		/*Timer t = new Timer();
 		t.schedule(new TimerTask() {
 			  @Override
 			  public void run() {
 				  BurpTabs.setIconAt(4,IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC,20, NopePurple));
 			  }
 			}, 2*1000);
+			*/
 		
 	}
 	@Override
