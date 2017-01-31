@@ -5,7 +5,7 @@
 <br>
 ## [Download latest release here](https://github.com/summitt/Burp-Non-HTTP-Extension/releases)
 ## [Manual and Guides here] (https://github.com/summitt/Burp-Non-HTTP-Extension/wiki)
-## [Post Questions or Comments on Slack] (https://buildbreak.slack.com/signup)
+## [Post Questions or Comments on Slack] (https://buildbreak.herokuapp.com/)
 *Contact: @null0perat0r*
 <br>
 <br>
