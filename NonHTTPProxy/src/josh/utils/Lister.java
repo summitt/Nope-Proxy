@@ -23,6 +23,7 @@ import org.pcap4j.core.PacketListener;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.core.PcapPacket;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
@@ -62,7 +63,8 @@ public class Lister implements Runnable{
 	
 		    PacketListener listener
 		      = new PacketListener() {
-		          public void gotPacket(Packet packet) {
+				  @Override
+		          public void gotPacket(PcapPacket packet) {
 		        	  TcpPacket tcp = packet.get(TcpPacket.class);
 		        	  IpV4Packet ip = packet.get(IpV4Packet.class);
 		        	  if(tcp.getHeader().getSyn() && !tcp.getHeader().getAck() && !ip.getHeader().getSrcAddr().toString().equals("/"+IP)){
