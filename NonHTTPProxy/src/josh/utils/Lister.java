@@ -23,13 +23,14 @@ import org.pcap4j.core.PacketListener;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
-import org.pcap4j.core.PcapPacket;
+import org.pcap4j.packet.Packet;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TcpPacket;
+import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.util.NifSelector;
 
 import josh.utils.events.DNSEvent;
@@ -53,21 +54,33 @@ public class Lister implements Runnable{
 		System.out.println("Lister Started");
 		try{
 			InetAddress addr = InetAddress.getByName(this.IP);
+			System.out.println("#### LIST OF DEVS ####");
+
+			List<PcapNetworkInterface> devices = Pcaps.findAllDevs();
+
+			for (PcapNetworkInterface device : devices) {
+				System.out.println(device.getName());
+			}
+			System.out.println("###############");
+			System.out.println(addr);
 		    PcapNetworkInterface nif = Pcaps.getDevByAddress(addr);
 		    if (nif == null) {
 		      return;
 		    }
 		    handle
 		      = nif.openLive(65536, PromiscuousMode.PROMISCUOUS, 10);
-		    handle.setFilter("tcp", BpfCompileMode.NONOPTIMIZE);
+		    handle.setFilter("tcp", BpfCompileMode.OPTIMIZE);
 	
 		    PacketListener listener
 		      = new PacketListener() {
 				  @Override
-		          public void gotPacket(PcapPacket packet) {
+		          public void gotPacket(Packet packet) {
 		        	  TcpPacket tcp = packet.get(TcpPacket.class);
+					  if(tcp == null) return; 
+					  System.out.println(tcp);
 		        	  IpV4Packet ip = packet.get(IpV4Packet.class);
-		        	  if(tcp.getHeader().getSyn() && !tcp.getHeader().getAck() && !ip.getHeader().getSrcAddr().toString().equals("/"+IP)){
+					  System.out.println(ip);
+		        	  if(tcp.getHeader().getSyn() && !tcp.getHeader().getAck() ){ //&& !ip.getHeader().getSrcAddr().toString().equals("/"+IP)){
 		        		  //System.out.println(ip.getHeader().getSrcAddr() + " : " + tcp.getHeader().getDstPort().toString() );
 		        		  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd:hh:mm");
 		        		  String time = sdf.format(new Date());

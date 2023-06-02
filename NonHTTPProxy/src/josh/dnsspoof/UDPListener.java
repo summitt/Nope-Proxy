@@ -21,6 +21,25 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import org.xbill.DNS.SimpleResolver;
+import org.xbill.DNS.Resolver;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
+import org.xbill.DNS.DClass;
+import org.xbill.DNS.ExtendedResolver;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.Message;
+import org.xbill.DNS.Name;
+import org.xbill.DNS.Flags;
+import org.xbill.DNS.Rcode;
+import org.xbill.DNS.Header;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.Resolver;
+import org.xbill.DNS.OPTRecord;
+import org.xbill.DNS.Section;
+import org.xbill.DNS.SimpleResolver;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -170,7 +189,7 @@ public class UDPListener implements Runnable{
 		}
 		
 		public void run() {
-			byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[512];
             buffer = packet.getData();  
             int NN = packet.getLength();
             byte []copy = new byte [NN];
@@ -207,58 +226,16 @@ public class UDPListener implements Runnable{
            
             
             
-           
-
-
-            int N = 1024;
-            byte [] dnsResp = new byte[N];
-            int i=0;
-            //dns transaction ID
-            dnsResp[i++] = copy[0]; 
-            dnsResp[i++] = copy[1];
-            //OpCodes
-            dnsResp[i++] = (byte)0x81;
-            dnsResp[i++] = (byte)0x80;
-            
-            dnsResp[i++] = copy[4];
-            dnsResp[i++] = copy[5];
-            dnsResp[i++] = copy[4];
-            dnsResp[i++] = copy[5];
-            
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 0;
-            
-            for(int j=12; j< copy.length; j++){
-            	dnsResp[i++] = copy[j];
-            }
-            dnsResp[i++] = (byte) 0xc0;
-            dnsResp[i++] = (byte) 0x0c;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 1;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 1;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = (byte) 0x3c;
-            dnsResp[i++] = 0;
-            dnsResp[i++] = 4;
-            
             List<String>hosts=readHosts();
             Boolean override=false;
-            String returnIP = this.ADDRESS[0] + "." + this.ADDRESS[1] + "." +this.ADDRESS[2] + "." +this.ADDRESS[3];
+            String returnIpAddress = this.ADDRESS[0] + "." + this.ADDRESS[1] + "." +this.ADDRESS[2] + "." +this.ADDRESS[3];
             for(String line : hosts){
             	if(line.contains(hostname) && !line.startsWith("#")){
             		String hostIP = line.split(" ")[0];
             		if(hostIP.matches("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}")){
-            			returnIP = hostIP;
-            			String [] hostIPOcts = hostIP.split("\\.");
-            			dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[0]);
-        				dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[1]);
-        				dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[2]);
-        				dnsResp[i++] = (byte)Long.parseLong(hostIPOcts[3]);
+            			returnIpAddress = hostIP;
+						System.out.println("Using Host File");
+						System.out.println(returnIpAddress);
         				override=true;
         				break;
             		}
@@ -267,93 +244,66 @@ public class UDPListener implements Runnable{
             
             
             if(this.ADDRESS != null && !override && sb.getDefault()){
-				//System.out.println("DNS Request for: " + hostname + " from " + ip + " set to " + this.ADDRESS[0] +"."+this.ADDRESS[1]+"."+this.ADDRESS[2]+"."+this.ADDRESS[3] );
-				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[0]);
-				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[1]);
-				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[2]);
-				dnsResp[i++] = (byte)Long.parseLong(this.ADDRESS[3]);	
-			}else{
+            	returnIpAddress = this.ADDRESS[0] + "." + this.ADDRESS[1] + "." +this.ADDRESS[2] + "." +this.ADDRESS[3];
+			} else if(!override) {
 				try {
-					Properties env = new Properties();
-					env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.dns.DnsContextFactory");
-					env.put(Context.PROVIDER_URL, "dns://" + ExternalDNS);
-					InitialDirContext idc = new InitialDirContext(env);
-					String [] attribs = {"A"};
-					Attributes attrs = idc.getAttributes(hostname, attribs);
-					Attribute attr = attrs.get("A");
-					List<String> ipAddresses = new ArrayList<String>();
-					if (attr != null) {
-					    for (int iIP = 0; iIP < attr.size(); iIP++) {
-					      ipAddresses.add((String) attr.get(iIP));
-					    }
-					 }
-					//InetAddress [] addresses = InetAddress.getAllByName(hostname);
-					boolean found=false;
-					//for(InetAddress address : addresses){
-					for(String address : ipAddresses){
-						InetAddress inetaddress = InetAddress.getByName(address);
-						if(inetaddress instanceof Inet4Address){
-							//InetAddress address = InetAddress.getByName(hostname);
-							byte[] octs = inetaddress.getAddress();
-							dnsResp[i++] = octs[0];
-							dnsResp[i++] = octs[1];
-							dnsResp[i++] = octs[2];
-							dnsResp[i++] = octs[3];
-							returnIP = (octs[0]&0xFF) +"." + (octs[1]&0xFF) +"." + (octs[2]&0xFF) +"." + (octs[3]&0xFF);
-							found=true;
+					DatagramPacket outdp;
+					SimpleResolver resolver = new SimpleResolver(ExternalDNS);
+					resolver.setTimeout(5000);
+					Lookup lookup = new Lookup(hostname, Type.A);
+					lookup.setResolver(resolver);
+					lookup.setCache(null);
+					String ipAddress = "";
+					org.xbill.DNS.Record[] records = lookup.run();
+					System.out.println("Getting all the recoreds");
+					System.out.println(records);
+					if (lookup.getResult() == Lookup.SUCCESSFUL) {
+						for (org.xbill.DNS.Record record : records) {
+							returnIpAddress = record.rdataToString();
+							System.out.println("IP Address: " + ipAddress);
 							break;
 						}
-					}
-					if(!found){
-						returnIP="Unknown Hostname";
+					} else {
+						System.out.println("DNS lookup failed.");
+						String returnIP="Error Resolvng Hostname";
 						fireTableEvent(hostname, ip, HostName, returnIP);
 						return;
 					}
-					
-				} catch (UnknownHostException e) {
-					returnIP="Error Resolvng Hostname";
+				}catch(Exception e){
+					System.out.println("DNS lookup failed.");
+					String returnIP="Error Resolvng Hostname";
 					fireTableEvent(hostname, ip, HostName, returnIP);
 					return;
-				}
-				catch (NamingException e) {
-					returnIP="Error Resolvng Hostname";
-					fireTableEvent(hostname, ip, HostName, returnIP);
-					return;
+
 				}
 			}
-         /*dnsResp[i++] = (byte)192;
-         dnsResp[i++] = (byte)168;
-         dnsResp[i++] = (byte)1;
-         dnsResp[i++] = (byte)132;*/
-            fireTableEvent(hostname, ip, HostName, returnIP);
-            
-            N = i;
-            byte [] ans = new byte[N];
-            for(int j=0; j<N; j++){
-            	ans[j] = dnsResp[j];
-            }
-            
-            
-            try {
-            	InetAddress addr = packet.getAddress();
-            	int port = packet.getPort();
-            	//System.out.println(addr.getHostAddress() + ":" + port);
-            	DatagramPacket updResp = new DatagramPacket(ans, ans.length, addr, port);
-				datagramSocket.send(updResp);
-				
-				
-			} catch (IOException e) {
-				Callbacks.printError(e.getMessage());
-				e.printStackTrace();
-			} catch (Exception ex){
-				Callbacks.printError(ex.getMessage());
-				ex.printStackTrace();
+			try{
+				Message request = new Message(buffer);
+				Message response = new Message(request.getHeader().getID());
+				Header header = response.getHeader();
+				header.setFlag(Flags.QR);
+				//header.setFlag(Flags.RD);
+				//header.setFlag(Flags.RA);
+				header.setFlag(Flags.AA);
+				header.setRcode(Rcode.NOERROR);
+				response.addRecord(request.getQuestion(), Section.QUESTION);
+				OPTRecord optRecord = new OPTRecord(512, 0, 0);
+            	response.addRecord(optRecord, Section.ADDITIONAL);
+				// Add answers as needed
+				response.addRecord(Record.fromString(Name.fromString(hostname+"."), Type.A, DClass.IN, 3600, returnIpAddress, Name.root), Section.ANSWER);
+				byte[] resp = response.toWire();
+				InetAddress addr = packet.getAddress();
+				int port = packet.getPort();
+				DatagramPacket outdp = new DatagramPacket(resp, resp.length, addr, port);
+				datagramSocket.send(outdp);
+				fireTableEvent(hostname, ip, HostName, returnIpAddress);
+				return;
+			}catch(Exception e){
+				System.out.println(e);
+				String returnIP="Error Resolvng Hostname";
+				fireTableEvent(hostname, ip, HostName, returnIP);
+				return;
 			}
-            
-            
-        //}
-        //fireEvent();
-        //datagramSocket.close();
 		}
 		
 	}
