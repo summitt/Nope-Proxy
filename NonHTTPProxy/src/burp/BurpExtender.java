@@ -152,9 +152,9 @@ import burp.*;
 
 		
 		private boolean shouldShow(){
-			if(dnsConfig.ntbm.requestViewer.getComponent().isShowing() ||
+			if((dnsConfig.ntbm.requestViewer.getComponent().isShowing() ||
 				dnsConfig.ntbm.originalViewer.getComponent().isShowing() ||
-				dnsConfig.intbm.requestViewer.getComponent().isShowing()){
+				dnsConfig.intbm.requestViewer.getComponent().isShowing())){
 				return true;
 			}else{
 				return false;

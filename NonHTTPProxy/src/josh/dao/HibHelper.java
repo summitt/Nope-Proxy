@@ -25,6 +25,7 @@ public class HibHelper {
 				Properties prop= new Properties();
 
 				prop.setProperty("hibernate.dialect", "josh.dao.SQLiteDialect");
+ 				//prop.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
 				prop.setProperty("hibernate.connection.driver_class", "org.sqlite.JDBC");
 				prop.setProperty("hibernate.show_sql", "false");
 				prop.setProperty("hibernate.hbm2ddl.auto", "update"); 

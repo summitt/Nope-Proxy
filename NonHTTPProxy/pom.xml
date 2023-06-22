@@ -41,12 +41,12 @@
 	  <dependency>
 	  <groupId>org.pcap4j</groupId>
 	  <artifactId>pcap4j-core</artifactId>
-	  <version>1.7.5</version>
+	  <version>1.8.2</version>
 	  	 </dependency>
 	<dependency>
 	  <groupId>org.pcap4j</groupId>
 	  <artifactId>pcap4j-packetfactory-static</artifactId>
-	  <version>1.7.5</version>
+	  <version>1.8.2</version>
 	</dependency>
   	<dependency>
   		<groupId>org.hibernate</groupId>
@@ -59,25 +59,47 @@
   		<artifactId>hibernate-c3p0</artifactId>
   		<version>5.6.15.Final</version>
   	</dependency>
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-api</artifactId>
+		<version>2.0.7</version>
+	</dependency>
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-simple</artifactId>
+		<version>2.0.7</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-nop</artifactId>
+		<version>2.0.7</version>
+		<scope>test</scope>
+	</dependency>	
   	<dependency>
   		<groupId>org.xerial</groupId>
   		<artifactId>sqlite-jdbc</artifactId>
-  		<version>3.28.0</version>
+  		<version>3.42.0.0</version>
   	</dependency>
+	<dependency>
+	<groupId>com.enigmabridge</groupId>
+		<artifactId>hibernate4-sqlite-dialect</artifactId>
+		<version>0.1.2</version>
+	</dependency>
   	<dependency>
   		<groupId>org.bouncycastle</groupId>
   		<artifactId>bcprov-jdk15on</artifactId>
-  		<version>1.54</version>
+  		<version>1.70</version>
   	</dependency>
   	<dependency>
   		<groupId>org.bouncycastle</groupId>
   		<artifactId>bcpkix-jdk15on</artifactId>
-  		<version>1.54</version>
+  		<version>1.70</version>
   	</dependency>
   	<dependency>
   		<groupId>org.bouncycastle</groupId>
   		<artifactId>bcprov-ext-jdk15on</artifactId>
-  		<version>1.54</version>
+  		<version>1.70</version>
   	</dependency>
   	<dependency>
   		<groupId>commons-codec</groupId>

@@ -253,14 +253,10 @@ public class UDPListener implements Runnable{
 					Lookup lookup = new Lookup(hostname, Type.A);
 					lookup.setResolver(resolver);
 					lookup.setCache(null);
-					String ipAddress = "";
 					org.xbill.DNS.Record[] records = lookup.run();
-					System.out.println("Getting all the recoreds");
-					System.out.println(records);
 					if (lookup.getResult() == Lookup.SUCCESSFUL) {
 						for (org.xbill.DNS.Record record : records) {
 							returnIpAddress = record.rdataToString();
-							System.out.println("IP Address: " + ipAddress);
 							break;
 						}
 					} else {

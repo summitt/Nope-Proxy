@@ -76,12 +76,9 @@ public class Lister implements Runnable{
 				  @Override
 		          public void gotPacket(Packet packet) {
 		        	  TcpPacket tcp = packet.get(TcpPacket.class);
-					  if(tcp == null) return; 
-					  System.out.println(tcp);
 		        	  IpV4Packet ip = packet.get(IpV4Packet.class);
-					  System.out.println(ip);
+					  if(tcp == null || ip == null) return; 
 		        	  if(tcp.getHeader().getSyn() && !tcp.getHeader().getAck() ){ //&& !ip.getHeader().getSrcAddr().toString().equals("/"+IP)){
-		        		  //System.out.println(ip.getHeader().getSrcAddr() + " : " + tcp.getHeader().getDstPort().toString() );
 		        		  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd:hh:mm");
 		        		  String time = sdf.format(new Date());
 		        		  String key = ip.getHeader().getSrcAddr().getHostAddress() + ":"+ tcp.getHeader().getDstPort().valueAsInt();

@@ -25,6 +25,10 @@ import java.util.Date;
 import javax.security.auth.x500.X500Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.bouncycastle.x509.extension.X509ExtensionUtil;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 
 public class DynamicKeyStore {
 	
@@ -98,13 +102,9 @@ public class DynamicKeyStore {
 		certGen.setSubjectDN(subjectName);
 		certGen.setPublicKey(pubKey);
 		certGen.setSignatureAlgorithm("SHA256withRSA");
+		GeneralNames subjectAltName = new GeneralNames(new GeneralName(GeneralName.dNSName, cn));
+		certGen.addExtension(Extension.subjectAlternativeName, false, subjectAltName);
 
-		//
-		// extensions
-		//
-		//certGen.addExtension(X509Extensions.SubjectKeyIdentifier,false,new SubjectKeyIdentifierStructure(pubKey));
-		//certGen.addExtension(X509Extensions.AuthorityKeyIdentifier,false,new AuthorityKeyIdentifierStructure(caCert));
-		//certGen.addExtension(X509Extensions.BasicConstraints,true,new BasicConstraints(0));
 		X509Certificate cert = certGen.generateX509Certificate(caPrivKey);
 		cert.checkValidity(new Date());
 		cert.verify(caCert.getPublicKey());
@@ -171,18 +171,18 @@ public class DynamicKeyStore {
 	        //char[] pw = password.toCharArray();
 	        char[] pw = "changeit".toCharArray();
 	        KeyPairGenerator r = KeyPairGenerator.getInstance("RSA");
-			r.initialize(1024);
+			r.initialize(2048);
 			KeyPair intkeyPair = r.generateKeyPair();
 			
 			KeyPairGenerator r1 = KeyPairGenerator.getInstance("RSA");
-			r1.initialize(1024);
+			r1.initialize(2048);
 			KeyPair keyPair = r1.generateKeyPair();
 		
 	        
 	        Certificate[] chain = new Certificate[2];
 	        
 	        chain[1] = cacert;
-	        chain[0] = (Certificate) createItermCert(intkeyPair.getPublic(), caPrivKey, (X509Certificate)cacert, cn, "PortSwigger", "PortSwigger", "PortSwigger", "PortSwigger",  "PortSwigger");
+	        chain[0] = (Certificate) createItermCert(intkeyPair.getPublic(), caPrivKey, (X509Certificate)cacert, cn, "PortSwigger", "PortSwigger CA", "PortSwigger", "PortSwigger",  "PortSwigger");
 	
 	        KeyStore newStore = KeyStore.getInstance("PKCS12");
 	        //KeyStore newStore = KeyStore.getInstance("JKS");
