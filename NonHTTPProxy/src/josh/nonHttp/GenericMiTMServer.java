@@ -33,6 +33,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 
+import javax.net.ssl.SSLHandshakeException;
+
+
 import java.net.InetAddress;
 
 import burp.IBurpExtenderCallbacks;
@@ -43,6 +46,9 @@ import josh.utils.events.PythonOutputEvent;
 import josh.utils.events.PythonOutputEventListener;
 import josh.utils.events.SendClosedEvent;
 import josh.utils.events.SendClosedEventListener;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GenericMiTMServer
 		implements Runnable, ProxyEventListener, PythonOutputEventListener, SendClosedEventListener {
@@ -239,6 +245,7 @@ public class GenericMiTMServer
 				serverSSLContext.init(kmf.getKeyManagers(), null, null);
 				SSLServerSocketFactory serverSSF = serverSSLContext.getServerSocketFactory();
 				svrSock = (SSLServerSocket) serverSSF.createServerSocket(this.ListenPort);
+				//((SSLServerSocket)svrSock).setEnabledProtocols(new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" });
 
 			} else {
 				svrSock = new ServerSocket(this.ListenPort);
@@ -250,9 +257,12 @@ public class GenericMiTMServer
 					Callbacks.printOutput("New MiTM Instance Created");
 					// System.out.println("Number of Threads is: " + threads.size());
 					System.out.println("Waiting for connection");
-					if (isSSL)
+					if (isSSL){
+						for(String s : ((SSLServerSocket) svrSock).getEnabledCipherSuites()){
+							System.out.println(s);
+						}
 						connectionSocket = ((SSLServerSocket) svrSock).accept();
-					else
+					}else
 						connectionSocket = ((ServerSocket) svrSock).accept();
 
 
@@ -282,19 +292,27 @@ public class GenericMiTMServer
 
 						SSLSocketFactory ssf = sslContext.getSocketFactory();
 						//cltSock = (SSLSocket) ssf.createSocket("www.otto-js.com", this.ServerPort);
-						System.out.println("address:" + this.ServerAddress);
-						String [] stringOctets = this.ServerAddress.split("\\.");
-						System.out.println(stringOctets);
-						System.out.println(stringOctets.length);
-						byte [] byteOctets = new byte[4];
-						byteOctets[0] = (byte) (Integer.parseInt(stringOctets[0]) & 0xFF);
-						byteOctets[1] = (byte) (Integer.parseInt(stringOctets[1]) & 0xFF);
-						byteOctets[2] = (byte) (Integer.parseInt(stringOctets[2]) & 0xFF);
-						byteOctets[3] = (byte) (Integer.parseInt(stringOctets[3]) & 0xFF);
-						InetAddress inetAddress = InetAddress.getByAddress(this.CertHostName, byteOctets);
-						System.out.println("my address: ");
-						System.out.println(inetAddress);
-						cltSock = (SSLSocket) ssf.createSocket(inetAddress, this.ServerPort);
+						String IPV4_PATTERN = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
+						Pattern pattern = Pattern.compile(IPV4_PATTERN);
+						Matcher matcher = pattern.matcher(this.ServerAddress);
+						if(matcher.matches()){
+
+							System.out.println("address:" + this.ServerAddress);
+							String [] stringOctets = this.ServerAddress.split("\\.");
+							System.out.println(stringOctets);
+							System.out.println(stringOctets.length);
+							byte [] byteOctets = new byte[4];
+							byteOctets[0] = (byte) (Integer.parseInt(stringOctets[0]) & 0xFF);
+							byteOctets[1] = (byte) (Integer.parseInt(stringOctets[1]) & 0xFF);
+							byteOctets[2] = (byte) (Integer.parseInt(stringOctets[2]) & 0xFF);
+							byteOctets[3] = (byte) (Integer.parseInt(stringOctets[3]) & 0xFF);
+							InetAddress inetAddress = InetAddress.getByAddress(this.CertHostName, byteOctets);
+							System.out.println("my address: ");
+							System.out.println(inetAddress);
+							cltSock = (SSLSocket) ssf.createSocket(inetAddress, this.ServerPort);
+						}else{
+							cltSock = (SSLSocket) ssf.createSocket(this.ServerAddress, this.ServerPort);	
+						}
 						//((SSLSocket) cltSock).setSoTimeout(2000);
 						((SSLSocket) cltSock).setReceiveBufferSize(2056);
 						((SSLSocket) cltSock).setSendBufferSize(2056);
@@ -393,7 +411,10 @@ public class GenericMiTMServer
 						Callbacks.printOutput(e.getMessage());
 					connectionSocket.close();
 					break;
-				} catch (Exception e){
+				} catch(SSLHandshakeException e){
+					connectionSocket.close();
+					e.printStackTrace();
+				}catch (Exception e){
 					String message = e.getMessage();
 					System.out.println(e.getMessage());
 					e.printStackTrace();
