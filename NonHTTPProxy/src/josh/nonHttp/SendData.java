@@ -27,6 +27,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 
+
 import org.xbill.DNS.A6Record;
 
 import josh.nonHttp.events.ProxyEvent;
@@ -36,6 +37,7 @@ import josh.utils.events.PythonOutputEvent;
 import josh.utils.events.PythonOutputEventListener;
 import josh.utils.events.SendClosedEvent;
 import josh.utils.events.SendClosedEventListener;
+
 
 public class SendData implements Runnable {
 	public InputStream in;
@@ -273,10 +275,13 @@ public class SendData implements Runnable {
 					tmp = pm.mangle(tmp, isC2S);
 					SendPyOutput(pm);
 					// Check if we updated the data
-					if (!Arrays.equals(tmp, original))
-						this.Name = this.Name + " - Updated by Python (mangle)";
-					else
+					if (!Arrays.equals(tmp, original)){
+						if(!this.Name.contains("mangle")){
+							this.Name = this.Name + " - Updated by Python (mangle)";
+						}
+					}else{
 						this.Name = this.Name.replace(" - Updated by Python (mangle)", "");
+					}
 
 				} else {
 					List<String> mtch = regexMatch();
@@ -316,9 +321,11 @@ public class SendData implements Runnable {
 								tmp = this.replace(tmp, match, replace);
 							}
 						}
-						if (!Arrays.equals(tmp, original))
-							this.Name = this.Name + " - Updated by Match And Replace Rules";
-						else
+						if (!Arrays.equals(tmp, original)){
+							if(!this.Name.contains("Match")){
+								this.Name = this.Name + " - Updated by Match And Replace Rules";
+							}
+						}else
 							this.Name = this.Name.replace(" - Updated by Match And Replace Rules", "");
 					}
 				}
@@ -334,9 +341,11 @@ public class SendData implements Runnable {
 							SendPyOutput(pm);
 						}
 						//TODO: This logic is not totally right. The data could be altered by other tools before this step.
-						if (!Arrays.equals(tmp, original))
-							this.Name = this.Name + " - Formated by Python";
-						else
+						if (!Arrays.equals(tmp, original)){
+							if(!this.Name.contains("Formated")){
+								this.Name = this.Name + " - Formated by Python";
+							}
+						}else
 							this.Name = this.Name.replace(" - Formated by Python", "");
 						// This will block until the the request if forwarded by the user from the
 						// interceptor
@@ -357,11 +366,21 @@ public class SendData implements Runnable {
 
 					} else {
 						// Data was not manually intercepted so we treat it like a normal event.
-						NewDataEvent(tmp, original, this.Name);
+						if (SERVER.isPythonOn()) {
+							byte [] updated = pm.formatOnly(original, isC2S);
+							NewDataEvent(updated, original, this.Name);
+						}else{
+							NewDataEvent(tmp, original, this.Name);
+						}
 					}
 				} else {
 					// Manual Intercepts was not enabled so we treat it like a normal event.
-					NewDataEvent(tmp, original, this.Name);
+					if (SERVER.isPythonOn()) {
+						byte [] updated = pm.formatOnly(original, isC2S);
+						NewDataEvent(updated, original, this.Name);
+					}else{
+						NewDataEvent(tmp, original, this.Name);
+					}
 				}
 
 				// Write the data back to the socket

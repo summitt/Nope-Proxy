@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+
 import org.python.core.PyBoolean;
 import org.python.core.PyByteArray;
 import org.python.core.PyObject;
@@ -24,6 +25,7 @@ import org.python.util.PythonInterpreter;
 import josh.nonHttp.events.ProxyEventListener;
 import josh.utils.events.PythonOutputEvent;
 import josh.utils.events.PythonOutputEventListener;
+
 
 public class PythonMangler {
 	private String pyCode;
@@ -168,7 +170,30 @@ public class PythonMangler {
 		return this.pyCode;
 			
 	}
-	public byte [] preIntercept(byte [] input, boolean isC2S){
+	public byte [] formatOnly(byte [] input, boolean isC2S){
+		
+		byte[]original = input;
+		try{
+			PyObject someFunc = interpreter.get("formatOnly");
+			
+			//this means that the pre Intercept feature has not been implemented.
+			if(someFunc == null)
+				return input;
+			PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
+			PyByteArray array = (PyByteArray) result.__tojava__(Object.class);
+			
+			byte[] out = new byte [array.__len__()];
+			for(int i=0; i < array.__len__(); i++){
+				out[i] = (byte)array.get(i).__tojava__(Byte.class);
+			}
+			
+			return out;
+		}catch(Exception ex){
+			System.out.println(ex);
+			return original;
+		}
+	}
+		public byte [] preIntercept(byte [] input, boolean isC2S){
 		
 		byte[]original = input;
 		try{
@@ -187,7 +212,7 @@ public class PythonMangler {
 			
 			return out;
 		}catch(Exception ex){
-			ex.printStackTrace();
+			System.out.println(ex);
 			return original;
 		}
 	}
@@ -208,7 +233,7 @@ public class PythonMangler {
 			}
 			return out;
 		}catch(Exception ex){
-			ex.printStackTrace();
+			System.out.println(ex);
 			return original;
 		}
 		
