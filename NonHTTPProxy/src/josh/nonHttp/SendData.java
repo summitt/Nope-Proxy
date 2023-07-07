@@ -333,8 +333,8 @@ public class SendData implements Runnable {
 				// Send things to the interceptor if it is enabled
 				if (SERVER.isInterceptOn()) {
 					if (SERVER.getIntercetpDir() == SERVER.INTERCEPT_BOTH ||
-							(this.Name.equals("c2s") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_C2S) ||
-							(this.Name.equals("s2c") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_S2C)) {
+							(this.Name.contains("c2s") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_C2S) ||
+							(this.Name.contains("s2c") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_S2C)) {
 						// Here we format the data before sending it to the interceptor
 						if (SERVER.isPythonOn()) {
 							tmp = pm.preIntercept(tmp, isC2S);
