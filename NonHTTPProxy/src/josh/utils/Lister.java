@@ -64,8 +64,10 @@ public class Lister implements Runnable{
 			System.out.println("###############");
 			System.out.println(addr);
 		    PcapNetworkInterface nif = Pcaps.getDevByAddress(addr);
+
 		    if (nif == null) {
-		      return;
+				System.out.println("No Interface Matches IP");
+		      	return;
 		    }
 		    handle
 		      = nif.openLive(65536, PromiscuousMode.PROMISCUOUS, 10);
@@ -76,10 +78,13 @@ public class Lister implements Runnable{
 				  @Override
 		          public void gotPacket(Packet packet) {
 		        	  TcpPacket tcp = packet.get(TcpPacket.class);
+					  System.out.println(tcp);
 		        	  IpV4Packet ip = packet.get(IpV4Packet.class);
+					  System.out.println(ip);
 					  if(tcp == null || ip == null) return; 
+					  System.out.println("got a packet");
 		        	  if(tcp.getHeader().getSyn() && !tcp.getHeader().getAck() ){ //&& !ip.getHeader().getSrcAddr().toString().equals("/"+IP)){
-		        		  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd:hh:mm");
+		        		  SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 		        		  String time = sdf.format(new Date());
 		        		  String key = ip.getHeader().getSrcAddr().getHostAddress() + ":"+ tcp.getHeader().getDstPort().valueAsInt();
 		        		  if(portsFound.containsKey(key) && portsFound.get(key).equals(time))
@@ -95,6 +100,7 @@ public class Lister implements Runnable{
 		        };
 	
 		    try {
+			  System.out.println("Lister Started");
 		      pool = Executors.newCachedThreadPool();
 		      handle.loop(-1, listener, pool); // This is better than handle.loop(5, listener);
 		      pool.shutdown();

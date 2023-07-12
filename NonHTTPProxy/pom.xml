@@ -41,12 +41,12 @@
 	  <dependency>
 	  <groupId>org.pcap4j</groupId>
 	  <artifactId>pcap4j-core</artifactId>
-	  <version>1.8.2</version>
+	  <version>1.7.7</version>
 	  	 </dependency>
 	<dependency>
 	  <groupId>org.pcap4j</groupId>
 	  <artifactId>pcap4j-packetfactory-static</artifactId>
-	  <version>1.8.2</version>
+	  <version>1.7.7</version>
 	</dependency>
   	<dependency>
   		<groupId>org.hibernate</groupId>
@@ -144,10 +144,16 @@
   	 	<version>5.0.1.Final</version>
   	 </dependency>
 	 <dependency>
-    <groupId>dnsjava</groupId>
-    <artifactId>dnsjava</artifactId>
-    <version>3.3.0</version>
-</dependency>
+		<groupId>dnsjava</groupId>
+		<artifactId>dnsjava</artifactId>
+		<version>3.3.0</version>
+	</dependency>
+	<dependency>
+		<groupId>net.java.dev.jna</groupId>
+		<artifactId>jna</artifactId>
+		<version>5.13.0</version>
+	</dependency>
+
 	  </dependencies>
   <name>NonHttp Burp Extension</name>
   <url>http://github.com/summitt/</url>

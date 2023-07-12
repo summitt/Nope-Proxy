@@ -248,7 +248,7 @@ public class GenericUDPMiTMServer implements Runnable, ProxyEventListener, Pytho
 		        	
 		        	
 		        	
-		        	byte[] buffer = new byte[1024];
+		        	byte[] buffer = new byte[2056];
 		        	DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		        	
 		        	

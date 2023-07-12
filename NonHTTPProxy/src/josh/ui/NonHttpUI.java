@@ -2759,7 +2759,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		String Domain = e.getDomain();
 		String ClientIp = e.getClientIP();
 		Vector<Object> vec = new Vector<Object>();
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd hh:mm:ss");
+		//SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd hh:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		vec.add(sdf.format(new Date()));
 		vec.add(Domain);
 		vec.add(e.getResponseIp());

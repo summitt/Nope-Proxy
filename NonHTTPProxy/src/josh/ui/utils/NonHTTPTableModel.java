@@ -85,7 +85,8 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex)
 	{
-		SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss dd MMM yy");
+		//SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss dd MMM yy");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		if(log.size() != 0){
 			LogEntry logEntry = log.get(rowIndex);
 	
