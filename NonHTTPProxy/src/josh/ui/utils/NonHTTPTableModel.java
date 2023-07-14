@@ -79,6 +79,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 			case 0: return Integer.class;
 			case 5: return Integer.class;
 			case 7: return Integer.class;
+			case 8: return Integer.class;
 			default: return String.class;
 		}
 	}

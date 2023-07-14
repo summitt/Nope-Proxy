@@ -54,7 +54,7 @@ public class Requests {
 		this.dstPort =  DstPort;
 		this.direction = Direction;
 		this.date = time;
-		this.bytes = bytes;
+		this.bytes = original.length;
 		this.original_str = new String(original); //.replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
 		this.data_str = new String(requestResponse);//.replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
 		

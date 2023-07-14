@@ -37,7 +37,7 @@ public class LogEntry
         this.SrcPort = SrcPort;
         this.DstPort = DstPort;
         this.Direction = Direction;
-        this.Bytes = requestResponse.length;
+        this.Bytes = original.length;
 
         
     }
