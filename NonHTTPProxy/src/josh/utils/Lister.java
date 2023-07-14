@@ -78,11 +78,8 @@ public class Lister implements Runnable{
 				  @Override
 		          public void gotPacket(Packet packet) {
 		        	  TcpPacket tcp = packet.get(TcpPacket.class);
-					  System.out.println(tcp);
 		        	  IpV4Packet ip = packet.get(IpV4Packet.class);
-					  System.out.println(ip);
 					  if(tcp == null || ip == null) return; 
-					  System.out.println("got a packet");
 		        	  if(tcp.getHeader().getSyn() && !tcp.getHeader().getAck() ){ //&& !ip.getHeader().getSrcAddr().toString().equals("/"+IP)){
 		        		  SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 		        		  String time = sdf.format(new Date());
@@ -100,7 +97,6 @@ public class Lister implements Runnable{
 		        };
 	
 		    try {
-			  System.out.println("Lister Started");
 		      pool = Executors.newCachedThreadPool();
 		      handle.loop(-1, listener, pool); // This is better than handle.loop(5, listener);
 		      pool.shutdown();

@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import javax.swing.JLabel;
 import javax.swing.table.AbstractTableModel;
+
+
 import burp.IHttpRequestResponse;
 import burp.IHttpService;
 import burp.IMessageEditor;
@@ -75,8 +77,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 		switch (columnIndex)
 		{
 			case 0: return Integer.class;
-			case 4: return Integer.class;
-			case 6: return Integer.class;
+			case 5: return Integer.class;
 			case 7: return Integer.class;
 			default: return String.class;
 		}

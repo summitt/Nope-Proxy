@@ -66,7 +66,7 @@ public class UpdateDBTask extends TimerTask{
 			tabs.setIconAt(1,IconFontSwing.buildIcon(FontAwesome.HISTORY,20, NopePurple));
 			session.getTransaction().commit();
 			for(LogEntry log : updated){
-				if(searchTerm.getText().equals("") || le.canAdd(searchTerm.getText())){
+				if(searchTerm.getText().equals("") || log.canAdd(searchTerm.getText())){
 					ntbm.log.addFirst(log);
 					ntbm.fireTableRowsInserted(0, 0);
 				}

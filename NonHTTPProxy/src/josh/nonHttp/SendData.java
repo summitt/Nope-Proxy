@@ -32,6 +32,7 @@ import org.xbill.DNS.A6Record;
 
 import josh.nonHttp.events.ProxyEvent;
 import josh.nonHttp.events.ProxyEventListener;
+import josh.nonHttp.PythonMangler;
 //import josh.nonHttp.utils.InterceptData;
 import josh.utils.events.PythonOutputEvent;
 import josh.utils.events.PythonOutputEventListener;
@@ -50,7 +51,7 @@ public class SendData implements Runnable {
 	// private boolean isInterceptOn=true;
 	private boolean isC2S;
 	private boolean isSSL;
-	private PythonMangler pm;
+	//private PythonMangler pm;
 	public SendData doppel;
 	public long createTime;
 	// private Date lastaccess;
@@ -230,6 +231,7 @@ public class SendData implements Runnable {
 
 		while (true && !killme) {
 
+			PythonMangler pm = new PythonMangler();
 			int read = -1;
 			try {
 				if (Thread.interrupted()) {
@@ -271,7 +273,7 @@ public class SendData implements Runnable {
 
 				// Check if we have enabled python modifications to the stream
 				if (SERVER.isPythonOn()) {
-					pm = new PythonMangler();
+					pm.reload();
 					tmp = pm.mangle(tmp, isC2S);
 					SendPyOutput(pm);
 					// Check if we updated the data
@@ -367,7 +369,7 @@ public class SendData implements Runnable {
 					} else {
 						// Data was not manually intercepted so we treat it like a normal event.
 						if (SERVER.isPythonOn()) {
-							byte [] updated = pm.formatOnly(original, isC2S);
+							byte [] updated = pm.formatOnly(tmp, isC2S);
 							NewDataEvent(updated, original, this.Name);
 						}else{
 							NewDataEvent(tmp, original, this.Name);
@@ -376,7 +378,7 @@ public class SendData implements Runnable {
 				} else {
 					// Manual Intercepts was not enabled so we treat it like a normal event.
 					if (SERVER.isPythonOn()) {
-						byte [] updated = pm.formatOnly(original, isC2S);
+						byte [] updated = pm.formatOnly(tmp, isC2S);
 						NewDataEvent(updated, original, this.Name);
 					}else{
 						NewDataEvent(tmp, original, this.Name);
@@ -439,6 +441,7 @@ public class SendData implements Runnable {
 	public void repeatRequest(byte[] repeater) {
 		String annotation = "";
 		byte[] original = repeater;
+		PythonMangler pm = new PythonMangler();
 		try {
 			if (SERVER.isPythonOn()) {
 				pm = new PythonMangler();

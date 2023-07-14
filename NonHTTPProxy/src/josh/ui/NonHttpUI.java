@@ -1443,6 +1443,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			public void keyReleased(KeyEvent arg0) {
 				PythonMangler pm = new PythonMangler();
 				pm.setPyCode(pythonText.getText());
+				pm.reload();
 			}
 		});
 		
@@ -1561,6 +1562,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						pythonText.setText(code);
 						PythonMangler pm = new PythonMangler();
 						pm.setPyCode(code);
+						pm.reload();
 						
 						
 					}catch(Exception ex){
@@ -1574,6 +1576,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			public void actionPerformed(ActionEvent arg0) {
 				for(GenericMiTMServer svr : threads.values()){
 					svr.setPythonMange(chckbxEnablePythonMangler.isSelected());
+					pm.reload();
 				}
 				/*for(GenericUDPMiTMServer svr : threads.values()){
 					svr.setPythonMange(chckbxEnablePythonMangler.isSelected());

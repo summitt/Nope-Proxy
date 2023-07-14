@@ -40,6 +40,7 @@ import java.net.InetAddress;
 
 import burp.IBurpExtenderCallbacks;
 import josh.nonHttp.events.ProxyEvent;
+import josh.nonHttp.PythonMangler;
 import josh.nonHttp.events.ProxyEventListener;
 import josh.ui.utils.InterceptData;
 import josh.utils.events.PythonOutputEvent;

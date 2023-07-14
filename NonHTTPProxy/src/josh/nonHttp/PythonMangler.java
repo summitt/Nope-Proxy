@@ -145,6 +145,9 @@ public class PythonMangler {
 			
 			
 	}
+	public void reload(){
+		interpreter.exec(pyCode);
+	}
 	
 	public String getPyCode(){
 		return pyCode.replaceAll("\r", "");
@@ -174,6 +177,7 @@ public class PythonMangler {
 		
 		byte[]original = input;
 		try{
+			//interpreter.exec(pyCode);
 			PyObject someFunc = interpreter.get("formatOnly");
 			
 			//this means that the pre Intercept feature has not been implemented.
@@ -193,10 +197,11 @@ public class PythonMangler {
 			return original;
 		}
 	}
-		public byte [] preIntercept(byte [] input, boolean isC2S){
+	public byte [] preIntercept(byte [] input, boolean isC2S){
 		
 		byte[]original = input;
 		try{
+			//interpreter.exec(pyCode);
 			PyObject someFunc = interpreter.get("preIntercept");
 			
 			//this means that the pre Intercept feature has not been implemented.
@@ -220,6 +225,7 @@ public class PythonMangler {
 		//PythonInterpreter interpreter = new PythonInterpreter();
 		byte[]original = input;
 		try{
+			//interpreter.exec(pyCode);
 			PyObject someFunc = interpreter.get("postIntercept");
 			//this means that the post Intercept feature has not been implemented.
 			if(someFunc == null)
@@ -243,7 +249,7 @@ public class PythonMangler {
 	public byte [] mangle(byte [] input, boolean isC2S){
 		byte[]original = input;
 		try{
-			interpreter.exec(pyCode);
+			//interpreter.exec(pyCode);
 			PyObject someFunc = interpreter.get("mangle");
 			//this means that the mangle feature has not been implemented.
 			if(someFunc == null)
