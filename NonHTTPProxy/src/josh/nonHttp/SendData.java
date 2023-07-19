@@ -331,9 +331,17 @@ public class SendData implements Runnable {
 							this.Name = this.Name.replace(" - Updated by Match And Replace Rules", "");
 					}
 				}
+				Boolean interceptTestPassed = true;
+				if(SERVER.isInterceptOn()){
+					if (SERVER.isPythonOn()) {
+						interceptTestPassed = pm.interceptRules(tmp, isC2S);
+						SendPyOutput(pm);
+					}
+
+				}
 
 				// Send things to the interceptor if it is enabled
-				if (SERVER.isInterceptOn()) {
+				if (SERVER.isInterceptOn() && interceptTestPassed) {
 					if (SERVER.getIntercetpDir() == SERVER.INTERCEPT_BOTH ||
 							(this.Name.contains("c2s") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_C2S) ||
 							(this.Name.contains("s2c") && SERVER.getIntercetpDir() == SERVER.INTERCEPT_S2C)) {

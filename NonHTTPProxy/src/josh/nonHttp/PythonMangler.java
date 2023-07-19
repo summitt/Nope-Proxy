@@ -245,6 +245,22 @@ public class PythonMangler {
 		
 		
 	}
+	public boolean interceptRules(byte [] input, boolean isC2S){
+		byte[]original = input;
+		try{
+			PyObject someFunc = interpreter.get("interceptRules");
+			//this means that the mangle feature has not been implemented.
+			if(someFunc == null)
+				return true;
+			PyObject result = someFunc.__call__(new PyByteArray(input), new PyBoolean(isC2S));
+			boolean  canIntercept = result.__nonzero__();
+			
+			return canIntercept;
+		}catch(Exception ex){
+			ex.printStackTrace();
+			return true;
+		}
+	}
 	
 	public byte [] mangle(byte [] input, boolean isC2S){
 		byte[]original = input;

@@ -28,6 +28,7 @@ public class Table extends JTable
 	private JLabel label;
 	private TableModel tableModel;
 	private Session session;
+    public Long selectedIndex;
 	
     public Table(TableModel tableModel)
     {
@@ -56,6 +57,7 @@ public class Table extends JTable
         originalViewer.setMessage(req.getOriginal()== null ? "Nope Proxy thinks you're requesting data too fast from Database. :( Try again in a sec ....".getBytes() : req.getOriginal(), true);
        
         currentlyDisplayedItem = logEntry.requestResponse;
+        this.selectedIndex = logEntry.Index;
         JLabel start = new JLabel(""+logEntry.Index + " - " + logEntry.Direction + " - " +
         		logEntry.SrcIP + ":" + logEntry.SrcPort);
         JLabel arrow = new JLabel();
@@ -82,7 +84,12 @@ public class Table extends JTable
         super.changeSelection(row, col, toggle, extend);
     }   
     
-  
+    public Long getSelectedIndex(){
+        return this.selectedIndex;
+    }
+    public void getSelectedRowIdFromIndex(int index){
+
+    }
     
     @Override
     public Component prepareRenderer(

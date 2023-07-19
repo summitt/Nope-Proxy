@@ -733,6 +733,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		btnGoBack.setIcon(IconFontSwing.buildIcon(FontAwesome.LOCATION_ARROW,16));
 		btnGoBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Long  index = logTable.getSelectedIndex();
+				System.out.println(index);
 				int selectedRow = logTable.getSelectedRow();
 				logTable.requestFocus();
 				logTable.changeSelection(selectedRow,0,false, false);
