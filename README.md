@@ -1,4 +1,4 @@
-<img align="right" src="Nope.png"/>
+<img align="right" style="width:100px" src="Nope.png"/>
 
 # NoPE Proxy
 <br>
