@@ -2,3 +2,4 @@
 /target/
 /requests.sqlite
 /.classpath
+.DS_Store
