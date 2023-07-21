@@ -5,7 +5,9 @@ package josh.ui;
 
 import javax.swing.JPanel;
 
+
 import javax.swing.border.LineBorder;
+import javax.swing.ImageIcon;
 import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -2203,7 +2205,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbc_lblVersion.gridy = 2;
 		About.add(lblVersion, gbc_lblVersion);
 		
-		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt - @null0perat0r - josh.summitt@fusesoft.co");
+		JLabel lblDevelopedByJosh = new JLabel("Developed By: Josh Summitt - @Null0perat0r@defcon.social - josh@factionsecurity.com");
 		lblDevelopedByJosh.addMouseListener(new MouseListener() {
 			
 			@Override
@@ -2215,7 +2217,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			@Override
 			public void mousePressed(MouseEvent evt) {
 				try {
-					Desktop.getDesktop().browse(new URI("https://twitter.com/null0perat0r"));
+					Desktop.getDesktop().browse(new URI("https://defcon.social/@Null0perat0r"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
