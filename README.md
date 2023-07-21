@@ -1,23 +1,18 @@
-<img align="right" style="width:100px" src="Nope.png"/>
+<img align="right" style="width:400px" src="Nope.png"/>
 
 # NoPE Proxy
-<br>
+__A Non HTTP Protocol Extension for Burp Suite__
 ## [Download latest release here](https://github.com/summitt/Burp-Non-HTTP-Extension/releases)
 ## [Manual and Guides here](https://github.com/summitt/Burp-Non-HTTP-Extension/wiki)
 *Contact: @Null0perat0r@defcon.social*
-<br>
-<br>
 
-![](http://imgur.com/X6xYsq8.png)
 
 ## Introduction
-
-This extension is for those times when Burp just says '**Nope**, i'm not gonna deal with this.'. It's actually an acronym for <u><b>No</b></u>n-HTTP <u><b>P</b></u>rotocol <u><b>E</b></u>xtension <u><b>Proxy</b></u> for Burp Suite. 
-
 This burp extension adds two new features to BurpSuite.
  1.	A configurable DNS server. This will route all DNS requests to Burp or preconfigured hosts. It makes it easier to send mobile or thick client traffic to Burp. You need to create invisible proxy listeners in BurpSuite for the Burp to intercept HTTP traffic or you can use the second feature of this extension to intercept binary/non-http protocols.
  2.	A Non-HTTP MiTM Intercepting proxy. This extension allows you to create multiple listening ports that can MiTM server side services. It also uses Burp's CA cert so that if the browser or mobile device is already configured to access SSL/TLS requests using this cert then the encrypted binary protocols will be able to connect without generating errors too. It also provides the ability to automatically match and replace hex or strings as they pass through the proxy or you can use custom python code to manipulate the traffic.
- 
+ ![](http://imgur.com/X6xYsq8.png)
+
 ## DNS Server Configuration
 
 ![](http://imgur.com/0ezoO7f.png)
