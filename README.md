@@ -1,4 +1,4 @@
-<img align="right" src="https://imgur.com/a/1UTklIx"/>
+<img align="right" src="https://imgur.com/1UTklIx"/>
 
 # NoPE Proxy
 <br>
