@@ -241,9 +241,7 @@ public class GenericMiTMServer
 		result.add(null);
 		return result;
 	}
-	private SSLSocket createSSLSocket() throws Exception {
-		return createSSLSocket(null, null);
-	}
+
 	private SSLSocket createSSLSocket(Socket normySocket, InputStream consumed) throws Exception{
 		DynamicKeyStore test = new DynamicKeyStore();
 
@@ -261,16 +259,11 @@ public class GenericMiTMServer
 
 		SSLContext serverSSLContext = SSLContext.getInstance("TLSv1.2");
 		serverSSLContext.init(kmf.getKeyManagers(), null, null);
-		if(normySocket == null){
-			SSLServerSocketFactory serverSSF = serverSSLContext.getServerSocketFactory();
-			return null; //(SSLServerSocket) serverSSF.createServerSocket(this.ListenPort);
-		}else{
-			SSLSocketFactory serverSSF = serverSSLContext.getSocketFactory();
-			SSLSocket sslSocket = (SSLSocket) serverSSF.createSocket(
-				normySocket, consumed, true);
-			sslSocket.startHandshake();
-			return sslSocket;
-		}
+		SSLSocketFactory serverSSF = serverSSLContext.getSocketFactory();
+		SSLSocket sslSocket = (SSLSocket) serverSSF.createSocket(
+			normySocket, consumed, true);
+		sslSocket.startHandshake();
+		return sslSocket;
 
 	}
 
@@ -382,7 +375,6 @@ public class GenericMiTMServer
 					client2ServerSD.addPyEventListener(this);
 					client2ServerSD.addSendClosedEventListener(this);
 					client2ServerSD.Name = "c2s";
-					// }
 					client2ServerSD.sock = connectionSocket;
 					client2ServerSD.in = inFromClient;
 					client2ServerSD.consumed = consumed;
