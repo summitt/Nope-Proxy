@@ -5,6 +5,9 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.BufferedInputStream;
+
 import java.net.ConnectException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
@@ -180,20 +183,12 @@ public class GenericMiTMServer
 			// System.out.println("Interrrpting Thread");
 			try {
 				if (sends.get(i).isSSL()) {
-					// ((SSLSocket)sends.get(i).sock).shutdownInput();
-					// ((SSLSocket)sends.get(i).sock).shutdownOutput();
 					((SSLSocket) sends.get(i).sock).close();
 				} else {
-					// ((Socket)sends.get(i).sock).shutdownInput();
-					// ((Socket)sends.get(i).sock).shutdownOutput();
 					((Socket) sends.get(i).sock).close();
 				}
 			} catch (SocketException e) {
-				// TODO Auto-generated catch block
-				// e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				// e.printStackTrace();
 			}
 			sends.get(i).killme = true;
 			threads.get(i).interrupt();
@@ -214,6 +209,70 @@ public class GenericMiTMServer
 		}
 
 	}
+	private List<Object> upgradeSocketIfSSL(Socket socket, InputStream inputStream) throws Exception{
+		List<Object> result = new ArrayList();
+		try {
+			byte[] buffer = new byte[5]; // Adjust the buffer size as needed
+			int bytesRead = inputStream.read(buffer);
+			
+			if (bytesRead >= 5) {
+				// Check for the SSL/TLS version in the first two bytes
+				if (buffer[0] == 0x16 && buffer[1] == 0x03) {
+					// Assuming "0x16 0x03" corresponds to a Client Hello message
+					result.add(createSSLSocket(socket, new ByteArrayInputStream(buffer)));
+					result.add(null); //This is null becuase createSSLSocket takes the consumed bytes already
+					return result;
+
+				}else{
+					result.add(socket);
+					result.add(buffer);
+					return result;
+				}
+				// Add more specific checks if needed
+			}else{
+				result.add(socket);
+				result.add(buffer);
+				return result;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		result.add(socket);
+		result.add(null);
+		return result;
+	}
+	private SSLSocket createSSLSocket() throws Exception {
+		return createSSLSocket(null, null);
+	}
+	private SSLSocket createSSLSocket(Socket normySocket, InputStream consumed) throws Exception{
+		DynamicKeyStore test = new DynamicKeyStore();
+
+		String ksPath = test.generateKeyStore("changeit", this.CertHostName);
+
+		KeyStore ks = KeyStore.getInstance("PKCS12");
+		ks.load(new FileInputStream(ksPath), "changeit".toCharArray());
+
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+
+		kmf.init(ks, "changeit".toCharArray());
+
+		X509Certificate[] result = new X509Certificate[ks
+				.getCertificateChain(ks.aliases().nextElement()).length];
+
+		SSLContext serverSSLContext = SSLContext.getInstance("TLSv1.2");
+		serverSSLContext.init(kmf.getKeyManagers(), null, null);
+		if(normySocket == null){
+			SSLServerSocketFactory serverSSF = serverSSLContext.getServerSocketFactory();
+			return null; //(SSLServerSocket) serverSSF.createServerSocket(this.ListenPort);
+		}else{
+			SSLSocketFactory serverSSF = serverSSLContext.getSocketFactory();
+			SSLSocket sslSocket = (SSLSocket) serverSSF.createSocket(
+				normySocket, consumed, true);
+			sslSocket.startHandshake();
+			return sslSocket;
+		}
+
+	}
 
 	@Override
 	public void run() {
@@ -226,45 +285,40 @@ public class GenericMiTMServer
 		}
 		try {
 			if (isSSL) {
-
-				DynamicKeyStore test = new DynamicKeyStore();
-
-				String ksPath = test.generateKeyStore("changeit", this.CertHostName);
-
-				KeyStore ks = KeyStore.getInstance("PKCS12");
-				ks.load(new FileInputStream(ksPath), "changeit".toCharArray());
-
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-
-				kmf.init(ks, "changeit".toCharArray());
-
-				X509Certificate[] result = new X509Certificate[ks
-						.getCertificateChain(ks.aliases().nextElement()).length];
-				// System.out.println(result.length);
-
-				SSLContext serverSSLContext = SSLContext.getInstance("TLSv1.2");
-				serverSSLContext.init(kmf.getKeyManagers(), null, null);
-				SSLServerSocketFactory serverSSF = serverSSLContext.getServerSocketFactory();
-				svrSock = (SSLServerSocket) serverSSF.createServerSocket(this.ListenPort);
-				//((SSLServerSocket)svrSock).setEnabledProtocols(new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" });
-
+				svrSock = createSSLSocket();
 			} else {
 				svrSock = new ServerSocket(this.ListenPort);
 			}
-
+			boolean upgraded = false;
+			byte [] consumed = null;
 
 			while (true && !killme) {
 				try {
 					Callbacks.printOutput("New MiTM Instance Created");
 					// System.out.println("Number of Threads is: " + threads.size());
 					System.out.println("Waiting for connection");
+					InputStream inFromClient = null;
 					if (isSSL){
-						for(String s : ((SSLServerSocket) svrSock).getEnabledCipherSuites()){
-							System.out.println(s);
-						}
-						connectionSocket = ((SSLServerSocket) svrSock).accept();
-					}else
+						//connectionSocket = ((SSLServerSocket) svrSock).accept();
+					}else{
 						connectionSocket = ((ServerSocket) svrSock).accept();
+						//inFromClient = new BufferedInputStream(connectionSocket.getInputStream());
+						inFromClient = connectionSocket.getInputStream();
+
+						List<Object> result = upgradeSocketIfSSL(connectionSocket, inFromClient);
+						connectionSocket= (Socket) result.get(0);
+						consumed = (byte []) result.get(1);
+						if(connectionSocket instanceof SSLSocket){
+							System.out.println("YUP Upgraded");
+							inFromClient = connectionSocket.getInputStream();
+							upgraded = true;
+						}else{
+							System.out.println(consumed[0]);
+							System.out.println(consumed[1]);
+							System.out.println(consumed[2]);
+
+						}
+					}
 
 
 					System.out.println("Accepted connection");
@@ -273,11 +327,11 @@ public class GenericMiTMServer
 					connectionSocket.setSendBufferSize(2056);
 					connectionSocket.setKeepAlive(true);
 
-					InputStream inFromClient = connectionSocket.getInputStream();
+					//InputStream inFromClient = connectionSocket.getInputStream();
 					DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
 					// Object cltSock;
-					if (isSSL) {
+					if (isSSL || upgraded ) {
 						System.out.println("using ssl");
 						TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
 							public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -338,7 +392,7 @@ public class GenericMiTMServer
 					DataOutputStream outToServer;
 
 					InputStream inFromServer;
-					if (isSSL) {
+					if (isSSL || upgraded) {
 						outToServer = new DataOutputStream(((SSLSocket) cltSock).getOutputStream());
 						inFromServer = ((SSLSocket) cltSock).getInputStream();
 
@@ -350,7 +404,7 @@ public class GenericMiTMServer
 					// Send data from client to server
 					System.out.println("Send Data: " + connectionSocket.getPort() + " :: "
 							+ connectionSocket.getLocalPort() + " :: " + pairs.size());
-					SendData client2ServerSD = new SendData(this, true, isSSL);
+					SendData client2ServerSD = new SendData(this, true, isSSL || upgraded);
 					/*
 					 * if(pairs.size() != 0){
 					 * send = (SendData)pairs.keySet().toArray()[0];
@@ -364,10 +418,11 @@ public class GenericMiTMServer
 					// }
 					client2ServerSD.sock = connectionSocket;
 					client2ServerSD.in = inFromClient;
+					client2ServerSD.consumed = consumed;
 					client2ServerSD.out = outToServer;
 
 					// Send data from server to Client
-					SendData server2ClientSD = new SendData(this, false, isSSL);
+					SendData server2ClientSD = new SendData(this, false, isSSL || upgraded);
 					/*
 					 * if(pairs.size() != 0){
 					 * getD = ((SendData)pairs.keySet().toArray()[0]).doppel;

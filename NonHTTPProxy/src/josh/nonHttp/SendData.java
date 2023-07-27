@@ -42,6 +42,7 @@ import josh.utils.events.SendClosedEventListener;
 
 public class SendData implements Runnable {
 	public InputStream in;
+	public byte [] consumed = null;
 	public DataOutputStream out;
 	public Object sock;
 	public String Name;
@@ -238,7 +239,6 @@ public class SendData implements Runnable {
 					// System.out.println("Thread Interrupted.");
 					if (killme)
 						break;
-
 				}
 				if(isSSL && ((SSLSocket)this.sock).isClosed()){
 					System.out.println("Socket Closed");
@@ -249,26 +249,33 @@ public class SendData implements Runnable {
 				}
 
 				byte[] buffer = new byte[2056 * 1000]; // Buffer at most 2Meg
-				// while((read = in.read(buffer, 0, buffer.length))!= -1 ){
-				
+				int updatedBufferLength=0;
+				if(this.consumed != null){
+					updatedBufferLength = this.consumed.length;
+				}
 				read = in.read(buffer, 0, buffer.length);
+				byte[] tmp = null;
+				if(read != -1){
+					tmp = new byte[read + updatedBufferLength];
+					if(this.consumed != null){
+						for(int i=0; i< consumed.length; i++){
+							tmp[i]=consumed[i];
+						}
+					}
+					int j=0;
+					for(int i=updatedBufferLength; i< read + updatedBufferLength; i++){
+						tmp[i] = buffer[j++];
+					}
+					this.consumed = null;
+				}
 				lastaccess = new Date();
-				// }
 
 				if (read == -1) {
 					System.out.println("Didnt read anything:" + this.isC2S);
 					System.out.println(this.getHostandIP(this.sock, this.isSSL));
-					//out.write(new byte[0]);
-					//Thread.sleep(3000);
 					break; // we didn't read anything and the stream has ended.
 				}
 
-				byte[] tmp = new byte[read];
-
-				for (int i = 0; i < read; i++) {
-					tmp[i] = buffer[i];
-				}
-				// Create an original buffer so we can check if things were modified
 				byte[] original = tmp;
 
 				// Check if we have enabled python modifications to the stream
