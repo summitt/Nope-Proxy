@@ -284,55 +284,36 @@ public class GenericMiTMServer
 			return;
 		}
 		try {
-			if (isSSL) {
-				svrSock = createSSLSocket();
-			} else {
-				svrSock = new ServerSocket(this.ListenPort);
-			}
+			svrSock = new ServerSocket(this.ListenPort);
 			boolean upgraded = false;
 			byte [] consumed = null;
 
 			while (true && !killme) {
 				try {
 					Callbacks.printOutput("New MiTM Instance Created");
-					// System.out.println("Number of Threads is: " + threads.size());
 					System.out.println("Waiting for connection");
 					InputStream inFromClient = null;
-					if (isSSL){
-						//connectionSocket = ((SSLServerSocket) svrSock).accept();
-					}else{
-						connectionSocket = ((ServerSocket) svrSock).accept();
-						//inFromClient = new BufferedInputStream(connectionSocket.getInputStream());
+					connectionSocket = ((ServerSocket) svrSock).accept();
+					inFromClient = connectionSocket.getInputStream();
+
+					//get socket or upgraded socket and the consumed bytes used to determine
+					// if upgrade was needed. If the socket was not upgraded these bytes need to 
+					// be re-applied to the data read from the socket.
+					List<Object> result = upgradeSocketIfSSL(connectionSocket, inFromClient);
+					connectionSocket= (Socket) result.get(0); // the original or upgraded socket
+					consumed = (byte []) result.get(1); // bytes consumed to test if TLS hello was sent
+					if(connectionSocket instanceof SSLSocket){
 						inFromClient = connectionSocket.getInputStream();
-
-						List<Object> result = upgradeSocketIfSSL(connectionSocket, inFromClient);
-						connectionSocket= (Socket) result.get(0);
-						consumed = (byte []) result.get(1);
-						if(connectionSocket instanceof SSLSocket){
-							System.out.println("YUP Upgraded");
-							inFromClient = connectionSocket.getInputStream();
-							upgraded = true;
-						}else{
-							System.out.println(consumed[0]);
-							System.out.println(consumed[1]);
-							System.out.println(consumed[2]);
-
-						}
+						upgraded = true;
 					}
-
-
-					System.out.println("Accepted connection");
-					//connectionSocket.setSoTimeout(2000);
 					connectionSocket.setReceiveBufferSize(2056);
 					connectionSocket.setSendBufferSize(2056);
 					connectionSocket.setKeepAlive(true);
 
-					//InputStream inFromClient = connectionSocket.getInputStream();
 					DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
-					// Object cltSock;
-					if (isSSL || upgraded ) {
-						System.out.println("using ssl");
+					if (upgraded) {
+						/// Accept any certs the server provides
 						TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
 							public java.security.cert.X509Certificate[] getAcceptedIssuers() {
 								return null;
@@ -346,36 +327,28 @@ public class GenericMiTMServer
             			sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
 
 						SSLSocketFactory ssf = sslContext.getSocketFactory();
-						//cltSock = (SSLSocket) ssf.createSocket("www.otto-js.com", this.ServerPort);
 						String IPV4_PATTERN = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
 						Pattern pattern = Pattern.compile(IPV4_PATTERN);
 						Matcher matcher = pattern.matcher(this.ServerAddress);
+						//Connect to server with ip or hostname
 						if(matcher.matches()){
-
 							System.out.println("address:" + this.ServerAddress);
 							String [] stringOctets = this.ServerAddress.split("\\.");
-							System.out.println(stringOctets);
-							System.out.println(stringOctets.length);
 							byte [] byteOctets = new byte[4];
 							byteOctets[0] = (byte) (Integer.parseInt(stringOctets[0]) & 0xFF);
 							byteOctets[1] = (byte) (Integer.parseInt(stringOctets[1]) & 0xFF);
 							byteOctets[2] = (byte) (Integer.parseInt(stringOctets[2]) & 0xFF);
 							byteOctets[3] = (byte) (Integer.parseInt(stringOctets[3]) & 0xFF);
 							InetAddress inetAddress = InetAddress.getByAddress(this.CertHostName, byteOctets);
-							System.out.println("my address: ");
-							System.out.println(inetAddress);
 							cltSock = (SSLSocket) ssf.createSocket(inetAddress, this.ServerPort);
 						}else{
 							cltSock = (SSLSocket) ssf.createSocket(this.ServerAddress, this.ServerPort);	
 						}
-						//((SSLSocket) cltSock).setSoTimeout(2000);
 						((SSLSocket) cltSock).setReceiveBufferSize(2056);
 						((SSLSocket) cltSock).setSendBufferSize(2056);
 						((SSLSocket) cltSock).setKeepAlive(true);
-						//((SSLSocket) cltSock).startHandshake();
 					} else {
 						cltSock = new Socket(this.ServerAddress, this.ServerPort);
-						//((Socket) cltSock).setSoTimeout(2000);
 						((Socket) cltSock).setReceiveBufferSize(2056);
 						((Socket) cltSock).setSendBufferSize(2056);
 						((Socket) cltSock).setKeepAlive(true);
@@ -383,16 +356,15 @@ public class GenericMiTMServer
 						if (ServerHostandIP != null && ServerHostandIP.indexOf(":") != -1) {
 							ServerHostandIP = ServerHostandIP.split(":")[0];
 						}
-
 						if (ServerHostandIP.indexOf('/') == 0) {
 							ServerHostandIP = ServerHostandIP.split("/")[1];
 						}
 					}
 
 					DataOutputStream outToServer;
-
 					InputStream inFromServer;
-					if (isSSL || upgraded) {
+
+					if (upgraded) {
 						outToServer = new DataOutputStream(((SSLSocket) cltSock).getOutputStream());
 						inFromServer = ((SSLSocket) cltSock).getInputStream();
 
@@ -404,12 +376,7 @@ public class GenericMiTMServer
 					// Send data from client to server
 					System.out.println("Send Data: " + connectionSocket.getPort() + " :: "
 							+ connectionSocket.getLocalPort() + " :: " + pairs.size());
-					SendData client2ServerSD = new SendData(this, true, isSSL || upgraded);
-					/*
-					 * if(pairs.size() != 0){
-					 * send = (SendData)pairs.keySet().toArray()[0];
-					 * }else{
-					 */
+					SendData client2ServerSD = new SendData(this, true, upgraded);
 
 					client2ServerSD.addEventListener(GenericMiTMServer.this);
 					client2ServerSD.addPyEventListener(this);
@@ -422,28 +389,20 @@ public class GenericMiTMServer
 					client2ServerSD.out = outToServer;
 
 					// Send data from server to Client
-					SendData server2ClientSD = new SendData(this, false, isSSL || upgraded);
-					/*
-					 * if(pairs.size() != 0){
-					 * getD = ((SendData)pairs.keySet().toArray()[0]).doppel;
-					 * }else{
-					 */
+					SendData server2ClientSD = new SendData(this, false, upgraded);
 					server2ClientSD.addEventListener(GenericMiTMServer.this);
 					server2ClientSD.addPyEventListener(this);
 					server2ClientSD.addSendClosedEventListener(this);
 					server2ClientSD.Name = "s2c";
-					// }
 					server2ClientSD.sock = cltSock;
 					server2ClientSD.in = inFromServer;
 					server2ClientSD.out = outToClient;
 
-					// if(pairs.size() == 0){
 					client2ServerSD.doppel = server2ClientSD;
 					server2ClientSD.doppel = client2ServerSD;
 					sends.add(client2ServerSD);
 					sends.add(server2ClientSD);
 					synchronized (this) {
-						System.out.println("Creating pairs");
 						pairs.put(client2ServerSD, server2ClientSD);
 					}
 					Thread c2s = new Thread(client2ServerSD);
@@ -454,11 +413,9 @@ public class GenericMiTMServer
 					s2c.start();
 					threads.add(c2s);
 					threads.add(s2c);
-					// }
 
 				} catch (ConnectException e) {
 					String message = e.getMessage();
-					System.out.println(e.getMessage());
 					e.printStackTrace();
 					if (message.equals("Connection refused"))
 						Callbacks.printOutput(
@@ -551,12 +508,10 @@ public class GenericMiTMServer
 	}
 
 	public void forwardC2SRequest(byte[] bytes) {
-		// System.out.println("Forwarding Request...");
 		interceptc2s.setData(bytes);
 	}
 
 	public void forwardS2CRequest(byte[] bytes) {
-		// System.out.println("Forwarding Request...");
 		intercepts2c.setData(bytes);
 	}
 
@@ -582,16 +537,8 @@ public class GenericMiTMServer
 		// System.out.println(sd.Name);
 		try {
 			if (sd.isSSL()) {
-				/*
-				 * ((SSLSocket)sd.sock).shutdownInput();
-				 * ((SSLSocket)sd.sock).shutdownOutput();
-				 */
 				((SSLSocket) sd.sock).close();
 			} else {
-				/*
-				 * ((Socket)sd.sock).shutdownInput();
-				 * ((Socket)sd.sock).shutdownOutput();
-				 */
 				((Socket) sd.sock).close();
 			}
 		} catch (IOException e) {
@@ -613,20 +560,6 @@ public class GenericMiTMServer
 				e1.printStackTrace();
 			}
 			SendData tmp = (SendData) e.getSource();
-			/*
-			 * System.out.println(tmp.Name + ": Socket with " +
-			 * ((SSLSocket)tmp.sock).getLocalPort() + " :: " +
-			 * ((SSLSocket)tmp.sock).getPort());
-			 * System.out.println("There are " + pairs.size() + " number of threads.");
-			 * for(SendData s : pairs.keySet()){
-			 * System.out.println("---"+s.Name + " :: " + ((SSLSocket)s.sock).getLocalPort()
-			 * + " :: " + ((SSLSocket)s.sock).getPort());
-			 * System.out.println("---"+s.doppel.Name + " :: " +
-			 * ((SSLSocket)s.doppel.sock).getLocalPort() + " :: " +
-			 * ((SSLSocket)s.doppel.sock).getPort());
-			 * }
-			 */
-
 			if (pairs.containsKey(tmp)) {
 				System.out.println("first");
 				pairs.remove(tmp);
