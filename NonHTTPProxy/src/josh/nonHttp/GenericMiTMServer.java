@@ -2,6 +2,7 @@ package josh.nonHttp;
 //
 
 import java.io.DataOutputStream;
+import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -292,18 +293,18 @@ public class GenericMiTMServer
 					//get socket or upgraded socket and the consumed bytes used to determine
 					// if upgrade was needed. If the socket was not upgraded these bytes need to 
 					// be re-applied to the data read from the socket.
-					List<Object> result = upgradeSocketIfSSL(connectionSocket, inFromClient);
+					/*List<Object> result = upgradeSocketIfSSL(connectionSocket, inFromClient);
 					connectionSocket= (Socket) result.get(0); // the original or upgraded socket
 					consumed = (byte []) result.get(1); // bytes consumed to test if TLS hello was sent
 					if(connectionSocket instanceof SSLSocket){
 						inFromClient = connectionSocket.getInputStream();
 						upgraded = true;
-					}
+					}*/
 					connectionSocket.setReceiveBufferSize(2056);
 					connectionSocket.setSendBufferSize(2056);
 					connectionSocket.setKeepAlive(true);
 
-					DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+					OutputStream outToClient = connectionSocket.getOutputStream();
 
 					if (upgraded) {
 						/// Accept any certs the server provides
@@ -354,15 +355,15 @@ public class GenericMiTMServer
 						}
 					}
 
-					DataOutputStream outToServer;
+					OutputStream outToServer;
 					InputStream inFromServer;
 
 					if (upgraded) {
-						outToServer = new DataOutputStream(((SSLSocket) cltSock).getOutputStream());
+						outToServer = ((SSLSocket) cltSock).getOutputStream();
 						inFromServer = ((SSLSocket) cltSock).getInputStream();
 
 					} else {
-						outToServer = new DataOutputStream(((Socket) cltSock).getOutputStream());
+						outToServer = ((Socket) cltSock).getOutputStream();
 						inFromServer = ((Socket) cltSock).getInputStream();
 					}
 

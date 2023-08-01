@@ -2,7 +2,9 @@ package josh.nonHttp;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
+import java.io.OutputStream;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.IOException;
@@ -22,11 +24,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 
 import org.xbill.DNS.A6Record;
 
@@ -43,7 +56,8 @@ import josh.utils.events.SendClosedEventListener;
 public class SendData implements Runnable {
 	public InputStream in;
 	public byte [] consumed = null;
-	public DataOutputStream out;
+	//public DataOutputStream out;
+	public OutputStream out;
 	public Object sock;
 	public String Name;
 	public boolean killme = false;
@@ -55,6 +69,7 @@ public class SendData implements Runnable {
 	//private PythonMangler pm;
 	public SendData doppel;
 	public long createTime;
+	private boolean upgraded = false;
 	// private Date lastaccess;
 
 	public SendData(GenericMiTMServer srv, boolean isC2s, boolean isSSL) {
@@ -119,6 +134,94 @@ public class SendData implements Runnable {
 				((PythonOutputEventListener) i.next()).PythonMessages(event);
 			}
 		}
+	}
+
+	private List<Object> upgradeSocketIfSSL(Socket socket, InputStream inputStream) throws Exception{
+		List<Object> result = new ArrayList();
+		try {
+			byte[] buffer = new byte[5]; // Adjust the buffer size as needed
+			int bytesRead = inputStream.read(buffer);
+			
+			if (bytesRead >= 5) {
+				// Check for the SSL/TLS version in the first two bytes
+				if (buffer[0] == 0x16 && buffer[1] == 0x03) {
+					// Assuming "0x16 0x03" corresponds to a Client Hello message
+					result.add(upgradeSSLListenerSocket(socket, new ByteArrayInputStream(buffer)));
+					result.add(null); //This is null becuase createSSLSocket takes the consumed bytes already
+					result.add(true);
+					return result;
+
+				}else{
+					result.add(socket);
+					result.add(buffer);
+					result.add(false);
+					return result;
+				}
+				// Add more specific checks if needed
+			}else{
+				result.add(socket);
+				result.add(buffer);
+				result.add(false);
+				return result;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		result.add(socket);
+		result.add(null);
+		result.add(false);
+		return result;
+	}
+	private SSLSocket upgradeSSLListenerSocket(Socket normySocket, InputStream consumed) throws Exception{
+		System.out.println("Trying to upgrade client side sock");
+		System.out.println(this.SERVER.CertHostName);
+		DynamicKeyStore dks = new DynamicKeyStore();
+
+		String ksPath = dks.generateKeyStore("changeit", this.SERVER.CertHostName);
+
+		KeyStore ks = KeyStore.getInstance("PKCS12");
+		ks.load(new FileInputStream(ksPath), "changeit".toCharArray());
+
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+
+		kmf.init(ks, "changeit".toCharArray());
+
+		X509Certificate[] result = new X509Certificate[ks
+				.getCertificateChain(ks.aliases().nextElement()).length];
+
+		SSLContext serverSSLContext = SSLContext.getInstance("TLSv1.2");
+		serverSSLContext.init(kmf.getKeyManagers(), null, null);
+		SSLSocketFactory serverSSF = serverSSLContext.getSocketFactory();
+		SSLSocket sslSocket = (SSLSocket) serverSSF.createSocket(
+			normySocket, consumed, true);
+		sslSocket.startHandshake();
+		return sslSocket;
+
+	}
+
+	public void upgradeSSLServerSideSocket() throws Exception{
+		System.out.println("Trying to upgrade server side sock");
+
+		TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+		}};
+		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+		sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+		SSLSocketFactory ssf = sslContext.getSocketFactory();
+		Socket socket = (Socket) this.sock;
+		this.sock = ssf.createSocket(
+			socket,
+			socket.getInetAddress().getHostAddress(),
+			socket.getPort(),
+			true);
+		 ((SSLSocket) this.sock).setEnabledProtocols(new String[]{"TLSv1.2"});
 	}
 
 	private synchronized void NewDataEvent(byte[] data, byte[] original, String Direction) {
@@ -196,6 +299,7 @@ public class SendData implements Runnable {
 	private Date lastaccess = new Date();
 	private SendData ref;
 
+
 	@Override
 	public void run() {
 		ref = this;
@@ -246,6 +350,22 @@ public class SendData implements Runnable {
 				}else if( ((Socket)this.sock).isClosed()){
 					System.out.println("Socket Closed");
 					break;
+				}
+				if(!this.isSSL && this.isC2S){
+					List<Object> results = this.upgradeSocketIfSSL((Socket) this.sock, this.in);
+					this.sock = results.get(0);
+					this.consumed = (byte[]) results.get(1);
+					this.isSSL = (boolean) results.get(2);
+					if(this.isSSL){
+						this.in = ((SSLSocket) this.sock).getInputStream();
+						this.doppel.upgradeSSLServerSideSocket();
+						this.doppel.isSSL = true;
+						this.out = ((SSLSocket) this.doppel.sock).getOutputStream();
+						this.doppel.in =((SSLSocket) this.doppel.sock).getInputStream(); 
+						this.doppel.out = new DataOutputStream(((SSLSocket) this.sock).getOutputStream());
+						((SSLSocket) this.doppel.sock).startHandshake();
+						continue;
+					}
 				}
 
 				byte[] buffer = new byte[2056 * 1000]; // Buffer at most 2Meg
