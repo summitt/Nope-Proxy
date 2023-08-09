@@ -218,7 +218,7 @@ public class SendData implements Runnable {
 		Socket socket = (Socket) this.sock;
 		this.sock = ssf.createSocket(
 			socket,
-			socket.getInetAddress().getHostAddress(),
+			this.SERVER.CertHostName,
 			socket.getPort(),
 			true);
 		 ((SSLSocket) this.sock).setEnabledProtocols(new String[]{"TLSv1.2"});
@@ -361,9 +361,9 @@ public class SendData implements Runnable {
 						this.doppel.upgradeSSLServerSideSocket();
 						this.doppel.isSSL = true;
 						this.out = ((SSLSocket) this.doppel.sock).getOutputStream();
+						//((SSLSocket) this.doppel.sock).startHandshake();
 						this.doppel.in =((SSLSocket) this.doppel.sock).getInputStream(); 
 						this.doppel.out = new DataOutputStream(((SSLSocket) this.sock).getOutputStream());
-						((SSLSocket) this.doppel.sock).startHandshake();
 						continue;
 					}
 				}
