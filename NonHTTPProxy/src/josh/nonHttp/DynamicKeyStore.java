@@ -133,7 +133,7 @@ public class DynamicKeyStore {
 				 dirs= CP.split(":");
 			 
 			 boolean filefound=false;
-			 JKS = System.getProperty("user.dir") + fs + "burpca.p12";
+			 JKS = System.getProperty("user.home") + fs + ".NoPEProxy" + fs + "burpca.p12";
 			 File tmpF = new File(JKS);
 			 if(tmpF.exists()){
 				 filefound=true;

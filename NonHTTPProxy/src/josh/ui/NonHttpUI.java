@@ -2302,11 +2302,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 // Supporting Functions
 //############################################################################################################################
 	private boolean checkCert(){
-		File f = new File("./burpca.p12");
+		String fs =  System.getProperty("file.separator");
+		String JKS = System.getProperty("user.home") + fs + ".NoPEProxy" + fs + "burpca.p12";
+		System.out.println(JKS);
+		File f = new File(JKS);
 		if(f.exists()){
 			try {
 				 KeyStore keyStoreFile = KeyStore.getInstance("PKCS12");
-			     keyStoreFile.load(new FileInputStream("./burpca.p12"),"changeit".toCharArray());
+			     keyStoreFile.load(new FileInputStream(JKS),"changeit".toCharArray());
 			     return true;
 			} catch (KeyStoreException e) {
 				// TODO Auto-generated catch block
