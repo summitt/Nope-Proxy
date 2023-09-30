@@ -37,7 +37,7 @@ public class GenericUDPMiTMServer
 	private int interceptType = 0; // 0=both, 1=c2s, 2=s2c
 	public InterceptData interceptc2s;
 	public InterceptData intercepts2c;
-	private DatagramSocket udpServerSocket = null;
+	public DatagramSocket udpServerSocket = null;
 	Socket udpConnectionSock;
 	Socket udpClientSock;
 	Vector<Thread> threads = new Vector<Thread>();
@@ -205,8 +205,9 @@ public class GenericUDPMiTMServer
 						clientAddress = udpPacket.getAddress();
 						clientPort = udpPacket.getPort();
 						//TODO: send to a data pipeline that transofrms and intercepts the data
-						DatagramPacket serverRequest = new DatagramPacket(buffer, buffer.length, serverAddress, this.ServerPort);
-						udpServerSocket.send(serverRequest);
+						UDPDataPipeline pipeline = new UDPDataPipeline(this,buffer,clientAddress,clientPort, serverAddress, ServerPort, true);
+						Thread c2s = new Thread(pipeline);
+						c2s.run();
 					}else if(clientPort == -1){
 						System.out.println("Don't have a client port yet");
 					}else{
@@ -214,6 +215,10 @@ public class GenericUDPMiTMServer
 						//TODO: send to a data pipeline that transofrms and intercepts the data
 						DatagramPacket clientRequest = new DatagramPacket(buffer, buffer.length, clientAddress, clientPort);
 						udpServerSocket.send(clientRequest);
+
+						UDPDataPipeline pipeline = new UDPDataPipeline(this,buffer,serverAddress,ServerPort, clientAddress, clientPort, false);
+						Thread s2c = new Thread(pipeline);
+						s2c.run();
 
 					}
 
