@@ -1,30 +1,17 @@
 package josh.nonHttp;
 //
 
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketException;
-import java.security.KeyStore;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -146,6 +133,7 @@ public class GenericUDPMiTMServer
 	public void KillThreads() {
 
 		// System.out.println("Number of Data buffer threads is: " + threads.size());
+		/* TODO: testing 9/30
 		for (int i = 0; i < threads.size(); i++) {
 			// System.out.println("Interrrpting Thread");
 			try {
@@ -162,7 +150,7 @@ public class GenericUDPMiTMServer
 			sends.get(i).killme = true;
 			threads.get(i).interrupt();
 
-		}
+		}*/
 
 		try {
 			udpServerSocket.close();
@@ -184,6 +172,24 @@ public class GenericUDPMiTMServer
 		try {
 			udpServerSocket = new DatagramSocket(this.ListenPort);
 			DatagramSocket sendToServerSocket = new DatagramSocket();
+			InetAddress serverAddress = null;
+			String IPV4_PATTERN = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
+			Pattern pattern = Pattern.compile(IPV4_PATTERN);
+			Matcher matcher = pattern.matcher(this.ServerAddress);
+			if(matcher.matches()){
+				String [] stringOctets = this.ServerAddress.split("\\.");
+				byte [] byteOctets = new byte[4];
+				byteOctets[0] = (byte) (Integer.parseInt(stringOctets[0]) & 0xFF);
+				byteOctets[1] = (byte) (Integer.parseInt(stringOctets[1]) & 0xFF);
+				byteOctets[2] = (byte) (Integer.parseInt(stringOctets[2]) & 0xFF);
+				byteOctets[3] = (byte) (Integer.parseInt(stringOctets[3]) & 0xFF);
+				serverAddress = InetAddress.getByAddress(byteOctets);
+			}else{
+				serverAddress = InetAddress.getByName(this.ServerAddress);
+			}
+			//This information will be populated on the firest request
+			InetAddress clientAddress = null;
+			int clientPort = -1;
 
 			while (true && !killme) {
 				try {
@@ -194,37 +200,22 @@ public class GenericUDPMiTMServer
 					DatagramPacket udpPacket = new DatagramPacket(buffer, buffer.length);
 					udpServerSocket.receive(udpPacket);
 
-
-					//foware this data to the real server
-					DatagramPacket serverRequest =  null;
-					String IPV4_PATTERN = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
-					Pattern pattern = Pattern.compile(IPV4_PATTERN);
-					Matcher matcher = pattern.matcher(this.ServerAddress);
-					if(matcher.matches()){
-						String [] stringOctets = this.ServerAddress.split("\\.");
-						byte [] byteOctets = new byte[4];
-						byteOctets[0] = (byte) (Integer.parseInt(stringOctets[0]) & 0xFF);
-						byteOctets[1] = (byte) (Integer.parseInt(stringOctets[1]) & 0xFF);
-						byteOctets[2] = (byte) (Integer.parseInt(stringOctets[2]) & 0xFF);
-						byteOctets[3] = (byte) (Integer.parseInt(stringOctets[3]) & 0xFF);
-						InetAddress inetAddress = InetAddress.getByAddress(byteOctets);
-						serverRequest = new DatagramPacket(buffer, buffer.length, inetAddress, this.ServerPort);
+					if(udpPacket.getPort() != this.ServerPort){
+						System.out.println("Got a request from the client");
+						clientAddress = udpPacket.getAddress();
+						clientPort = udpPacket.getPort();
+						//TODO: send to a data pipeline that transofrms and intercepts the data
+						DatagramPacket serverRequest = new DatagramPacket(buffer, buffer.length, serverAddress, this.ServerPort);
+						udpServerSocket.send(serverRequest);
+					}else if(clientPort == -1){
+						System.out.println("Don't have a client port yet");
 					}else{
-						InetAddress inetAddress = InetAddress.getByName(this.ServerAddress);
-						serverRequest = new DatagramPacket(buffer, buffer.length, inetAddress, this.ServerPort);
+						System.out.println("Got a request from the server");
+						//TODO: send to a data pipeline that transofrms and intercepts the data
+						DatagramPacket clientRequest = new DatagramPacket(buffer, buffer.length, clientAddress, clientPort);
+						udpServerSocket.send(clientRequest);
+
 					}
-					sendToServerSocket.send(serverRequest);
-
-					// Wait for a response from the real server
-					byte [] serverBuffer = new byte[2056];
-					DatagramPacket serverToClientPacket = new DatagramPacket(serverBuffer, serverBuffer.length);
-					sendToServerSocket.receive(serverToClientPacket);
-
-					// Forware the sever response back to the client
-					InetAddress clientAddress = udpPacket.getAddress();
-					int clientPort = udpPacket.getPort();
-					DatagramPacket response = new DatagramPacket(serverBuffer, serverBuffer.length, clientAddress, clientPort);
-					udpServerSocket.send(response);
 
 				} catch (ConnectException e) {
 					String message = e.getMessage();
@@ -297,29 +288,6 @@ public class GenericUDPMiTMServer
 
 	}
 
-	private void KillSocks(SendUDPData sd) {
-		// System.out.println(sd.Name);
-		try {
-			if (sd.isSSL()) {
-				/*
-				 * ((SSLSocket)sd.sock).shutdownInput();
-				 * ((SSLSocket)sd.sock).shutdownOutput();
-				 */
-				((SSLSocket) sd.sock).close();
-			} else {
-				/*
-				 * ((Socket)sd.sock).shutdownInput();
-				 * ((Socket)sd.sock).shutdownOutput();
-				 */
-				((Socket) sd.sock).close();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-
-		}
-	}
 
 	@Override
 	public void Closed(SendClosedEvent e) {
@@ -333,8 +301,6 @@ public class GenericUDPMiTMServer
 				if (pairs.get(key).equals(tmp)) {
 					key.killme = true;
 					pairs.remove(key);
-					KillSocks(tmp);
-					KillSocks(key);
 				}
 			}
 		}

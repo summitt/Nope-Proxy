@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
@@ -32,9 +34,9 @@ import josh.utils.events.SendClosedEvent;
 import josh.utils.events.SendClosedEventListener;
 
 public class SendUDPData implements Runnable {
-	public InputStream in;
 	public DataOutputStream out;
-	public Object sock;
+	public DatagramSocket inboundSocket;
+	public DatagramSocket outboundSocket;
 	public String Name;
 	public boolean killme = false;
 	private GenericUDPMiTMServer SERVER;
@@ -43,10 +45,11 @@ public class SendUDPData implements Runnable {
 	private PythonMangler pm;
 	// private Date lastaccess;
 
-	public SendUDPData(GenericUDPMiTMServer srv, boolean isC2s, boolean isSSL) {
+	public SendUDPData(GenericUDPMiTMServer srv, boolean isC2s, DatagramSocket inboundSocket, DatagramSocket outboundSocket) {
 		this.SERVER = srv;
 		this.isC2S = isC2s;
-		this.isSSL = false;// isSSL;
+		this.inboundSocket = inboundSocket;
+		this.outboundSocket = outboundSocket;
 	}
 
 	private List _listeners = new ArrayList();
@@ -112,13 +115,8 @@ public class SendUDPData implements Runnable {
 		event.setOriginalData(original);
 		event.setDirection(Direction);
 		if (Direction.contains("c2s")) {
-			if (isSSL) {
-				event.setSrcIP(this.getHostandIP(this.sock, true));// ((SSLSocket)this.sock).getInetAddress().getHostAddress());
-				event.setSrcPort(((SSLSocket) this.sock).getPort());
-			} else {
-				event.setSrcIP(this.getHostandIP(this.sock, false));// ((Socket)this.sock).getInetAddress().getHostAddress());
-				event.setSrcPort(((Socket) this.sock).getPort());
-			}
+				event.setSrcIP("127.0.0.1");//add real ip
+				event.setSrcPort(-1); ///add src port
 			if (SERVER.ServerHostandIP != null && !SERVER.ServerHostandIP.trim().equals(""))
 				event.setDstIP(SERVER.ServerHostandIP);
 			else
@@ -127,8 +125,8 @@ public class SendUDPData implements Runnable {
 		} else {
 			event.setDstIP(SERVER.udpConnectionSock.getInetAddress().getHostAddress());
 			event.setDstPort(SERVER.udpConnectionSock.getPort());
-			event.setSrcIP(this.getHostandIP(this.sock, false));
-			event.setSrcPort(((Socket) this.sock).getPort());
+			event.setSrcIP("127.0.0.1");
+			event.setSrcPort(-1);
 		}
 		Iterator i = _listeners.iterator();
 		while (i.hasNext()) {
@@ -141,26 +139,16 @@ public class SendUDPData implements Runnable {
 		event.setData(Data);
 		event.setDirection(Direction);
 		if (Direction.contains("c2s")) {
-			if (isSSL) {
-				event.setSrcIP(this.getHostandIP(this.sock, true));// ((SSLSocket)this.sock).getInetAddress().getHostAddress());
-				event.setSrcPort(((SSLSocket) this.sock).getPort());
-			} else {
-				event.setSrcIP(this.getHostandIP(this.sock, false));// ((Socket)this.sock).getInetAddress().getHostAddress());
-				event.setSrcPort(((Socket) this.sock).getPort());
-			}
+			event.setSrcIP("127.0.0.1");
+			event.setSrcPort(-1);
 			event.setDstIP(SERVER.ServerAddress);
 			event.setDstPort(SERVER.ServerPort);
 		} else {
 			event.setDstIP(SERVER.udpConnectionSock.getInetAddress().getHostAddress());
 			event.setDstPort(SERVER.udpConnectionSock.getPort());
 
-			if (isSSL) {
-				event.setSrcIP(this.getHostandIP(this.sock, true));// ((SSLSocket)this.sock).getInetAddress().getHostAddress());
-				event.setSrcPort(((SSLSocket) this.sock).getPort());
-			} else {
-				event.setSrcIP(this.getHostandIP(this.sock, false));// ((Socket)this.sock).getInetAddress().getHostAddress());
-				event.setSrcPort(((Socket) this.sock).getPort());
-			}
+			event.setSrcIP("127.0.0.1");
+			event.setSrcPort(-1);
 		}
 		Iterator i = _listeners.iterator();
 		while (i.hasNext()) {
@@ -183,19 +171,15 @@ public class SendUDPData implements Runnable {
 					// System.out.println("Thread Interrupted.");
 					if (killme)
 						break;
-
 				}
-				byte[] buffer = new byte[2056 * 1000]; // Buffer at most 2Meg
-				// while((read = in.read(buffer, 0, buffer.length))!= -1 ){
-				read = in.read(buffer, 0, buffer.length);
-				// }
 
-				if (read == -1)
-					break; // we didn't read anything and the stream has ended.
+				byte [] buffer = new byte[2056];
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+				inboundSocket.receive(packet);
 
-				byte[] tmp = new byte[read];
+				byte[] tmp = new byte[buffer.length];
 
-				for (int i = 0; i < read; i++) {
+				for (int i = 0; i < buffer.length; i++) {
 					tmp[i] = buffer[i];
 				}
 				// Create an original buffer so we can check if things were modified
@@ -298,7 +282,9 @@ public class SendUDPData implements Runnable {
 				}
 
 				// Write the data back to the socket
-				out.write(tmp);
+
+				//DatagramPacket packet = new DatagramPacket(tmp, tmp.length, address, port);
+				//outboundSocket.send(packet);
 
 			} catch (SocketTimeoutException Ex) {
 			} catch (SSLHandshakeException Ex) {
