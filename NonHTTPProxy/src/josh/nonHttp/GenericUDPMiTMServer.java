@@ -183,6 +183,7 @@ public class GenericUDPMiTMServer
 		}
 		try {
 			udpServerSocket = new DatagramSocket(this.ListenPort);
+			DatagramSocket sendToServerSocket = new DatagramSocket();
 
 			while (true && !killme) {
 				try {
@@ -212,7 +213,6 @@ public class GenericUDPMiTMServer
 						InetAddress inetAddress = InetAddress.getByName(this.ServerAddress);
 						serverRequest = new DatagramPacket(buffer, buffer.length, inetAddress, this.ServerPort);
 					}
-					DatagramSocket sendToServerSocket = new DatagramSocket();
 					sendToServerSocket.send(serverRequest);
 
 					// Wait for a response from the real server
@@ -238,6 +238,7 @@ public class GenericUDPMiTMServer
 				}
 
 			}
+			sendToServerSocket.close();
 			udpServerSocket.close();
 		} catch (Exception ex) {
 			Callbacks.printOutput(ex.getMessage());
