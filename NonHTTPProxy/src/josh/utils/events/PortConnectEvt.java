@@ -2,19 +2,21 @@ package josh.utils.events;
 
 import java.util.EventObject;
 
-public class TCPPacketEvt extends EventObject  {
+public class PortConnectEvt extends EventObject  {
 	
 	private String sip;
 	private int dport;
 	private String Service;
 	private String time;
+	private String Proto;
 
-	public TCPPacketEvt(Object arg0, String sip, String Service, int dport, String time) {
+	public PortConnectEvt(Object arg0, String sip, String Service, int dport, String time, String Proto) {
 		super(arg0);
 		this.sip = sip;
 		this.Service = Service;
 		this.dport = dport;
 		this.time = time;
+		this.Proto = Proto;
 	}
 
 	public String getSip() {
@@ -47,6 +49,13 @@ public class TCPPacketEvt extends EventObject  {
 
 	public void setTime(String time) {
 		this.time = time;
+	}
+
+	public void setProto(String proto){
+		this.Proto = proto;
+	}
+	public String getProto(){
+		return this.Proto;
 	}
 	
 	

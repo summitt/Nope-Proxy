@@ -121,16 +121,10 @@ public class SendUDPData implements Runnable{
 				event.setDstIP(SERVER.ServerAddress);
 			event.setDstPort(SERVER.ServerPort);
 		}else{
-			event.setDstIP(SERVER.connectionSocket.getInetAddress().getHostAddress());
-			event.setDstPort(SERVER.connectionSocket.getPort());
-			if(isSSL){
-				event.setSrcIP(this.getHostandIP(this.sock, true));//((SSLSocket)this.sock).getInetAddress().getHostAddress());
-				event.setSrcPort(((SSLSocket)this.sock).getPort());
-			}else{	
-				//String SourceInfo = this.getHostandIP(this.sock, false);
-				event.setSrcIP(this.getHostandIP(this.sock, false));
-				event.setSrcPort(((Socket)this.sock).getPort());
-			}
+			event.setDstIP(SERVER.udpConnectionSock.getInetAddress().getHostAddress());
+			event.setDstPort(SERVER.udpConnectionSock.getPort());
+			event.setSrcIP(this.getHostandIP(this.sock, false));
+			event.setSrcPort(((Socket)this.sock).getPort());
 		}
 		Iterator i = _listeners.iterator();
 		while(i.hasNext())	{
@@ -152,8 +146,8 @@ public class SendUDPData implements Runnable{
 			event.setDstIP(SERVER.ServerAddress);
 			event.setDstPort(SERVER.ServerPort);
 		}else{
-			event.setDstIP(SERVER.connectionSocket.getInetAddress().getHostAddress());
-			event.setDstPort(SERVER.connectionSocket.getPort());
+			event.setDstIP(SERVER.udpConnectionSock.getInetAddress().getHostAddress());
+			event.setDstPort(SERVER.udpConnectionSock.getPort());
 			
 			if(isSSL){
 				event.setSrcIP(this.getHostandIP(this.sock, true));//((SSLSocket)this.sock).getInetAddress().getHostAddress());
