@@ -910,11 +910,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setIntercept(toggle);
 				}
-				/*
-				 * for(GenericUDPMiTMServer svr : threads.values()){
-				 * svr.setIntercept(toggle);
-				 * }
-				 */
+				for(GenericUDPMiTMServer svr : udpThreads.values()){
+				  	svr.setIntercept(toggle);
+				}
+				 
 
 			}
 		});
@@ -947,11 +946,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setInterceptDir(svr.INTERCEPT_C2S);
 				}
-				/*
-				 * for(GenericUDPMiTMServer svr : threads.values()){
-				 * svr.setInterceptDir(svr.INTERCEPT_C2S);
-				 * }
-				 */
+				for(GenericUDPMiTMServer svr : udpThreads.values()){
+				  svr.setInterceptDir(svr.INTERCEPT_C2S);
+				}
 
 			}
 		});
@@ -971,11 +968,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setInterceptDir(svr.INTERCEPT_S2C);
 				}
-				/*
-				 * for(GenericUDPMiTMServer svr : threads.values()){
-				 * svr.setInterceptDir(svr.INTERCEPT_S2C);
-				 * }
-				 */
+				for(GenericUDPMiTMServer svr : udpThreads.values()){
+				  svr.setInterceptDir(svr.INTERCEPT_S2C);
+				}
 			}
 		});
 		buttonGroup.add(isS2C);
@@ -994,11 +989,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setInterceptDir(svr.INTERCEPT_BOTH);
 				}
-				/*
-				 * for(GenericUDPMiTMServer svr : threads.values()){
-				 * svr.setInterceptDir(svr.INTERCEPT_BOTH);
-				 * }
-				 */
+				for(GenericUDPMiTMServer svr : udpThreads.values()){
+				  svr.setInterceptDir(svr.INTERCEPT_BOTH);
+				}
 			}
 		});
 		buttonGroup.add(isBoth);
