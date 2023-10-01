@@ -925,8 +925,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		btnForward.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				synchronized (intbm) {
-					isC2S.setBackground(UIManager.getColor("CheckBoxMenuItem.selectionBackground"));
-					isS2C.setBackground(UIManager.getColor("CheckBoxMenuItem.selectionBackground"));
+					//was selctionBackground
+					isC2S.setBackground(UIManager.getColor("CheckBoxMenuItem.background"));
+					isS2C.setBackground(UIManager.getColor("CheckBoxMenuItem.background"));
 					intbm.notify();
 
 				}
@@ -2778,17 +2779,17 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				if (isC2S) {
 					if (evt.isTCPMtm())
 						evt.getTCPMtm().forwardC2SRequest(intbm.requestViewer.getMessage());
-					/*
-					 * else
-					 * evt.getUDPMtm().forwardC2SRequest(intbm.requestViewer.getMessage());
-					 */
+					
+					else
+					  evt.getUDPMtm().forwardC2SRequest(intbm.requestViewer.getMessage());
+					 
 				} else {
 					if (evt.isTCPMtm())
 						evt.getTCPMtm().forwardS2CRequest(intbm.requestViewer.getMessage());
-					/*
-					 * else
-					 * evt.getUDPMtm().forwardS2CRequest(intbm.requestViewer.getMessage());
-					 */
+					
+					else
+					  evt.getUDPMtm().forwardS2CRequest(intbm.requestViewer.getMessage());
+					 
 				}
 				if (intbm.requestViewer.getMessage() == origReq)
 					queue.add(new LogEntry(intbm.requestViewer.getMessage(), origReq, evt.getSrcIP(), evt.getSrcPort(),
