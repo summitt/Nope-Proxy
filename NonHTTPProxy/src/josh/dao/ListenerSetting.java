@@ -29,7 +29,7 @@ public class ListenerSetting {
 	 
 	public ListenerSetting(){}
 	 
-	public ListenerSetting(int lport, int sport, String sip, String cert, boolean ssl, boolean udp){
+	public ListenerSetting(int lport, int sport, String sip, String cert, boolean ssl, Boolean udp){
 		this.lport = lport;
 		this.sport = sport;
 		this.sip = sip;
@@ -73,8 +73,8 @@ public class ListenerSetting {
 	public void setSsl(boolean ssl) {
 		this.ssl = ssl;
 	}
-	public boolean isUdp() {
-		if(udp == null){
+	public Boolean isUdp() {
+		if(this.udp == null){
 			return false;
 		}else{
 			return udp;

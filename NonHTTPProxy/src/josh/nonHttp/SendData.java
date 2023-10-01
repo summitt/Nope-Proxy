@@ -125,6 +125,7 @@ public class SendData implements Runnable {
 		event.setData(data);
 		event.setOriginalData(original);
 		event.setDirection(Direction);
+		event.setProtocl("TCP");
 		if (Direction.contains("c2s")) {
 			if (isSSL) {
 				event.setSrcIP(this.getHostandIP(this.sock, true));// ((SSLSocket)this.sock).getInetAddress().getHostAddress());
@@ -160,6 +161,7 @@ public class SendData implements Runnable {
 		ProxyEvent event = new ProxyEvent(this);
 		event.setData(Data);
 		event.setDirection(Direction);
+		event.setProtocl("TCP");
 		if (Direction.contains("c2s")) {
 			if (isSSL) {
 				event.setSrcIP(this.getHostandIP(this.sock, true));// ((SSLSocket)this.sock).getInetAddress().getHostAddress());

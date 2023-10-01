@@ -48,10 +48,16 @@ public class UDPDataPipeline implements Runnable {
         this.modifiedBuffer = buffer.clone();
         this.srcIPString = srcIp.getHostAddress();
         this.dstIPString = dstIp.getHostAddress();
+        this.dstIP = dstIp;
         this.srcPort = srcPort;
         this.dstPort = dstPort;
         this.isC2S = isC2S;
         this.udpServer = udpServer;
+        if(isC2S){
+            this.Name = "c2s";
+        }else{
+            this.Name = "s2c";
+        }
     }
 
     @Override
@@ -147,6 +153,7 @@ public class UDPDataPipeline implements Runnable {
     }
 
     private void updateBufferWithManger(){
+        System.out.println("manglin");
         mangler.reload();
         this.modifiedBuffer = mangler.mangle(this.modifiedBuffer, isC2S);
         SendPyOutput(mangler);
@@ -326,9 +333,10 @@ public class UDPDataPipeline implements Runnable {
 
     private synchronized void NewDataEvent(byte[] modified) {
         ProxyEvent event = new ProxyEvent(this);
+        event.setProtocl("UDP");
         event.setData(modified);
         event.setOriginalData(this.originalBuffer);
-        event.setDirection(this.direction);
+        event.setDirection(this.Name);
         event.setSrcIP(this.srcIPString);
         event.setSrcPort(this.srcPort);
         event.setDstIP(this.dstIPString);
@@ -341,8 +349,9 @@ public class UDPDataPipeline implements Runnable {
 
     private synchronized void Send2Interceptor(byte[] data) {
         ProxyEvent event = new ProxyEvent(this);
+        event.setProtocl("UDP");
         event.setData(data);
-        event.setDirection(this.direction);
+        event.setDirection(this.Name);
         event.setSrcIP(this.srcIPString);
         event.setSrcPort(this.srcPort);
         event.setDstIP(this.dstIPString);

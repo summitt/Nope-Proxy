@@ -169,7 +169,7 @@ public class GenericMiTMServer
 		return this.MangleWithPython;
 	}
 
-	public void setPythonMange(boolean mangle) {
+	public void setPythonMangle(boolean mangle) {
 		this.MangleWithPython = mangle;
 	}
 

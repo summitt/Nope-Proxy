@@ -527,7 +527,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 
 		};
 
-		String header[] = new String[] { "Enable", "Listener", "Server Address", "Server Port", "Cert Host", "SSL","UDP" };
+		String header[] = new String[] { "Enable", "Listener", "Server Address", "Server Port", "Cert Host", "SSL",
+				"UDP" };
 		tbm.setColumnIdentifiers(header);
 
 		tbm.addTableModelListener(new TableModelListener() {
@@ -542,11 +543,13 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						// Check if the port is in use
 						int listport = Integer.parseInt("" + tbm.getValueAt(rowid, 1));
 						Boolean isUDP = (Boolean) tbm.getValueAt(rowid, 6);
+						if (isUDP == null)
+							isUDP = false;
 						System.out.println("UDP is: " + isUDP);
 						if (!isUDP && !GenericMiTMServer.available(listport)) {
 							tbm.setValueAt(false, rowid, 0);
 							Callbacks.printOutput("Port is already in use or port is outside range.");
-						}else if (isUDP && !GenericUDPMiTMServer.available(listport)) {
+						} else if (isUDP && !GenericUDPMiTMServer.available(listport)) {
 							tbm.setValueAt(false, rowid, 0);
 							Callbacks.printOutput("Port is already in use or port is outside range.");
 						} else if (!isUDP && (Boolean) tbm.getValueAt(rowid, 5) && !checkCert()) {
@@ -570,7 +573,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							mtm.ServerPort = Integer.parseInt("" + tbm.getValueAt(rowid, 3));
 							mtm.CertHostName = (String) tbm.getValueAt(rowid, 4);
 							mtm.ServerAddress = (String) tbm.getValueAt(rowid, 2);
-							mtm.setPythonMange(chckbxEnablePythonMangler.isSelected());
+							mtm.setPythonMangle(chckbxEnablePythonMangler.isSelected());
 							mtm.addEventListener(NonHttpUI.this);
 							mtm.addPyEventListener(NonHttpUI.this);
 							if (btnIntercept.getText().endsWith("ON"))
@@ -590,13 +593,12 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							currentListeners.addItem(listport + " - " + mtm.ServerAddress + ":" + mtm.ServerPort);
 
 						} else {
-							System.out.println("ready to set up UDP server");
 							GenericUDPMiTMServer mtm = new GenericUDPMiTMServer((Boolean) tbm.getValueAt(rowid, 5),
 									Callbacks);
 							mtm.ListenPort = listport;
 							mtm.ServerPort = Integer.parseInt("" + tbm.getValueAt(rowid, 3));
 							mtm.ServerAddress = (String) tbm.getValueAt(rowid, 2);
-							mtm.setPythonMange(chckbxEnablePythonMangler.isSelected());
+							mtm.setPythonMangle(chckbxEnablePythonMangler.isSelected());
 							mtm.addEventListener(NonHttpUI.this);
 							mtm.addPyEventListener(NonHttpUI.this);
 							if (btnIntercept.getText().endsWith("ON"))
@@ -608,30 +610,31 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 								mtm.setInterceptDir(mtm.INTERCEPT_S2C);
 							else if (isBoth.isSelected())
 								mtm.setInterceptDir(mtm.INTERCEPT_BOTH);
-
-							// threads.put(mtm.ListenPort, mtm); /// track threads by the listening port
-							udpThreads.put(listport, mtm); /// track threads by the rowid
+							udpThreads.put(listport, mtm);
 							Thread t = new Thread(mtm);
 							t.start();
 							currentListeners.addItem(listport + " - " + mtm.ServerAddress + ":" + mtm.ServerPort);
 
 						}
-					}else if (e.getColumn() == 0) { // delete a server thread
-							int lPort = Integer.parseInt("" + tbm.getValueAt(rowid, 1));
-							boolean isUDP = (Boolean) tbm.getValueAt(rowid, 6);
-							GenericUDPMiTMServer udpMtm = ((GenericUDPMiTMServer) udpThreads.get(lPort));
-							GenericMiTMServer mtm = ((GenericMiTMServer) threads.get(rowid));
-							if (mtm != null && !isUDP) {
-								mtm.KillThreads();
-								threads.remove(lPort);
-								currentListeners
-										.removeItem(mtm.ListenPort + " - " + mtm.ServerAddress + ":" + mtm.ServerPort);
-							} else if (udpMtm != null) {
-								udpMtm.KillThreads();
-								threads.remove(lPort);
-								currentListeners.removeItem(
-										udpMtm.ListenPort + " - " + udpMtm.ServerAddress + ":" + udpMtm.ServerPort);
-							}
+					} else if (e.getColumn() == 0) { // delete a server thread
+						int lPort = Integer.parseInt("" + tbm.getValueAt(rowid, 1));
+						Boolean isUDP = (Boolean) tbm.getValueAt(rowid, 6);
+						if (isUDP == null)
+							isUDP = false;
+
+						GenericUDPMiTMServer udpMtm = ((GenericUDPMiTMServer) udpThreads.get(lPort));
+						GenericMiTMServer mtm = ((GenericMiTMServer) threads.get(rowid));
+						if (mtm != null && !isUDP) {
+							mtm.KillThreads();
+							threads.remove(lPort);
+							currentListeners
+									.removeItem(mtm.ListenPort + " - " + mtm.ServerAddress + ":" + mtm.ServerPort);
+						} else if (udpMtm != null) {
+							udpMtm.KillThreads();
+							udpThreads.remove(lPort);
+							currentListeners.removeItem(
+									udpMtm.ListenPort + " - " + udpMtm.ServerAddress + ":" + udpMtm.ServerPort);
+						}
 					}
 				} else if (e.getType() == e.UPDATE && e.getColumn() == 5) {
 					int rowid = ListTable.getSelectedRow();
@@ -639,9 +642,15 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					int sport = Integer.parseInt("" + tbm.getValueAt(rowid, 3));
 					String cert = (String) tbm.getValueAt(rowid, 4);
 					String sip = (String) tbm.getValueAt(rowid, 2);
-					boolean ssl = (boolean) tbm.getValueAt(rowid, 5);
-					boolean upd = (boolean) tbm.getValueAt(rowid, 6);
-					ListenerSetting ls = new ListenerSetting(lport, sport, sip, cert, !ssl, upd);
+					Boolean ssl = (Boolean) tbm.getValueAt(rowid, 5);
+					Boolean udp = (Boolean) tbm.getValueAt(rowid, 6);
+					if(udp == null)
+						udp = false;
+					else if(udp && ssl){
+						ssl=false;
+						tbm.setValueAt(false, rowid,5);
+					}
+					ListenerSetting ls = new ListenerSetting(lport, sport, sip, cert, !ssl, udp);
 					ListenerDB.updateSSL(ls, ssl);
 				} else if (e.getType() == e.UPDATE && e.getColumn() == 6) {
 					int rowid = ListTable.getSelectedRow();
@@ -649,10 +658,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					int sport = Integer.parseInt("" + tbm.getValueAt(rowid, 3));
 					String cert = (String) tbm.getValueAt(rowid, 4);
 					String sip = (String) tbm.getValueAt(rowid, 2);
-					boolean ssl = (boolean) tbm.getValueAt(rowid, 5);
-					boolean udp = (boolean) tbm.getValueAt(rowid, 6);
-					ListenerSetting ls = new ListenerSetting(lport, sport, sip, cert, ssl, !udp);
-					ListenerDB.updateUDP(ls, udp);
+					Boolean ssl = (Boolean) tbm.getValueAt(rowid, 5);
+					Boolean upd = (Boolean) tbm.getValueAt(rowid, 6);
+					if (upd == null || upd){
+						ssl = false;
+						tbm.setValueAt(false, rowid,5);
+					}
+					ListenerSetting ls = new ListenerSetting(lport, sport, sip, cert, ssl, !upd);
+					ListenerDB.updateUDP(ls, upd);
 				}
 			}
 		});
@@ -719,15 +732,29 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		logTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
 		logTable.setBackground(SystemColor.text);
 		logTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-		logTable.getColumnModel().getColumn(0).setPreferredWidth(50);// index
-		logTable.getColumnModel().getColumn(1).setPreferredWidth(160);// Time
-		logTable.getColumnModel().getColumn(2).setPreferredWidth(550);// Direction
+		logTable.getColumnModel().getColumn(0).setPreferredWidth(60);// index
+		logTable.getColumnModel().getColumn(0).setMaxWidth(75);// index
 
-		logTable.getColumnModel().getColumn(3).setPreferredWidth(150);// Sip
-		logTable.getColumnModel().getColumn(4).setPreferredWidth(60);// Sport
-		logTable.getColumnModel().getColumn(5).setPreferredWidth(150);// dip
-		logTable.getColumnModel().getColumn(6).setPreferredWidth(60);// dport
-		logTable.getColumnModel().getColumn(6).setPreferredWidth(50);// bytes
+		logTable.getColumnModel().getColumn(1).setPreferredWidth(200);// Time
+		logTable.getColumnModel().getColumn(1).setMaxWidth(200);// Time
+
+		logTable.getColumnModel().getColumn(2).setPreferredWidth(50);// Protocol
+		logTable.getColumnModel().getColumn(2).setMaxWidth(50);
+
+		logTable.getColumnModel().getColumn(3).setPreferredWidth(550);// Direction
+		logTable.getColumnModel().getColumn(4).setPreferredWidth(550);// Direction
+		logTable.getColumnModel().getColumn(5).setPreferredWidth(150);// Sip
+
+		logTable.getColumnModel().getColumn(6).setPreferredWidth(60);// Sport
+		logTable.getColumnModel().getColumn(6).setMaxWidth(70);// Sport
+
+		logTable.getColumnModel().getColumn(7).setPreferredWidth(150);// dip
+
+		logTable.getColumnModel().getColumn(8).setPreferredWidth(60);// dport
+		logTable.getColumnModel().getColumn(8).setMaxWidth(70);// Sport
+
+		logTable.getColumnModel().getColumn(9).setPreferredWidth(100);// bytes
+		logTable.getColumnModel().getColumn(9).setMaxWidth(100);// bytes
 
 		JScrollPane logscrollPane = new JScrollPane(logTable);
 		splitPane.setLeftComponent(logscrollPane);
@@ -1586,14 +1613,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		chckbxEnablePythonMangler.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				for (GenericMiTMServer svr : threads.values()) {
-					svr.setPythonMange(chckbxEnablePythonMangler.isSelected());
+					svr.setPythonMangle(chckbxEnablePythonMangler.isSelected());
 					pm.reload();
 				}
-				/*
-				 * for(GenericUDPMiTMServer svr : threads.values()){
-				 * svr.setPythonMange(chckbxEnablePythonMangler.isSelected());
-				 * }
-				 */
+
+				for (GenericUDPMiTMServer svr : udpThreads.values()) {
+					svr.setPythonMangle(chckbxEnablePythonMangler.isSelected());
+				}
+
 			}
 		});
 
@@ -1795,7 +1822,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				 */
 				Vector<Object> vec = new Vector<Object>();
 
-				vec.add(false); //add Enabled
+				vec.add(false); // add Enabled
 				vec.add(LstnPort.getText());
 				vec.add(SvrAddr.getText());
 				vec.add(SvrPort.getText());
@@ -1804,7 +1831,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					vec.add(true);
 				else
 					vec.add(false);
-				vec.add(false); //add isUDP
+				vec.add(false); // add isUDP
 
 				tbm.addRow(vec);
 				int rowInserted = tbm.getRowCount() - 1;
@@ -1977,10 +2004,13 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					String cert = (String) tbm.getValueAt(rowid, 4);
 					String sip = (String) tbm.getValueAt(rowid, 2);
 					boolean ssl = (boolean) tbm.getValueAt(rowid, 5);
-					boolean udp = (boolean) tbm.getValueAt(rowid, 6);
+					Boolean udp = (Boolean) tbm.getValueAt(rowid, 6);
+					if(udp == null){
+						udp=false;
+					}
 					ListenerSetting ls = new ListenerSetting(lPort, sport, sip, cert, ssl, udp);
 					ListenerDB.remove(ls);
-					if(udp){
+					if (udp) {
 						GenericUDPMiTMServer mtm = ((GenericUDPMiTMServer) udpThreads.get(lPort));
 						// GenericUDPMiTMServer mtm = ((GenericUDPMiTMServer)threads.get(lPort));
 						if (mtm != null) {
@@ -1988,7 +2018,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							udpThreads.remove(lPort);
 						}
 
-					}else{
+					} else {
 						GenericMiTMServer mtm = ((GenericMiTMServer) threads.get(lPort));
 						// GenericUDPMiTMServer mtm = ((GenericUDPMiTMServer)threads.get(lPort));
 						if (mtm != null) {
@@ -2199,6 +2229,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			vec.add(ls.getSport());
 			vec.add(ls.getCert());
 			vec.add(ls.isSsl());
+			vec.add(ls.isUdp());
 			tbm.addRow(vec);
 
 		}
@@ -2694,7 +2725,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// Network data to the queue.
 		// timer will process this every 2 seconds and add them to the log.
 		queue.add(new LogEntry(evt.getData(), evt.getOriginalData(), evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(),
-				evt.getDstPort(), evt.getDirection()));
+				evt.getDstPort(), evt.getDirection(), evt.getProtocol()));
 
 	}
 
@@ -2768,10 +2799,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				}
 				if (intbm.requestViewer.getMessage() == origReq)
 					queue.add(new LogEntry(intbm.requestViewer.getMessage(), origReq, evt.getSrcIP(), evt.getSrcPort(),
-							evt.getDstIP(), evt.getDstPort(), evt.getDirection()/* +" - Intercepted - Not Changed" */));
+							evt.getDstIP(), evt.getDstPort(), evt.getDirection(), evt.getProtocol()));
 				else
 					queue.add(new LogEntry(intbm.requestViewer.getMessage(), origReq, evt.getSrcIP(), evt.getSrcPort(),
-							evt.getDstIP(), evt.getDstPort(), "** " + evt.getDirection() + " ** - Edited"));
+							evt.getDstIP(), evt.getDstPort(), "** " + evt.getDirection() + " ** - Edited", evt.getProtocol()));
 
 				// ntbm.fireTableRowsInserted(0, 0);
 				intbm.requestViewer.setMessage(new byte[] {}, true);

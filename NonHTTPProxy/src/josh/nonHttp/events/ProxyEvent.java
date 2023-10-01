@@ -15,7 +15,7 @@ public class ProxyEvent extends EventObject {
 	private String SrcIP;
 	private String DstIP;
 	private Object mtm;
-	private GenericUDPMiTMServer mtmUDP;
+	private String protocol;
 
 	public ProxyEvent(Object arg0) {
 		super(arg0);
@@ -68,13 +68,6 @@ public class ProxyEvent extends EventObject {
 	public void setMtm(Object mtm) {
 		this.mtm = mtm;
 	}
-	/*public GenericUDPMiTMServer getUDPMtm() {
-		return mtmUDP;
-	}
-
-	public void setUDPMtm(GenericUDPMiTMServer mtm) {
-		this.mtmUDP = mtm;
-	}*/
 
 	public int getSrcPort() {
 		return SrcPort;
@@ -114,6 +107,13 @@ public class ProxyEvent extends EventObject {
 
 	public void setOriginalData(byte[] originalData) {
 		OriginalData = originalData;
+	}
+
+	public String getProtocol(){
+		return this.protocol;
+	}
+	public void setProtocl(String protocol){
+		this.protocol = protocol;
 	}
 	
 	

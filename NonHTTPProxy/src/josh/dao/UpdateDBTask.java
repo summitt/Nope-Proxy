@@ -58,7 +58,7 @@ public class UpdateDBTask extends TimerTask{
 			List<LogEntry> updated = new ArrayList<LogEntry>();
 			session.getTransaction().begin();
 			while((le = queue.poll())!= null){
-				Requests dao = new Requests(0, le.requestResponse, le.original, le.SrcIP, le.SrcPort, le.DstIP, le.DstPort, le.Direction, le.time.getTime(), le.Bytes);
+				Requests dao = new Requests(0, le.requestResponse, le.original, le.SrcIP, le.SrcPort, le.DstIP, le.DstPort, le.Direction, le.time.getTime(), le.Bytes, le.protocol);
 				session.saveOrUpdate(dao);
 				le.Index =(long)dao.getId();
 				updated.add(le);

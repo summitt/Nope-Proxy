@@ -6,12 +6,9 @@ import java.net.ConnectException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,17 +31,9 @@ public class GenericUDPMiTMServer
 	public String ServerHostandIP;
 	private boolean killme = false;
 	protected boolean isInterceptOn = false;
-	private int interceptType = 0; // 0=both, 1=c2s, 2=s2c
 	public InterceptData interceptc2s;
 	public InterceptData intercepts2c;
 	public DatagramSocket udpServerSocket = null;
-	Socket udpConnectionSock;
-	Socket udpClientSock;
-	Vector<Thread> threads = new Vector<Thread>();
-	Vector<SendUDPData> sends = new Vector<SendUDPData>();
-	HashMap<SendUDPData, SendUDPData> pairs = new HashMap<SendUDPData, SendUDPData>();
-	HashMap<Integer, Thread> treads2 = new HashMap<Integer, Thread>();
-	boolean isRunning = false;
 	public final int INTERCEPT_C2S = 1;
 	public final int INTERCEPT_S2C = 2;
 	public final int INTERCEPT_BOTH = 0;
@@ -74,7 +63,7 @@ public class GenericUDPMiTMServer
 				udpSocket.close();
 			}
 		}
-
+		System.out.println("Port " + port + " is in use.");
 		return false;
 	}
 
@@ -98,6 +87,7 @@ public class GenericUDPMiTMServer
 	}
 
 	private synchronized void NewDataEvent(ProxyEvent e) {
+		System.out.println(e);
 		ProxyEvent event = e;
 		Iterator i = _listeners.iterator();
 		while (i.hasNext()) {
@@ -126,47 +116,15 @@ public class GenericUDPMiTMServer
 		return this.MangleWithPython;
 	}
 
-	public void setPythonMange(boolean mangle) {
+	public void setPythonMangle(boolean mangle) {
 		this.MangleWithPython = mangle;
-	}
-
-	public void KillThreads() {
-
-		// System.out.println("Number of Data buffer threads is: " + threads.size());
-		/* TODO: testing 9/30
-		for (int i = 0; i < threads.size(); i++) {
-			// System.out.println("Interrrpting Thread");
-			try {
-				((Socket) sends.get(i).sock).shutdownInput();
-				((Socket) sends.get(i).sock).shutdownOutput();
-				((Socket) sends.get(i).sock).close();
-			} catch (SocketException e) {
-				// TODO Auto-generated catch block
-				// e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				// e.printStackTrace();
-			}
-			sends.get(i).killme = true;
-			threads.get(i).interrupt();
-
-		}*/
-
-		try {
-			udpServerSocket.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	@Override
 	public void run() {
 		Callbacks.printOutput("Starting UDP New Server.");
-		this.isRunning = true;
 		if (this.ServerAddress == null || this.ServerPort == 0 | this.ListenPort == 0) {
 			Callbacks.printOutput("Ports and or Addresses are blank");
-			this.isRunning = false;
 			return;
 		}
 		try {
@@ -193,33 +151,29 @@ public class GenericUDPMiTMServer
 
 			while (true && !killme) {
 				try {
-					Callbacks.printOutput("New UDP MiTM Instance Created");
-
-					//Listen for new connections
 					byte[] buffer = new byte[2056];	
 					DatagramPacket udpPacket = new DatagramPacket(buffer, buffer.length);
 					udpServerSocket.receive(udpPacket);
 
 					if(udpPacket.getPort() != this.ServerPort){
-						System.out.println("Got a request from the client");
 						clientAddress = udpPacket.getAddress();
 						clientPort = udpPacket.getPort();
-						//TODO: send to a data pipeline that transofrms and intercepts the data
+
 						UDPDataPipeline pipeline = new UDPDataPipeline(this,buffer,clientAddress,clientPort, serverAddress, ServerPort, true);
+						pipeline.addEventListener(GenericUDPMiTMServer.this);
+						pipeline.addPyEventListener(this);
+						pipeline.addSendClosedEventListener(this);
 						Thread c2s = new Thread(pipeline);
 						c2s.run();
 					}else if(clientPort == -1){
 						System.out.println("Don't have a client port yet");
 					}else{
-						System.out.println("Got a request from the server");
-						//TODO: send to a data pipeline that transofrms and intercepts the data
-						DatagramPacket clientRequest = new DatagramPacket(buffer, buffer.length, clientAddress, clientPort);
-						udpServerSocket.send(clientRequest);
-
 						UDPDataPipeline pipeline = new UDPDataPipeline(this,buffer,serverAddress,ServerPort, clientAddress, clientPort, false);
+						pipeline.addEventListener(GenericUDPMiTMServer.this);
+						pipeline.addPyEventListener(this);
+						pipeline.addSendClosedEventListener(this);
 						Thread s2c = new Thread(pipeline);
 						s2c.run();
-
 					}
 
 				} catch (ConnectException e) {
@@ -230,7 +184,6 @@ public class GenericUDPMiTMServer
 								"Error: Connection Refused to " + this.ServerAddress + ":" + this.ServerPort);
 					else
 						Callbacks.printOutput(e.getMessage());
-					udpConnectionSock.close();
 				}
 
 			}
@@ -241,12 +194,6 @@ public class GenericUDPMiTMServer
 
 		}
 		Callbacks.printOutput("Main Thread Has Died but thats ok.");
-		isRunning = false;
-
-	}
-
-	public boolean isRunning() {
-		return this.isRunning;
 	}
 
 	public void setIntercept(boolean set) {
@@ -293,23 +240,15 @@ public class GenericUDPMiTMServer
 
 	}
 
+	public void KillThreads(){
+		System.out.println("kill upd threads");
+		this.udpServerSocket.close();
+		this.killme = true;
+	}
 
 	@Override
 	public void Closed(SendClosedEvent e) {
-		SendUDPData tmp = (SendUDPData) e.getSource();
-		if (pairs.containsKey(tmp)) {
-			pairs.get(tmp).killme = true;
-			// pairs.remove(tmp);
-
-		} else if (pairs.containsValue(tmp)) {
-			for (SendUDPData key : pairs.keySet()) {
-				if (pairs.get(key).equals(tmp)) {
-					key.killme = true;
-					pairs.remove(key);
-				}
-			}
-		}
-
+		this.killme = true;
 	}
 
 }
