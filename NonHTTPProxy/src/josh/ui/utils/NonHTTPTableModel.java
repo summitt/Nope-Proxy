@@ -42,7 +42,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 	@Override
 	public int getColumnCount()
 	{
-		return 9;
+		return 10;
 	}
 
 	@Override
@@ -55,16 +55,18 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 		case 1:
 			return "Time";
 		case 2:
-			return "Direction - Annotation";
+			return "Proto";
 		case 3:
-			return "Method";
+			return "Direction - Annotation";
 		case 4:
-			return "Source IP";
+			return "Method";
 		case 5:
-			return "Source Port";
+			return "Src IP";
 		case 6:
-			return "Dst IP";
+			return "Src Port";
 		case 7:
+			return "Dst IP";
+		case 8:
 			return "Dst Port";
 		default:
 			return "Bytes";
@@ -77,9 +79,9 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 		switch (columnIndex)
 		{
 			case 0: return Integer.class;
-			case 5: return Integer.class;
-			case 7: return Integer.class;
+			case 6: return Integer.class;
 			case 8: return Integer.class;
+			case 9: return Integer.class;
 			default: return String.class;
 		}
 	}
@@ -99,8 +101,10 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 			case 1:
 				return sdf.format(logEntry.time);
 			case 2:
-				return logEntry.Direction;
+				return logEntry.protocol;
 			case 3:
+				return logEntry.Direction;
+			case 4:
 				if(logEntry.Direction.contains("Repeater"))
 					return "TCP Repeater";
 				else if (logEntry.Direction.contains("Match"))
@@ -113,19 +117,17 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 					return "Intercept";
 				else
 					return "Normal";
-			case 4:
-				return logEntry.SrcIP;
 			case 5:
-				return logEntry.SrcPort;
+				return logEntry.SrcIP;
 			case 6:
-				return logEntry.DstIP;
+				return logEntry.SrcPort;
 			case 7:
-				return logEntry.DstPort;
+				return logEntry.DstIP;
 			case 8:
+				return logEntry.DstPort;
+			case 9:
 				return logEntry.Bytes;
 			
-				
-				
 			default: return null;
 			}
 		}else{

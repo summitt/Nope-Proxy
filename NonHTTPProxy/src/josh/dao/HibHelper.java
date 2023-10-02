@@ -9,14 +9,11 @@ import org.hibernate.cfg.Configuration;
 public class HibHelper {
 	
 
-
 	
 	 private static SessionFactory sessionFactory = buildSessionFactory();
 
 	    private static SessionFactory buildSessionFactory() {
 	    	System.out.println("Built new session factory");
-	    	//java.util.logging.Logger.getLogger("org.hibernate").setLevel(java.util.logging.Level.OFF);
-	    	//java.util.logging.Logger.getLogger("com.mchange").setLevel(java.util.logging.Level.OFF);
 	        try {
 	        	String path = System.getProperty("user.home");
 				String resultFile = path + "/.NoPEProxy/requests.sqlite";
@@ -25,7 +22,6 @@ public class HibHelper {
 				Properties prop= new Properties();
 
 				prop.setProperty("hibernate.dialect", "josh.dao.SQLiteDialect");
- 				//prop.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
 				prop.setProperty("hibernate.connection.driver_class", "org.sqlite.JDBC");
 				prop.setProperty("hibernate.show_sql", "false");
 				prop.setProperty("hibernate.hbm2ddl.auto", "update"); 

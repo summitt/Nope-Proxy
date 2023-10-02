@@ -24,15 +24,18 @@ public class ListenerSetting {
 	private String cert;
 	 @Column(name = "ssl")
 	private boolean ssl;
+	 @Column(name = "udp")
+	private Boolean udp;
 	 
 	public ListenerSetting(){}
 	 
-	public ListenerSetting(int lport, int sport, String sip, String cert, boolean ssl){
+	public ListenerSetting(int lport, int sport, String sip, String cert, boolean ssl, Boolean udp){
 		this.lport = lport;
 		this.sport = sport;
 		this.sip = sip;
 		this.cert = cert;
 		this.ssl = ssl;
+		this.udp = udp;
 	}
 	public int getId() {
 		return id;
@@ -69,6 +72,20 @@ public class ListenerSetting {
 	}
 	public void setSsl(boolean ssl) {
 		this.ssl = ssl;
+	}
+	public Boolean isUdp() {
+		if(this.udp == null){
+			return false;
+		}else{
+			return udp;
+		}
+	}
+	public void setUdp(Boolean udp) {
+		if(udp == null){
+			this.udp = false;
+		}else{
+			this.udp = udp;
+		}
 	}
 	
 

@@ -40,11 +40,13 @@ public class Requests {
 	private String data_str;
 	 @Column(name = "original_str")
 	private String original_str;
+	@Column(name = "protocol")
+	private String protocol;
 	
 	 
     public Requests(){};
 	 
-	public Requests(int Index, byte[] requestResponse, byte[] original, String SrcIp,int SrcPort, String DstIP, int DstPort, String Direction, Long time, int bytes){
+	public Requests(int Index, byte[] requestResponse, byte[] original, String SrcIp,int SrcPort, String DstIP, int DstPort, String Direction, Long time, int bytes, String protocol){
 		this.alt_id = Index;
 		this.data = Base64.getEncoder().encodeToString(requestResponse);
 		this.original =  Base64.getEncoder().encodeToString(original);
@@ -57,6 +59,7 @@ public class Requests {
 		this.bytes = original.length;
 		this.original_str = new String(original); //.replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
 		this.data_str = new String(requestResponse);//.replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
+		this.protocol = protocol;
 		
 		
 	}
@@ -170,6 +173,22 @@ public class Requests {
 
 	public void setOriginal_str(String original_str) {
 		this.original_str = original_str;
+	}
+
+	public String getProtocol(){
+		if(this.protocol == null){
+			return "TCP";
+		}else{
+			return this.protocol;
+		}
+	}
+
+	public void setProtocol(String protocol){
+		if(protocol == null){
+			this.protocol = "TCP";
+		}else{
+			this.protocol = protocol;
+		}
 	}
 	
 	
