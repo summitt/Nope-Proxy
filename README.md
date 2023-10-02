@@ -1,16 +1,17 @@
 <img align="right" style="width:400px" src="Nope.png"/>
 
 # NoPE Proxy
-__A Non HTTP Protocol Extension for Burp Suite__
+__A TCP/UDP Non-HTTP Protocol Extension for Burp Suite__
 ## [Download latest release here](https://github.com/summitt/Burp-Non-HTTP-Extension/releases)
 ## [Manual and Guides here](https://github.com/summitt/Burp-Non-HTTP-Extension/wiki)
 *Contact: @Null0perat0r@defcon.social*
 
 
 ## Introduction
-This burp extension adds two new features to BurpSuite.
- 1.	A configurable DNS server. This will route all DNS requests to Burp or preconfigured hosts. It makes it easier to send mobile or thick client traffic to Burp. You need to create invisible proxy listeners in BurpSuite for the Burp to intercept HTTP traffic or you can use the second feature of this extension to intercept binary/non-http protocols.
- 2.	A Non-HTTP MiTM Intercepting proxy. This extension allows you to create multiple listening ports that can MiTM server side services. It also uses Burp's CA cert so that if the browser or mobile device is already configured to access SSL/TLS requests using this cert then the encrypted binary protocols will be able to connect without generating errors too. It also provides the ability to automatically match and replace hex or strings as they pass through the proxy or you can use custom python code to manipulate the traffic.
+This burp extension adds three main features to BurpSuite.
+ 1. Interceptors for TCP and UDP traffic. 
+ 2.	A configurable DNS server. This will route all DNS requests to Burp or preconfigured hosts. It makes it easier to send mobile or thick client traffic to Burp. You need to create invisible proxy listeners in BurpSuite for the Burp to intercept HTTP traffic or you can use the second feature of this extension to intercept binary/non-http protocols.
+ 3.	A Non-HTTP MiTM Intercepting proxy. This extension allows you to create multiple listening ports that can MiTM server side services. It also uses Burp's CA cert so that if the browser or mobile device is already configured to access SSL/TLS requests using this cert then the encrypted binary protocols will be able to connect without generating errors too. It also provides the ability to automatically match and replace hex or strings as they pass through the proxy or you can use custom python code to manipulate the traffic.
  ![](http://imgur.com/X6xYsq8.png)
 
 ## DNS Server Configuration
@@ -23,7 +24,7 @@ The DNS server automatically starts with the IP address of the last interface yo
 The Custom Hosts File is not related at all to your normal hosts file and will over ride it. If the ‘Use DNS Response IP’ checkbos is checked (default) then the extension will resolve all hosts not in the Custom hosts file to which ever IP address is set in the ‘DNS Response IP’ input box. If this box is not checked then the extension will resolve the Real IP address unless it has been overridden in the ‘Custom Hosts File’
 
 ## Port Monitoring
-Nope Proxy has a port monitor that will only display tcp ports that a remote client is attempting to connect on. This combined with the DNS history can help you find which hosts and ports a mobile app or thin client is attempting to contact so that you can create interceptors for this traffic and proxy it to the real servers. 
+Nope Proxy has a port monitor that will only display tcp and udp ports that a remote client is attempting to connect on. This combined with the DNS history can help you find which hosts and ports a mobile app or thin client is attempting to contact so that you can create interceptors for this traffic and proxy it to the real servers. 
 
 ## Non-HTTP MiTM proxy
 
@@ -36,6 +37,7 @@ This non-HTTP proxy has several features built in.
 - Match and replace rules support both hex and string replacement. 
 - Manual Interception binary protocols and change them before sending them back to the server or client. Just like the normal Burp proxy but with binary streams.
 - Python Code can be used instead of the normal Match and Replace Rules for more advancing mangling of requests and responses.
+- Use python code to reformat requests in history without changing outgoing or incomming requests. (e.g. Convert protobuf to JSON or human readable formats without modifying the incomming or outgoing traffic)
  
  
 ## TCP Repeater
@@ -118,6 +120,14 @@ Now we use the pre and post interceptor functions to make it easier to modify in
 Below is an example of the now Human Readable and Editable Protobufs.
 
 ![](NonHTTPProxy/screenshots/Post%20Format.PNG)
+
+
+### Upcomming features
+- UDP repeater
+- Swithes in the python manger for TCP or UDP request only modification
+- Ability to decrypted encrypted UDP traffic like QUIC and other protocols
+- Ability to auto sense encrypted traffic so it can better decode XMPP, SSH, SFTP, etc. 
+
 
 
  
