@@ -12,6 +12,8 @@ import javax.swing.UIManager;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import org.hibernate.Session;
+import org.python.core.packagecache.SysPackageManager;
+
 import burp.IMessageEditor;
 import jiconfont.icons.Elusive;
 import jiconfont.swing.IconFontSwing;
@@ -103,7 +105,10 @@ public class Table extends JTable
 			Border inside = new EmptyBorder(0, 1, 0, 1);
 			Border highlight = new CompoundBorder(outside, inside);
             JComponent jc = (JComponent)c;*/
-            
+            if(log.size() == 0){
+                return c;
+            }
+
             int r = this.convertRowIndexToModel(row);
             if( super.isRowSelected(row)){
             	c.setBackground(new Color(52, 73, 94));
