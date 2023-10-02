@@ -81,7 +81,9 @@ You could also perform the same replacement as hex using the following rule:
 ```
 
 ## Python Mangler
-The previous example if great for quickly fuzzing the request but more complicated examples may require actual coding. The Python Mangler was built to provide fare more control of the requests and responses. You may even be able to import a library to extract the data into a more easily editable form and covert it back before sending to the server. The PyManger must have at the minimum the following structure. 
+The previous example is great for quickly fuzzing the request but more complicated examples may require actual coding. The Python Mangler was built to provide far more control of the requests and responses. You can import a library to extract the data into a more easily editable form and covert it back before sending to the server. The PyManger must have at the minimum the following structure. 
+
+You can download community [Nope Scripts here](https://github.com/summitt/Nope-Proxy-Scripts) 
 
 ```
 def mangle(input, isC2S):
