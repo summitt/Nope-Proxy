@@ -146,9 +146,17 @@ public class LogEntry
     	
     	Session s = HibHelper.getSessionFactory().openSession();
     	List<Requests> r = (List<Requests>)s
-    			.createQuery("from Requests where original_str like :term or data_str like :term2 order by id desc")
+    			.createQuery(
+				"from Requests where original_str like :term "
+				+ "or data_str like :term2 "
+				+ "or direction like :term "
+				+ "or srcport = :term3 "
+				+ "or dstport = :term3  "
+				+ "or direction like :term2 "
+				+ "or protocol like :term2 order by id desc")
     			.setParameter("term", "%"+query+"%")
     			.setParameter("term2", "%"+query+"%")
+    			.setParameter("term3", query)
     			.list();
     	LinkedList<LogEntry> list = new LinkedList<LogEntry>();
     	for(Requests q : r){
