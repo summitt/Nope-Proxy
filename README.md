@@ -6,7 +6,7 @@ __A TCP/UDP Non-HTTP Protocol Extension for Burp Suite__
 ## [Manual and Guides Here](https://github.com/summitt/Burp-Non-HTTP-Extension/wiki)
 ## [Community Nope Scripts](https://github.com/summitt/Nope-Proxy-Scripts)
 ## [Support](https://www.patreon.com/null0perat0r)
-## Follow: @Null0perat0r@defcon.social
+## [Follow](https://defcon.social/@Null0perat0r)
 
 
 ## Introduction
