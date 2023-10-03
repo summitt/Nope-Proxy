@@ -238,8 +238,12 @@ public class UDPListener implements Runnable{
 						System.out.println(returnIpAddress);
         				override=true;
         				break;
-            		}
-            	}
+            		}else if(line.startsWith("$nopeip$")){
+						System.out.println("asdfasdf");
+            			returnIpAddress = this.ADDRESS[0] + "." + this.ADDRESS[1] + "." +this.ADDRESS[2] + "." +this.ADDRESS[3];
+        				override=true;
+        				break;
+				}}
             }
             
             
