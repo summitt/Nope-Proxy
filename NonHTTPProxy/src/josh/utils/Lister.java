@@ -16,7 +16,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 
 import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PacketListener;
@@ -28,17 +27,11 @@ import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.packet.IpV4Packet;
-import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TcpPacket;
 import org.pcap4j.packet.UdpPacket;
-import org.pcap4j.packet.EthernetPacket;
-import org.pcap4j.util.NifSelector;
 
-import josh.utils.events.DNSEvent;
-import josh.utils.events.DNSTableEventListener;
 import josh.utils.events.ConnectionAttemptListener;
 import josh.utils.events.PortConnectEvt;
-import josh.utils.events.UDPEventListener;
 
 public class Lister implements Runnable {
 	private String IP;
@@ -71,8 +64,8 @@ public class Lister implements Runnable {
 				return;
 			}
 			handle = nif.openLive(65536, PromiscuousMode.PROMISCUOUS, 10);
-			System.out.println("(tcp or udp) and ip.dst == " + this.IP);
-			handle.setFilter("(tcp or udp) and dst net " + this.IP, BpfCompileMode.OPTIMIZE);
+			System.out.println("(tcp or udp) and not dns and ip.dst == " + this.IP);
+			handle.setFilter("(tcp or udp) and !port 53 and dst net " + this.IP, BpfCompileMode.OPTIMIZE);
 
 			PacketListener listener = new PacketListener() {
 				@Override
