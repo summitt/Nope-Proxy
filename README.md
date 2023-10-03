@@ -4,7 +4,7 @@
 
 <img align="right" style="width:400px; margin-top: 70px" src="Nope.png"/>
 
-__A TCP/UDP Non-HTTP Protocol Extension for Burp Suite__
+__A TCP/UDP Non-HTTP Proxy Extension for Burp Suite__
 ## [Download Latest Release Here](https://github.com/summitt/Burp-Non-HTTP-Extension/releases)
 ## [Manual and Guides Here](https://github.com/summitt/Burp-Non-HTTP-Extension/wiki)
 ## [Community Nope Scripts](https://github.com/summitt/Nope-Proxy-Scripts)
