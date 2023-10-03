@@ -116,10 +116,11 @@ public class Table extends JTable
              	c.setBackground(new Color(0xf1,0xc4,0x0f));
             }else if( log.get(r).Direction.contains("Repeater")){
 	        	c.setBackground( new Color(0xF3,0xFA,0xB6));
-	        }else if(log.get(r).Direction.contains("Python")){
+	        /*}else if(log.get(r).Direction.contains("Python")){
             	//c.setBackground( new Color(0x2e,0xcc, 0x71));
 	        	
 	        	c.setBackground( new Color(0xCB,0xE3,0x2D));
+                */
 	        }else if( log.get(r).Direction.contains("Match")){
 	        	c.setBackground( new Color(149, 165, 166));
 	        }else if((row%2)==0){
