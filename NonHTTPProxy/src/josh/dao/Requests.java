@@ -1,5 +1,7 @@
 package josh.dao;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import javax.persistence.Column;
@@ -57,8 +59,8 @@ public class Requests {
 		this.direction = Direction;
 		this.date = time;
 		this.bytes = original.length;
-		this.original_str = new String(original); //.replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
-		this.data_str = new String(requestResponse);//.replaceAll("[^a-zA-Z0-9~!@#$%^&*()_+`\\-=,./<>?\\s]", "");
+		this.original_str =new String(original).replaceAll("[^\\x00-\\x7F]", "");
+		this.data_str = new String(requestResponse).replaceAll("[^\\x00-\\x7F]", "");
 		this.protocol = protocol;
 		
 		
