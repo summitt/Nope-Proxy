@@ -1,4 +1,4 @@
-<img align="right" style="width:400px;margin-top 30px" src="Nope.png"/>
+<img align="right" style="width:400px; margin-top: 30px" src="Nope.png"/>
 
 # NoPE Proxy
 __A TCP/UDP Non-HTTP Protocol Extension for Burp Suite__
