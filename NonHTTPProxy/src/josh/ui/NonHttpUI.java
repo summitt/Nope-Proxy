@@ -2246,14 +2246,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		gbl_About.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		About.setLayout(gbl_About);
 
-		JLabel lblNopeProxy = new JLabel("NOn Http Protocol Extending (NoPE) Proxy");
+		JLabel lblNopeProxy = new JLabel("NOn-http Proxy Extension (NoPE)");
 		GridBagConstraints gbc_lblNopeProxy = new GridBagConstraints();
 		gbc_lblNopeProxy.insets = new Insets(0, 0, 5, 5);
 		gbc_lblNopeProxy.gridx = 1;
 		gbc_lblNopeProxy.gridy = 1;
 		About.add(lblNopeProxy, gbc_lblNopeProxy);
 
-		JLabel lblVersion = new JLabel("Version 1.5.2");
+		JLabel lblVersion = new JLabel("Version 1.8.0");
 		GridBagConstraints gbc_lblVersion = new GridBagConstraints();
 		gbc_lblVersion.insets = new Insets(0, 0, 5, 5);
 		gbc_lblVersion.gridx = 1;
