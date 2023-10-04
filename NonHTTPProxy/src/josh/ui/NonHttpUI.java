@@ -112,6 +112,7 @@ import javax.swing.JTextArea;
 import javax.swing.JSplitPane;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
+import burp.IExtensionStateListener;
 import burp.IHttpService;
 import burp.IMessageEditor;
 import burp.IMessageEditorController;
@@ -148,7 +149,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 
 @SuppressWarnings("serial")
-public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEventListener, PythonOutputEventListener {
+public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEventListener, PythonOutputEventListener, IExtensionStateListener  {
 
 	public IBurpExtenderCallbacks Callbacks;
 	public IExtensionHelpers Helpers;
@@ -225,6 +226,10 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// Setup Saved Configs
 		AUTOSTART = Boolean.parseBoolean(this.getProperties("autoStart", "false"));
 		IFNUM = Integer.parseInt(this.getProperties("interface", "0"));
+		// #####################################################################################
+		// Register Unload Callback
+		Callbacks.registerExtensionStateListener(this);
+
 
 		// #####################################################################################
 		// Create the 3 tabs
@@ -545,7 +550,6 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						Boolean isUDP = (Boolean) tbm.getValueAt(rowid, 6);
 						if (isUDP == null)
 							isUDP = false;
-						System.out.println("UDP is: " + isUDP);
 						if (!isUDP && !GenericMiTMServer.available(listport)) {
 							tbm.setValueAt(false, rowid, 0);
 							Callbacks.printOutput("Port is already in use or port is outside range.");
@@ -618,13 +622,17 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						}
 					} else if (e.getColumn() == 0) { // delete a server thread
 						int lPort = Integer.parseInt("" + tbm.getValueAt(rowid, 1));
+						System.out.println("Stop Server");
 						Boolean isUDP = (Boolean) tbm.getValueAt(rowid, 6);
 						if (isUDP == null)
 							isUDP = false;
+						
 
+						System.out.println(isUDP);
 						GenericUDPMiTMServer udpMtm = ((GenericUDPMiTMServer) udpThreads.get(lPort));
-						GenericMiTMServer mtm = ((GenericMiTMServer) threads.get(rowid));
+						GenericMiTMServer mtm = ((GenericMiTMServer) threads.get(lPort));
 						if (mtm != null && !isUDP) {
+							System.out.println("Killing Threads");
 							mtm.KillThreads();
 							threads.remove(lPort);
 							currentListeners
@@ -2704,6 +2712,16 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		}
 
 	}
+	@SuppressWarnings("rawtypes")
+	private synchronized void StopDNS() {
+		Iterator i = _listeners.iterator();
+
+		while (i.hasNext()) {
+			DNSEvent evt = new DNSEvent(this);
+			((DNSConfigListener) i.next()).DNSStop(evt);
+		}
+
+	}
 
 	public synchronized void addEventListener(ProxyEventListener listener) {
 		_listeners.add(listener);
@@ -2955,5 +2973,16 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 
 	protected JPanel getIntercept() {
 		return Intercept;
+	}
+
+	@Override
+	public void extensionUnloaded() {
+		this.udpThreads.forEach( (_key, thread) -> {
+			thread.KillThreads();
+		});
+		this.threads.forEach( (_key, thread) -> {
+			thread.KillThreads();
+		});
+		this.StopDNS();
 	}
 }

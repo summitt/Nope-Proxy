@@ -108,6 +108,15 @@ import burp.*;
 									mCallbacks.issueAlert("DNSMiTM: DNS is Shutting Down");
 								}
 							}
+
+							@Override
+							public void DNSStop(DNSEvent e) {
+								if(dnsConfig.isDNSRunning){
+									ListThread.interrupt();
+									list.StopServer();
+									mCallbacks.issueAlert("DNSMiTM: DNS is Shutting Down");
+								}
+							}
 								
 						});
 						

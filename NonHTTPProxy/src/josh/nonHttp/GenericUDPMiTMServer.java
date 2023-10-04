@@ -241,7 +241,6 @@ public class GenericUDPMiTMServer
 	}
 
 	public void KillThreads(){
-		System.out.println("kill upd threads");
 		this.udpServerSocket.close();
 		this.killme = true;
 	}
