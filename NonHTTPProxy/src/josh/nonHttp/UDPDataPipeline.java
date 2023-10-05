@@ -80,13 +80,13 @@ public class UDPDataPipeline implements Runnable {
             this.updateBufferWithInterceptors();
         }else{
             // Manual Intercepts was not enabled so we treat it like a normal event.
-            if (this.udpServer.isPythonOn()) {
+            /*if (this.udpServer.isPythonOn()) {
                 ///This will format only and not chang the actual datqa
                 byte [] updated = this.mangler.formatOnly(this.modifiedBuffer, this.isC2S);
                 NewDataEvent(updated);
-            }else{
+            }else{*/
                 NewDataEvent(this.modifiedBuffer);
-            }
+            //}
         }
 
         try {
@@ -341,6 +341,7 @@ public class UDPDataPipeline implements Runnable {
         event.setSrcPort(this.srcPort);
         event.setDstIP(this.dstIPString);
         event.setDstPort(this.dstPort);
+        event.setMtm(this.udpServer);
         Iterator i = _listeners.iterator();
         while (i.hasNext()) {
             ((ProxyEventListener) i.next()).DataReceived(event);

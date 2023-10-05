@@ -126,6 +126,7 @@ public class SendData implements Runnable {
 		event.setOriginalData(original);
 		event.setDirection(Direction);
 		event.setProtocl("TCP");
+		event.setMtm(this.SERVER);
 		if (Direction.contains("c2s")) {
 			if (isSSL) {
 				event.setSrcIP(this.getHostandIP(this.sock, true));// ((SSLSocket)this.sock).getInetAddress().getHostAddress());
@@ -378,21 +379,21 @@ public class SendData implements Runnable {
 
 					} else {
 						// Data was not manually intercepted so we treat it like a normal event.
-						if (SERVER.isPythonOn()) {
+						/*if (SERVER.isPythonOn()) {
 							byte [] updated = pm.formatOnly(tmp, isC2S);
 							NewDataEvent(updated, original, this.Name);
-						}else{
+						}else{*/
 							NewDataEvent(tmp, original, this.Name);
-						}
+						//}
 					}
 				} else {
 					// Manual Intercepts was not enabled so we treat it like a normal event.
-					if (SERVER.isPythonOn()) {
+					/*if (SERVER.isPythonOn()) {
 						byte [] updated = pm.formatOnly(tmp, isC2S);
 						NewDataEvent(updated, original, this.Name);
-					}else{
+					}else{*/
 						NewDataEvent(tmp, original, this.Name);
-					}
+					//}
 				}
 
 				// Write the data back to the socket

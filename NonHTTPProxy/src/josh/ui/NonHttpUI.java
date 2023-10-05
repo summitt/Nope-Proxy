@@ -1697,8 +1697,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 
 						@Override
 						public void ConnectAttempt(PortConnectEvt pkt) {
-							BurpTabs.setIconAt(4,
-									IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC, 20, NopeRed));
+							//BurpTabs.setIconAt(4,
+								//	IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC, 20, NopeRed));
 							Vector<Object> vec = new Vector<Object>();
 
 							vec.add(model.getRowCount());
@@ -1708,14 +1708,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							vec.add(4, pkt.getProto());
 							vec.add(5, pkt.getService());
 							model.insertRow(0, vec);
-							Timer t = new Timer();
+							/*Timer t = new Timer();
 							t.schedule(new TimerTask() {
 								@Override
 								public void run() {
 									BurpTabs.setIconAt(4,
 											IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC, 20, NopePurple));
 								}
-							}, 2 * 1000);
+							}, 2 * 1000);*/
 
 						}
 
@@ -2736,6 +2736,29 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	public void DataReceived(ProxyEvent evt) {
 		// Network data to the queue.
 		// timer will process this every 2 seconds and add them to the log.
+		byte [] formated = evt.getData();
+		System.out.println("Data Received");
+		System.out.println(this.chckbxEnablePythonMangler.isSelected());
+		if(this.chckbxEnablePythonMangler.isSelected()){
+			boolean isC2s = true;
+			if(evt.getDirection().contains("s2c")){
+				isC2s = false;
+			}
+			try {
+				PythonMangler mangler = new PythonMangler();
+				mangler.setPyCode(this.pythonText.getText());
+				mangler.reload();
+				formated = mangler.formatOnly(evt.getData(),isC2s);
+				if(formated != evt.getData() && !evt.getDirection().contains("formated")){
+					System.out.println("formatOnly ran");
+					evt.setData(formated);
+					evt.setDirection(evt.getDirection() + " - formated ");
+				}
+			}catch(Exception ex){
+				ex.printStackTrace();
+			}
+				
+		}
 		queue.add(new LogEntry(evt.getData(), evt.getOriginalData(), evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(),
 				evt.getDstPort(), evt.getDirection(), evt.getProtocol()));
 

@@ -177,6 +177,7 @@ public class PythonMangler {
 		
 		byte[]original = input;
 		try{
+
 			//interpreter.exec(pyCode);
 			PyObject someFunc = interpreter.get("formatOnly");
 			
