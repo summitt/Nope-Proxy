@@ -92,7 +92,6 @@ public class ListenerDB
     	Session s = HibHelper.getSessionFactory().openSession();
     	List<ListenerSetting> list = (List<ListenerSetting>)s.createQuery("from ListenerSetting").list();
 		System.out.println("Reading DB");
-		System.out.println(list.get(0).isUdp());
     	s.close();
     	return list;
     	

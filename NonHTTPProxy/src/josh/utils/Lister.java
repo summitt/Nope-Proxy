@@ -38,6 +38,7 @@ public class Lister implements Runnable {
 	private ExecutorService pool;
 	private PcapHandle handle;
 	private HashMap<String, String> portsFound = new HashMap<String, String>();
+	private ArrayList<String> ephemeralPorts = new ArrayList<String>();
 
 	public Lister(String IP) {
 		this.IP = IP;
@@ -64,15 +65,23 @@ public class Lister implements Runnable {
 				return;
 			}
 			handle = nif.openLive(65536, PromiscuousMode.PROMISCUOUS, 10);
-			System.out.println("(tcp or udp) and not dns and ip.dst == " + this.IP);
-			handle.setFilter("(tcp or udp) and !port 53 and dst net " + this.IP, BpfCompileMode.OPTIMIZE);
+			handle.setFilter("(tcp or udp) and !port 53 and !port 5353 and dst net " + this.IP, BpfCompileMode.OPTIMIZE);
 
 			PacketListener listener = new PacketListener() {
 				@Override
 				public void gotPacket(Packet packet) {
-					TcpPacket tcp = packet.get(TcpPacket.class);
-					UdpPacket udp = packet.get(UdpPacket.class);
+					boolean isUDP = packet.contains(UdpPacket.class);
+					boolean isTCP = packet.contains(TcpPacket.class);
 					IpV4Packet ip = packet.get(IpV4Packet.class);
+					TcpPacket tcp = null; 
+					UdpPacket udp = null; 
+					if(isUDP){
+						udp = packet.get(UdpPacket.class);
+					}else if(isTCP){
+						tcp = packet.get(TcpPacket.class);
+
+					}
+					
 
 					if ((udp == null && tcp == null) || ip == null)
 						return;
@@ -84,16 +93,22 @@ public class Lister implements Runnable {
 					String service = "";
 					int destPort=-1;
 
-					if (tcp != null && tcp.getHeader().getSyn() && !tcp.getHeader().getAck()) {
+					if (!isUDP && tcp.getHeader().getSyn() && !tcp.getHeader().getAck()) {
 						key += tcp.getHeader().getDstPort().valueAsInt() + ":" + proto;
 						service = tcp.getHeader().getDstPort().name();
 						destPort = tcp.getHeader().getDstPort().valueAsInt();
 					}
-					else if (udp != null) {
+					else if (isUDP && udp.getHeader().getDstPort().valueAsInt()<=10000) {
 						proto= "UDP";
 						key += udp.getHeader().getDstPort().valueAsInt() + ":" + proto;
 						service = udp.getHeader().getDstPort().name();
 						destPort = udp.getHeader().getDstPort().valueAsInt();
+						System.out.println(udp.getHeader() + " " 
+						+ udp.getHeader().getDstPort() + " "
+						+ ip.getHeader().getSrcAddr().getHostAddress() + " "
+						+ ip.getHeader().getDstAddr().getHostAddress());
+					}else{
+						return;
 					}
 
 					if ((portsFound.containsKey(key) && portsFound.get(key).equals(time)) || destPort == -1 )
