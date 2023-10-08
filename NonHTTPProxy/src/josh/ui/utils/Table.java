@@ -142,6 +142,7 @@ public class Table extends JTable {
         try {
             super.isRowSelected(row);
 
+
             // c.setBackground(Color.cyan);
             /*
              * Border outside = new MatteBorder(0, 1, 0, 1, Color.gray);

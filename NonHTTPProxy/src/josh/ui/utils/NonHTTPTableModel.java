@@ -101,7 +101,7 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 					case 2:
 						return logEntry.protocol;
 					case 3:
-						return logEntry.Direction;
+						return logEntry.Direction.replace("c2s", "Client \u27F9 Server").replace("s2c", "Server \u27F9 Client");
 					case 4:
 						if (logEntry.Direction.contains("Repeater"))
 							return "TCP Repeater";
@@ -109,6 +109,8 @@ public class NonHTTPTableModel extends AbstractTableModel implements IMessageEdi
 							return "Match";
 						else if (logEntry.Direction.contains("mangle"))
 							return "Mangle";
+						else if (logEntry.Direction.contains("formated"))
+							return "formatOnly";
 						else if (logEntry.Direction.contains("format"))
 							return "Pre/Post Intercept";
 						else if (logEntry.Direction.contains("**"))
