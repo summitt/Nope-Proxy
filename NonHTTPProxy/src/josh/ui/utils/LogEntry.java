@@ -22,12 +22,13 @@ public class LogEntry
     public Long Index;
     public byte [] original; 
 	public String protocol = "TCP";
+	public String color ="";
 
 
     public LogEntry(){
     }
     
-    public LogEntry(byte[] requestResponse, byte[] original, String SrcIp,int SrcPort, String DstIP, int DstPort, String Direction, String Protocol)
+    public LogEntry(byte[] requestResponse, byte[] original, String SrcIp,int SrcPort, String DstIP, int DstPort, String Direction, String Protocol, String color)
     {
     	
         this.time = Calendar.getInstance().getTime();
@@ -40,11 +41,12 @@ public class LogEntry
         this.Direction = Direction;
         this.Bytes = original.length;
 		this.protocol = Protocol;
+		this.color = color;
 
         
     }
     
-    public LogEntry(Long Index, String SrcIp,int SrcPort, String DstIP, int DstPort, String Direction, Long time, int bytes, String protocol)
+    public LogEntry(Long Index, String SrcIp,int SrcPort, String DstIP, int DstPort, String Direction, Long time, int bytes, String protocol, String color)
     {
 
     	this.Index = Index;
@@ -56,6 +58,7 @@ public class LogEntry
         this.Direction = Direction;
         this.Bytes = bytes;
 		this.protocol = protocol;
+		this.color = color;
        
         
     }
@@ -81,6 +84,27 @@ public class LogEntry
     	
     	
     }
+	public void delete(){
+    	Session session = HibHelper.getSessionFactory().openSession();
+		session.getTransaction().begin();
+    	session.createQuery("delete from Requests where id = :id")
+			.setParameter("id", this.Index.intValue())
+			.executeUpdate();
+    	session.getTransaction().commit();
+    	session.close();
+
+	}
+	public void updateColor(String color){
+		this.color = color;
+    	Session session = HibHelper.getSessionFactory().openSession();
+		session.getTransaction().begin();
+    	session.createQuery("update Requests set color = :color where id = :id")
+			.setParameter("color", color)
+			.setParameter("id", this.Index.intValue())
+			.executeUpdate();
+    	session.getTransaction().commit();
+    	session.close();
+	}
     private  Session session;
     public void init(){
     	session = HibHelper.getSessionFactory().openSession();
@@ -133,34 +157,40 @@ public class LogEntry
     	List<Requests> r = (List<Requests>)s.createQuery("from Requests order by id desc").list();
     	LinkedList<LogEntry> list = new LinkedList<LogEntry>();
     	for(Requests q : r){
-    		list.add(new LogEntry((long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes(), q.getProtocol()));
-    		//list.add(new LogEntry(q.getData(), q.getOriginal(), (long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes()));
+    		list.add(new LogEntry((long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes(), q.getProtocol(), q.getColor()));
     	}
     	s.close();
     	return list;
     	
     }
     
-    public static LinkedList<LogEntry>searchDB(String query){
-    	//HibHelper.getSessionFactory().openSession();
+    public static LinkedList<LogEntry>searchDB(String query, boolean showHighlighted){
+
+		String showHighlightedQuery = "";
+		if(showHighlighted){
+			showHighlightedQuery = " and (color IS NOT NULL and color != 'clear' and color != 'white') ";
+		}
     	
     	Session s = HibHelper.getSessionFactory().openSession();
     	List<Requests> r = (List<Requests>)s
     			.createQuery(
-				"from Requests where original_str like :term "
+				"from Requests where (original_str like :term "
 				+ "or data_str like :term2 "
 				+ "or direction like :term "
 				+ "or srcport = :term3 "
 				+ "or dstport = :term3  "
 				+ "or direction like :term2 "
-				+ "or protocol like :term2 order by id desc")
+				+ "or protocol like :term2) "
+				+ showHighlightedQuery
+				+ "order by id desc")
     			.setParameter("term", "%"+query+"%")
     			.setParameter("term2", "%"+query+"%")
     			.setParameter("term3", query)
     			.list();
+
     	LinkedList<LogEntry> list = new LinkedList<LogEntry>();
     	for(Requests q : r){
-    		list.add(new LogEntry((long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes(), q.getProtocol()));
+    		list.add(new LogEntry((long)q.getId(), q.getSrcIp(), q.getSrcPort(), q.getDstIp(), q.getDstPort(), q.getDirection(),q.getDate(), q.getBytes(), q.getProtocol(), q.getColor()));
     	}
     	s.close();
     	return list;

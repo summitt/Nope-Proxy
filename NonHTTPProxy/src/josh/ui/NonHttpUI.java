@@ -2,11 +2,10 @@ package josh.ui;
 
 import javax.swing.JPanel;
 
-import javax.swing.border.LineBorder;
-import javax.swing.ImageIcon;
 import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -40,7 +39,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -56,20 +54,14 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaUI;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -86,10 +78,12 @@ import josh.nonHttp.GenericUDPMiTMServer;
 import josh.nonHttp.PythonMangler;
 import josh.nonHttp.events.ProxyEvent;
 import josh.nonHttp.events.ProxyEventListener;
+import josh.ui.utils.ColoredMenuItem;
 import josh.ui.utils.ListenerDB;
 import josh.ui.utils.LogEntry;
 import josh.ui.utils.NonHTTPTableModel;
 import josh.ui.utils.Table;
+import josh.ui.utils.Support;
 import josh.utils.Lister;
 import josh.utils.PayloadAnalysis;
 import josh.utils.SharedBoolean;
@@ -103,6 +97,8 @@ import josh.utils.events.PythonOutputEventListener;
 import josh.utils.events.ConnectionAttemptListener;
 
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import java.awt.event.KeyAdapter;
@@ -149,7 +145,8 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 
 @SuppressWarnings("serial")
-public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEventListener, PythonOutputEventListener, IExtensionStateListener  {
+public class NonHttpUI extends JPanel
+		implements ProxyEventListener, DNSTableEventListener, PythonOutputEventListener, IExtensionStateListener {
 
 	public IBurpExtenderCallbacks Callbacks;
 	public IExtensionHelpers Helpers;
@@ -229,7 +226,6 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// #####################################################################################
 		// Register Unload Callback
 		Callbacks.registerExtensionStateListener(this);
-
 
 		// #####################################################################################
 		// Create the 3 tabs
@@ -626,7 +622,6 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 						Boolean isUDP = (Boolean) tbm.getValueAt(rowid, 6);
 						if (isUDP == null)
 							isUDP = false;
-						
 
 						System.out.println(isUDP);
 						GenericUDPMiTMServer udpMtm = ((GenericUDPMiTMServer) udpThreads.get(lPort));
@@ -652,11 +647,11 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					String sip = (String) tbm.getValueAt(rowid, 2);
 					Boolean ssl = (Boolean) tbm.getValueAt(rowid, 5);
 					Boolean udp = (Boolean) tbm.getValueAt(rowid, 6);
-					if(udp == null)
+					if (udp == null)
 						udp = false;
-					else if(udp && ssl){
-						ssl=false;
-						tbm.setValueAt(false, rowid,5);
+					else if (udp && ssl) {
+						ssl = false;
+						tbm.setValueAt(false, rowid, 5);
 					}
 					ListenerSetting ls = new ListenerSetting(lport, sport, sip, cert, !ssl, udp);
 					ListenerDB.updateSSL(ls, ssl);
@@ -668,9 +663,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					String sip = (String) tbm.getValueAt(rowid, 2);
 					Boolean ssl = (Boolean) tbm.getValueAt(rowid, 5);
 					Boolean upd = (Boolean) tbm.getValueAt(rowid, 6);
-					if (upd == null || upd){
+					if (upd == null || upd) {
 						ssl = false;
-						tbm.setValueAt(false, rowid,5);
+						tbm.setValueAt(false, rowid, 5);
 					}
 					ListenerSetting ls = new ListenerSetting(lport, sport, sip, cert, ssl, !upd);
 					ListenerDB.updateUDP(ls, upd);
@@ -736,7 +731,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// ColoredTableCellRenderer ctcr = new ColoredTableCellRenderer();
 		// logTable.setDefaultRenderer(String.class, ctcr);
 		logTable.setCellSelectionEnabled(true);
-		logTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		logTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		logTable.setFont(new Font("SansSerif", Font.PLAIN, 16));
 		logTable.setBackground(SystemColor.text);
 		logTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -764,6 +759,34 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		logTable.getColumnModel().getColumn(9).setPreferredWidth(100);// bytes
 		logTable.getColumnModel().getColumn(9).setMaxWidth(100);// bytes
 
+		final JPopupMenu popupMenu = new JPopupMenu();
+		JMenuItem deleteItem = new JMenuItem("Delete");
+		deleteItem.setIcon(IconFontSwing.buildIcon(FontAwesome.TRASH, 10));
+		deleteItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				logTable.deleteMultipleRows();
+			}
+		});
+		popupMenu.add(deleteItem);
+		popupMenu.addSeparator();
+		for (String color : logTable.bgColors.keySet()) {
+			String title = StringUtils.capitalize(color);
+			ColoredMenuItem colorMenu = new ColoredMenuItem(title, logTable.bgColors.get(color));
+			colorMenu.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					logTable.setColor(color);
+					logTable.clearSelection();
+				}
+			});
+			popupMenu.add(colorMenu);
+		}
+
+		logTable.setComponentPopupMenu(popupMenu);
+
 		JScrollPane logscrollPane = new JScrollPane(logTable);
 		splitPane.setLeftComponent(logscrollPane);
 
@@ -782,7 +805,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		GridBagLayout gbl_panel_5 = new GridBagLayout();
 		gbl_panel_5.columnWidths = new int[] { 115, 658, 0, 0, 0 };
 		gbl_panel_5.rowHeights = new int[] { 35, 123, 0 };
-		gbl_panel_5.columnWeights = new double[] { 0.0, 1.0, 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panel_5.columnWeights = new double[] { 0.0, 1.0, 0.0, 0.0, 1.0 };
 		gbl_panel_5.rowWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		panel_5.setLayout(gbl_panel_5);
 
@@ -820,12 +843,33 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		// selected.
 		ntbm.label = lblSelected;
 
+		JCheckBox isHighlightedCbx = new JCheckBox("Show Highlighted");
+		GridBagConstraints gbc_isHighlightedCbx = new GridBagConstraints();
+		gbc_isHighlightedCbx.anchor = GridBagConstraints.EAST;
+		gbc_isHighlightedCbx.insets = new Insets(0, 0, 5, 5);
+		gbc_isHighlightedCbx.gridx = 2;
+		gbc_isHighlightedCbx.gridy = 0;
+		isHighlightedCbx.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				System.out.println(e.getStateChange());
+				Support.updateTable(ntbm,searchDb.getText(), 
+					e.getStateChange() == ItemEvent.SELECTED
+					);
+
+			}
+
+		});
+
+		panel_5.add(isHighlightedCbx, gbc_isHighlightedCbx);
+
 		JLabel lblSearch = new JLabel("");// Search
 		lblSearch.setIcon(IconFontSwing.buildIcon(FontAwesome.SEARCH, 16, NopeOrange));
 		GridBagConstraints gbc_lblSearch = new GridBagConstraints();
 		gbc_lblSearch.anchor = GridBagConstraints.EAST;
 		gbc_lblSearch.insets = new Insets(0, 0, 5, 5);
-		gbc_lblSearch.gridx = 2;
+		gbc_lblSearch.gridx = 3;
 		gbc_lblSearch.gridy = 0;
 		panel_5.add(lblSearch, gbc_lblSearch);
 
@@ -835,43 +879,14 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				if (arg0.getKeyCode() == arg0.VK_ENTER) {
-					if (!searchDb.getText().equals("")) {
-						int rowCount = ntbm.getRowCount();
-						if (rowCount > 0) {
-							for (int i = rowCount - 1; i >= 0; i--) {
-								ntbm.log.remove(i);
-								//
-							}
-						}
-						// ntbm.fireTableRowsDeleted(0, rowCount-1);
-						// ntbm.fireTableDataChanged();
-						LinkedList<LogEntry> list = LogEntry.searchDB(searchDb.getText().trim());
-						for (LogEntry le : list) {
-							ntbm.log.add(le);
-						}
-						ntbm.fireTableDataChanged();
-					} else {
-						int rowCount = ntbm.getRowCount();
-						if (rowCount > 0) {
-							for (int i = rowCount - 1; i >= 0; i--) {
-								ntbm.log.remove(i);
-							}
-						}
-						LinkedList<LogEntry> list = LogEntry.restoreDB();
-						for (LogEntry le : list) {
-							ntbm.log.add(le);
-
-						}
-						ntbm.fireTableDataChanged();
-
-					}
+					Support.updateTable(ntbm, searchDb.getText(), isHighlightedCbx.isSelected());
 				}
 			}
 		});
 		GridBagConstraints gbc_searchDb = new GridBagConstraints();
 		gbc_searchDb.insets = new Insets(0, 0, 5, 0);
 		gbc_searchDb.fill = GridBagConstraints.HORIZONTAL;
-		gbc_searchDb.gridx = 3;
+		gbc_searchDb.gridx = 4;
 		gbc_searchDb.gridy = 0;
 		panel_5.add(searchDb, gbc_searchDb);
 		searchDb.setColumns(10);
@@ -879,7 +894,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		JTabbedPane tabs = new JTabbedPane();
 		GridBagConstraints gbc_tabs = new GridBagConstraints();
 		gbc_tabs.anchor = GridBagConstraints.WEST;
-		gbc_tabs.gridwidth = 4;
+		gbc_tabs.gridwidth = 5;
 		gbc_tabs.fill = GridBagConstraints.BOTH;
 		gbc_tabs.insets = new Insets(0, 0, 0, 5);
 		gbc_tabs.gridx = 0;
@@ -918,10 +933,9 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setIntercept(toggle);
 				}
-				for(GenericUDPMiTMServer svr : udpThreads.values()){
-				  	svr.setIntercept(toggle);
+				for (GenericUDPMiTMServer svr : udpThreads.values()) {
+					svr.setIntercept(toggle);
 				}
-				 
 
 			}
 		});
@@ -933,7 +947,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		btnForward.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				synchronized (intbm) {
-					//was selctionBackground
+					// was selctionBackground
 					isC2S.setBackground(UIManager.getColor("CheckBoxMenuItem.background"));
 					isS2C.setBackground(UIManager.getColor("CheckBoxMenuItem.background"));
 					intbm.notify();
@@ -955,8 +969,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setInterceptDir(svr.INTERCEPT_C2S);
 				}
-				for(GenericUDPMiTMServer svr : udpThreads.values()){
-				  svr.setInterceptDir(svr.INTERCEPT_C2S);
+				for (GenericUDPMiTMServer svr : udpThreads.values()) {
+					svr.setInterceptDir(svr.INTERCEPT_C2S);
 				}
 
 			}
@@ -977,8 +991,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setInterceptDir(svr.INTERCEPT_S2C);
 				}
-				for(GenericUDPMiTMServer svr : udpThreads.values()){
-				  svr.setInterceptDir(svr.INTERCEPT_S2C);
+				for (GenericUDPMiTMServer svr : udpThreads.values()) {
+					svr.setInterceptDir(svr.INTERCEPT_S2C);
 				}
 			}
 		});
@@ -998,8 +1012,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				for (GenericMiTMServer svr : threads.values()) {
 					svr.setInterceptDir(svr.INTERCEPT_BOTH);
 				}
-				for(GenericUDPMiTMServer svr : udpThreads.values()){
-				  svr.setInterceptDir(svr.INTERCEPT_BOTH);
+				for (GenericUDPMiTMServer svr : udpThreads.values()) {
+					svr.setInterceptDir(svr.INTERCEPT_BOTH);
 				}
 			}
 		});
@@ -1697,8 +1711,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 
 						@Override
 						public void ConnectAttempt(PortConnectEvt pkt) {
-							//BurpTabs.setIconAt(4,
-								//	IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC, 20, NopeRed));
+							// BurpTabs.setIconAt(4,
+							// IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC, 20, NopeRed));
 							Vector<Object> vec = new Vector<Object>();
 
 							vec.add(model.getRowCount());
@@ -1708,14 +1722,17 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 							vec.add(4, pkt.getProto());
 							vec.add(5, pkt.getService());
 							model.insertRow(0, vec);
-							/*Timer t = new Timer();
-							t.schedule(new TimerTask() {
-								@Override
-								public void run() {
-									BurpTabs.setIconAt(4,
-											IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC, 20, NopePurple));
-								}
-							}, 2 * 1000);*/
+							/*
+							 * Timer t = new Timer();
+							 * t.schedule(new TimerTask() {
+							 * 
+							 * @Override
+							 * public void run() {
+							 * BurpTabs.setIconAt(4,
+							 * IconFontSwing.buildIcon(GoogleMaterialDesignIcons.PUBLIC, 20, NopePurple));
+							 * }
+							 * }, 2 * 1000);
+							 */
 
 						}
 
@@ -2007,8 +2024,8 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 					String sip = (String) tbm.getValueAt(rowid, 2);
 					boolean ssl = (boolean) tbm.getValueAt(rowid, 5);
 					Boolean udp = (Boolean) tbm.getValueAt(rowid, 6);
-					if(udp == null){
-						udp=false;
+					if (udp == null) {
+						udp = false;
 					}
 					ListenerSetting ls = new ListenerSetting(lPort, sport, sip, cert, ssl, udp);
 					ListenerDB.remove(ls);
@@ -2712,6 +2729,7 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 		}
 
 	}
+
 	@SuppressWarnings("rawtypes")
 	private synchronized void StopDNS() {
 		Iterator i = _listeners.iterator();
@@ -2736,31 +2754,31 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 	public void DataReceived(ProxyEvent evt) {
 		// Network data to the queue.
 		// timer will process this every 2 seconds and add them to the log.
-		byte [] formated = evt.getData();
+		byte[] formated = evt.getData();
 		System.out.println("Data Received");
 		System.out.println(this.chckbxEnablePythonMangler.isSelected());
-		if(this.chckbxEnablePythonMangler.isSelected()){
+		if (this.chckbxEnablePythonMangler.isSelected()) {
 			boolean isC2s = true;
-			if(evt.getDirection().contains("s2c")){
+			if (evt.getDirection().contains("s2c")) {
 				isC2s = false;
 			}
 			try {
 				PythonMangler mangler = new PythonMangler();
 				mangler.setPyCode(this.pythonText.getText());
 				mangler.reload();
-				formated = mangler.formatOnly(evt.getData(),isC2s);
-				if(formated != evt.getData() && !evt.getDirection().contains("formated")){
+				formated = mangler.formatOnly(evt.getData(), isC2s);
+				if (formated != evt.getData() && !evt.getDirection().contains("formated")) {
 					System.out.println("formatOnly ran");
 					evt.setData(formated);
 					evt.setDirection(evt.getDirection() + " - formated ");
 				}
-			}catch(Exception ex){
+			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-				
+
 		}
 		queue.add(new LogEntry(evt.getData(), evt.getOriginalData(), evt.getSrcIP(), evt.getSrcPort(), evt.getDstIP(),
-				evt.getDstPort(), evt.getDirection(), evt.getProtocol()));
+				evt.getDstPort(), evt.getDirection(), evt.getProtocol(), ""));
 
 	}
 
@@ -2820,24 +2838,25 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 				if (isC2S) {
 					if (evt.isTCPMtm())
 						evt.getTCPMtm().forwardC2SRequest(intbm.requestViewer.getMessage());
-					
+
 					else
-					  evt.getUDPMtm().forwardC2SRequest(intbm.requestViewer.getMessage());
-					 
+						evt.getUDPMtm().forwardC2SRequest(intbm.requestViewer.getMessage());
+
 				} else {
 					if (evt.isTCPMtm())
 						evt.getTCPMtm().forwardS2CRequest(intbm.requestViewer.getMessage());
-					
+
 					else
-					  evt.getUDPMtm().forwardS2CRequest(intbm.requestViewer.getMessage());
-					 
+						evt.getUDPMtm().forwardS2CRequest(intbm.requestViewer.getMessage());
+
 				}
 				if (intbm.requestViewer.getMessage() == origReq)
 					queue.add(new LogEntry(intbm.requestViewer.getMessage(), origReq, evt.getSrcIP(), evt.getSrcPort(),
-							evt.getDstIP(), evt.getDstPort(), evt.getDirection(), evt.getProtocol()));
+							evt.getDstIP(), evt.getDstPort(), evt.getDirection(), evt.getProtocol(), ""));
 				else
 					queue.add(new LogEntry(intbm.requestViewer.getMessage(), origReq, evt.getSrcIP(), evt.getSrcPort(),
-							evt.getDstIP(), evt.getDstPort(), "** " + evt.getDirection() + " ** - Edited", evt.getProtocol()));
+							evt.getDstIP(), evt.getDstPort(), "** " + evt.getDirection() + " ** - Edited",
+							evt.getProtocol(), ""));
 
 				// ntbm.fireTableRowsInserted(0, 0);
 				intbm.requestViewer.setMessage(new byte[] {}, true);
@@ -3000,12 +3019,13 @@ public class NonHttpUI extends JPanel implements ProxyEventListener, DNSTableEve
 
 	@Override
 	public void extensionUnloaded() {
-		this.udpThreads.forEach( (_key, thread) -> {
+		this.udpThreads.forEach((_key, thread) -> {
 			thread.KillThreads();
 		});
-		this.threads.forEach( (_key, thread) -> {
+		this.threads.forEach((_key, thread) -> {
 			thread.KillThreads();
 		});
 		this.StopDNS();
+		this.lister.kill();
 	}
 }

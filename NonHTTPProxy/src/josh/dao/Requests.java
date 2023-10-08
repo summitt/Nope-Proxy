@@ -44,7 +44,8 @@ public class Requests {
 	private String original_str;
 	@Column(name = "protocol")
 	private String protocol;
-	
+	@Column(name = "color")
+	private String color;
 	 
     public Requests(){};
 	 
@@ -62,6 +63,7 @@ public class Requests {
 		this.original_str =new String(original).replaceAll("[^\\x00-\\x7F]", "");
 		this.data_str = new String(requestResponse).replaceAll("[^\\x00-\\x7F]", "");
 		this.protocol = protocol;
+		this.color="";
 		
 		
 	}
@@ -192,12 +194,10 @@ public class Requests {
 			this.protocol = protocol;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
+	public void setColor(String color){
+		this.color = color;
+	}
+	public String getColor(){
+		return this.color;
+	}
 }
