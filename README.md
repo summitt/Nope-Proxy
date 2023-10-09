@@ -45,13 +45,13 @@ This non-HTTP proxy has several features built in.
 - Use python code to reformat requests in history without changing outgoing or incomming requests. (e.g. Convert protobuf to JSON or human readable formats without modifying the incomming or outgoing traffic)
  
  
-## TCP Repeater
+## TCP/UDP Repeater
  
 ![](http://imgur.com/aNpzAdz.png)
  
-- TCP repeater can be used to replay requests to the client or server on the currently connected socket streams.
+- TCP/UDP repeater can be used to replay requests to the client or server on the currently connected socket streams.
 - Code Playground allows you to create a custom python payload based on the request currently displayed in the repeater.
-- Search TCP proxy History
+- Search TCP/UDP proxy history
 
 ## Configure the proxies
 
@@ -64,9 +64,11 @@ Once you know the right host name and port you can configure these settings as s
 The proxy does not start until ‘enable’ is checked in the table.
 
 Once the proxy is started you can intercept it in real time. All your traffic will be logged into the TCP History Tab and stored locally in a sqlite database. The database can be exported or imported from the Server Configuration Tab. In addition, if Burp crashes or you close burp without saving the TCP History it will still be automatically loaded when you start Burp. 
+
 ## Manual Intercept Traffic
 ![](http://imgur.com/X6xYsq8.png)
 Clicking on the TCP Intercept Tab will allow to enable and disable Manual Intercepting. This will be very similar to intercepting HTTP traffic with burp. If the data sent is just strings then it’s very simple to just replace text or attempt modification to the request. If the application is sending serialized objects or protobuffs then you will need to switch between Raw and Hex mode to ensure the data is encoded correctly and length checks are correct.
+
 ## Automated Manipulation of Traffic
 Once you have your ideal payload you can automatically match and replace in the Automation Tab. 
 ![](http://imgur.com/CBRQVIo.png)
@@ -126,12 +128,17 @@ Now we use the pre and post interceptor functions to make it easier to modify in
 
 Below is an example of the now Human Readable and Editable Protobufs.
 
-![](NonHTTPProxy/screenshots/Post%20Format.PNG)
+![](NonHTTPProxy/screenshots/Post%20Format.PNG)A
+
+## Highlighting Traffic
+You can select mutliple requests and responses and highlight them with custom colors. You can even search only highlighted items. This makes is easy to find interesting requests later that you might want to dig into further. 
+![image](https://github.com/summitt/Nope-Proxy/assets/2343831/ee6d6f98-6f9b-4644-8fa3-5573c058ee7c)
+
 
 
 ### Upcomming features
 - UDP repeater
-- Swithes in the python manger for TCP or UDP request only modification
+- Switches in the python manger for TCP or UDP request only modification
 - Ability to decrypted encrypted UDP traffic like QUIC and other protocols
 - Ability to auto sense encrypted traffic so it can better decode XMPP, SSH, SFTP, etc. 
 
