@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bouncycastle.util.Arrays;
+
 import burp.IBurpExtenderCallbacks;
 import josh.nonHttp.events.ProxyEvent;
 import josh.nonHttp.events.ProxyEventListener;
@@ -134,41 +136,44 @@ public class GenericUDPMiTMServer
 			String IPV4_PATTERN = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
 			Pattern pattern = Pattern.compile(IPV4_PATTERN);
 			Matcher matcher = pattern.matcher(this.ServerAddress);
-			if(matcher.matches()){
-				String [] stringOctets = this.ServerAddress.split("\\.");
-				byte [] byteOctets = new byte[4];
+			if (matcher.matches()) {
+				String[] stringOctets = this.ServerAddress.split("\\.");
+				byte[] byteOctets = new byte[4];
 				byteOctets[0] = (byte) (Integer.parseInt(stringOctets[0]) & 0xFF);
 				byteOctets[1] = (byte) (Integer.parseInt(stringOctets[1]) & 0xFF);
 				byteOctets[2] = (byte) (Integer.parseInt(stringOctets[2]) & 0xFF);
 				byteOctets[3] = (byte) (Integer.parseInt(stringOctets[3]) & 0xFF);
 				serverAddress = InetAddress.getByAddress(byteOctets);
-			}else{
+			} else {
 				serverAddress = InetAddress.getByName(this.ServerAddress);
 			}
-			//This information will be populated on the firest request
+			// This information will be populated on the firest request
 			InetAddress clientAddress = null;
 			int clientPort = -1;
 
 			while (true && !killme) {
 				try {
-					byte[] buffer = new byte[2056];	
+					byte[] buffer = new byte[2056];
 					DatagramPacket udpPacket = new DatagramPacket(buffer, buffer.length);
 					udpServerSocket.receive(udpPacket);
-
-					if(udpPacket.getPort() != this.ServerPort){
+					int packetLength = udpPacket.getLength();
+					buffer = Arrays.copyOf(buffer, packetLength);
+					if (udpPacket.getPort() != this.ServerPort) {
 						clientAddress = udpPacket.getAddress();
 						clientPort = udpPacket.getPort();
 
-						UDPDataPipeline pipeline = new UDPDataPipeline(this,buffer,clientAddress,clientPort, serverAddress, ServerPort, true);
+						UDPDataPipeline pipeline = new UDPDataPipeline(this, buffer, clientAddress, clientPort,
+								serverAddress, ServerPort, true);
 						pipeline.addEventListener(GenericUDPMiTMServer.this);
 						pipeline.addPyEventListener(this);
 						pipeline.addSendClosedEventListener(this);
 						Thread c2s = new Thread(pipeline);
 						c2s.run();
-					}else if(clientPort == -1){
+					} else if (clientPort == -1) {
 						System.out.println("Don't have a client port yet");
-					}else{
-						UDPDataPipeline pipeline = new UDPDataPipeline(this,buffer,serverAddress,ServerPort, clientAddress, clientPort, false);
+					} else {
+						UDPDataPipeline pipeline = new UDPDataPipeline(this, buffer, serverAddress, ServerPort,
+								clientAddress, clientPort, false);
 						pipeline.addEventListener(GenericUDPMiTMServer.this);
 						pipeline.addPyEventListener(this);
 						pipeline.addSendClosedEventListener(this);
@@ -240,7 +245,7 @@ public class GenericUDPMiTMServer
 
 	}
 
-	public void KillThreads(){
+	public void KillThreads() {
 		this.udpServerSocket.close();
 		this.killme = true;
 	}
