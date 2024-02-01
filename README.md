@@ -1,6 +1,10 @@
 
 
 # NoPE Proxy
+ ![GitHub last commit](https://img.shields.io/github/last-commit/factionsecurity/faction) ![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/factionsecurity/faction)
+
+[![](https://img.shields.io/badge/null0perat0r-it?style=flat-square&logo=mastodon&labelColor=white&color=white&link=https%3A%2F%2Finfosec.exchange%2F%40null0perat0r)](https://infosec.exchange/@null0perat0r)
+ [![](https://img.shields.io/twitter/follow/null0perar0r)](https://twitter.com/intent/follow?screen_name=null0perar0r)
 
 <img align="right" style="width:400px; margin-top: 70px" src="Nope.png"/>
 
