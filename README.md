@@ -144,7 +144,14 @@ You can select mutliple requests and responses and highlight them with custom co
 - UDP repeater
 - Switches in the python manger for TCP or UDP request only modification
 - Ability to decrypted encrypted UDP traffic like QUIC and other protocols
-- Ability to auto sense encrypted traffic so it can better decode XMPP, SSH, SFTP, etc. 
+- Ability to auto sense encrypted traffic so it can better decode XMPP, SSH, SFTP, etc.
+
+## Check out my other project,  Faction: pentesting collaboration framework
+[https://github.com/factionsecurity/faction](https://github.com/factionsecurity/faction)
+[https://docs.factionsecurity.com/](https://docs.factionsecurity.com/)
+[https://www.factionsecurity.com/](https://www.factionsecurity.com/)
+
+
 
 
 
